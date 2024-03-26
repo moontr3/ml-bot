@@ -4,6 +4,8 @@ from data import *
 from log import *
 from typing import *
 from config import *
+import utils
+import datetime
 
 
 # setup
@@ -18,6 +20,7 @@ async def setup(bot: commands.Bot):
         '''
         Shows bot ping.
         '''
+        log(f'{ctx.user.id} requested bot ping')
         ping = round(bot.latency*1000)
         embed = discord.Embed(
             title='🏓 Понг!', description=f'**{ping}** мс',
@@ -38,7 +41,6 @@ async def setup(bot: commands.Bot):
         name='purge',
         description='Удаляет определенное количество сообщений в канале.'
     )
-    @commands.has_permissions(manage_messages=True)
     async def slash_purge(
         ctx: discord.Interaction, amount:int,
         member:discord.User=None, keywords:str=''
@@ -46,6 +48,11 @@ async def setup(bot: commands.Bot):
         '''
         Purges the channel.
         '''
+        # checking permissions
+        if not ctx.permissions.manage_messages:
+            await ctx.response.send_message(embed=MISSING_PERMS_EMBED)
+            return
+
         # just purge
         if member == None and keywords == '':
             deleted = await ctx.channel.purge(limit=amount)
@@ -76,6 +83,8 @@ async def setup(bot: commands.Bot):
             deleted = await ctx.channel.purge(limit=amount, check=check)
             text = f'Успешно очищено **{len(deleted)}** сообщений от {member.mention}!'
 
+        log(f'{ctx.user.id} purged {len(deleted)}/{amount} messages in {ctx.channel.id}')
+
         # sending message
         # checking if there even was something deleted
         if len(deleted) == 0:
@@ -91,3 +100,125 @@ async def setup(bot: commands.Bot):
         await ctx.response.send_message(embed=embed)
 
     bot.tree.add_command(slash_purge)
+
+
+    # mute command
+    @discord.app_commands.describe(
+        member='Участник, которого нужно замутить',
+        time='Длина мута в формате "10h", "3д" и так далее',
+        reason='Причина мута'
+    )
+    @discord.app_commands.command(
+        name='mute',
+        description='Мутит определенного участника на сервере.'
+    )
+    async def slash_mute(
+        ctx: discord.Interaction, member:discord.Member,
+        time:str, reason:str=None
+    ):
+        '''
+        Mutes the specified user.
+        '''
+        # checking permissions
+        if not ctx.permissions.moderate_members:
+            await ctx.response.send_message(embed=MISSING_PERMS_EMBED)
+            return
+
+        # muting user
+        data = utils.seconds_from_string(time)
+        # checking input validity
+        if data == None:
+            embed = discord.Embed(
+                title='🤐 Таймаут', color=ERROR_C,
+                description=f'Указана некорректная длина.'
+            )
+            await ctx.response.send_message(embed=embed, ephemeral=True)
+            return
+        
+        else:
+            length = data[0]
+            unit_name = data[1]
+            unit_length = data[2]
+
+        length = datetime.timedelta(seconds=length)
+        
+        # timeouting user
+        try:
+            await member.timeout(length, reason=reason)
+            log(f'{ctx.user.id} timeouted user {member.id} for {time}')
+        
+        except Exception as e:
+            log(f'Error while {ctx.user.id} was timeouting {member.id} for {time}: {e}', level=ERROR)
+            embed = discord.Embed(
+                title='🤐 Таймаут', color=ERROR_C,
+                description=f'Не удалось замутить участника.'
+            )
+            await ctx.response.send_message(embed=embed, ephemeral=True)
+            return
+
+        # sending message
+        if reason == None:
+            embed = discord.Embed(
+                title='🤐 Таймаут', color=DEFAULT_C,
+                description=f'{member.mention} успешно замьючен на **{unit_length} {unit_name}**.'
+            )
+        else:
+            embed = discord.Embed(
+                title='🤐 Таймаут', color=DEFAULT_C,
+                description=f'{member.mention} успешно замьючен на **{unit_length} {unit_name}**'\
+                    f' с причиной **{utils.remove_md(reason)}**.'
+            )
+        await ctx.response.send_message(embed=embed)
+
+    bot.tree.add_command(slash_mute)
+
+
+    # unmute command
+    @discord.app_commands.describe(
+        member='Участник, которого нужно размутить'
+    )
+    @discord.app_commands.command(
+        name='unmute',
+        description='Размучивает определенного участника на сервере.'
+    )
+    async def slash_unmute(
+        ctx: discord.Interaction, member:discord.Member
+    ):
+        '''
+        Unmutes the specified user.
+        '''
+        # checking permissions
+        if not ctx.permissions.moderate_members:
+            await ctx.response.send_message(embed=MISSING_PERMS_EMBED)
+            return
+
+        # checking if the user is muted or not
+        if member.timed_out_until == None:
+            embed = discord.Embed(
+                title='🤐 Размут', color=ERROR_C,
+                description=f'Выбранный участник и так не в муте.'
+            )
+            await ctx.response.send_message(embed=embed, ephemeral=True)
+            return
+
+        # unmuting
+        try:
+            await member.timeout(None)
+            log(f'{ctx.user.id} unmuted user {member.id}')
+
+        except Exception as e:
+            log(f'Error while {ctx.user.id} was unmuting {member.id}: {e}', level=ERROR)
+            embed = discord.Embed(
+                title='🤐 Размут', color=ERROR_C,
+                description=f'Не удалось размутить участника.'
+            )
+            await ctx.response.send_message(embed=embed, ephemeral=True)
+            return
+            
+        embed = discord.Embed(
+            title='🤐 Размут', color=DEFAULT_C,
+            description=f'Вы успешно размутили {member.mention}!'
+        )
+        await ctx.response.send_message(embed=embed)
+
+    bot.tree.add_command(slash_unmute)

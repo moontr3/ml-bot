@@ -21,21 +21,12 @@ async def setup(bot: commands.Bot):
         if isinstance(error, commands.MissingRequiredArgument):
             # not enough args
             log(f'{ctx.author} {ctx.author.id} missing required argument(s): {ctx.content}', level=ERROR)
-            embed = discord.Embed(
-                title='❌ Ошибка!', description='Приведено недостаточно аргументов.',
-                color=ERROR_C
-            )
-            await ctx.reply(embed=embed)
+            await ctx.reply(embed=ARGS_REQUIRED_EMBED)
 
         elif isinstance(error, commands.MissingPermissions):
             # missing required permissions
             log(f'{ctx.author} {ctx.author.id} missing permissions: {ctx.content}', level=ERROR)
-            embed = discord.Embed(
-                title='❌ Ошибка!',
-                description='Недостаточно прав для исполнения команды.',
-                color=ERROR_C
-            )
-            await ctx.reply(embed=embed)
+            await ctx.reply(embed=MISSING_PERMS_EMBED)
 
         elif isinstance(error, commands.CommandNotFound):
             # unknown command
@@ -44,8 +35,4 @@ async def setup(bot: commands.Bot):
         else:
             # everything else basically
             log(f'{ctx.author} {ctx.author.id} issued a command error: {error}', level=ERROR)
-            embed = discord.Embed(
-                title='❌ Ошибка!', escription=f'Неизвестная ошибка:\n\n`{error}`',
-                color=ERROR_C
-            )
-            await ctx.reply(embed=embed)
+            await ctx.reply(embed=UNKNOWN_ERROR_EMBED)
