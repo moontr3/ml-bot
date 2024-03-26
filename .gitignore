@@ -1,0 +1,7 @@
+__pycache__
+log.txt
+*.bak
+.env
+users.json
+data.json
+templates
