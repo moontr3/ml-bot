@@ -26,7 +26,7 @@ async def setup(bot: commands.Bot):
             member = ctx.user
         acc: api.User = bot.mg.get_user(member.id)
 
-        log(f'{ctx.user.id} requested xp level of {member.id}')
+        log(f'{ctx.author.id} requested xp level of {member.id}')
         role = ctx.guild.get_role(acc.xp.level_data)
 
         desc = f'### {role.name.title()} ・ Уровень {acc.xp.level} ・ {acc.xp.xp} XP'\

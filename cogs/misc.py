@@ -20,7 +20,7 @@ async def setup(bot: commands.Bot):
         '''
         Shows bot ping.
         '''
-        log(f'{ctx.user.id} requested bot ping')
+        log(f'{ctx.author.id} requested bot ping')
         ping = round(bot.latency*1000)
         embed = discord.Embed(
             title='🏓 Понг!', description=f'**{ping}** мс',
@@ -84,7 +84,7 @@ async def setup(bot: commands.Bot):
             deleted = await ctx.channel.purge(limit=amount, check=check)
             text = f'Успешно очищено **{len(deleted)}** сообщений от {member.mention}!'
 
-        log(f'{ctx.user.id} purged {len(deleted)}/{amount} messages in {ctx.channel.id}')
+        log(f'{ctx.author.id} purged {len(deleted)}/{amount} messages in {ctx.channel.id}')
 
         # sending message
         # checking if there even was something deleted
@@ -144,10 +144,10 @@ async def setup(bot: commands.Bot):
         # timeouting user
         try:
             await member.timeout(length, reason=reason)
-            log(f'{ctx.user.id} timeouted user {member.id} for {time}')
+            log(f'{ctx.author.id} timeouted user {member.id} for {time}')
         
         except Exception as e:
-            log(f'Error while {ctx.user.id} was timeouting {member.id} for {time}: {e}', level=ERROR)
+            log(f'Error while {ctx.author.id} was timeouting {member.id} for {time}: {e}', level=ERROR)
             embed = discord.Embed(
                 title='🤐 Таймаут', color=ERROR_C,
                 description=f'Не удалось замутить участника.'
@@ -201,10 +201,10 @@ async def setup(bot: commands.Bot):
         # unmuting
         try:
             await member.timeout(None)
-            log(f'{ctx.user.id} unmuted user {member.id}')
+            log(f'{ctx.author.id} unmuted user {member.id}')
 
         except Exception as e:
-            log(f'Error while {ctx.user.id} was unmuting {member.id}: {e}', level=ERROR)
+            log(f'Error while {ctx.author.id} was unmuting {member.id}: {e}', level=ERROR)
             embed = discord.Embed(
                 title='🤐 Размут', color=ERROR_C,
                 description=f'Не удалось размутить участника.'
