@@ -14,7 +14,7 @@ async def setup(bot: commands.Bot):
     @discord.app_commands.describe(
         member='Участник сервера, у которого нужно узнать опыт.'
     )
-    @discord.app_commands.command(
+    @bot.hybrid_command(
         name='xp',
         description='Показывает текущий опыт пользователя.'
     )
@@ -36,6 +36,4 @@ async def setup(bot: commands.Bot):
             description=desc, color=role.color
         )
         embed.set_author(name=f'✨ Опыт {member.display_name}')
-        await ctx.response.send_message(embed=embed)
-
-    bot.tree.add_command(slash_xp)
+        await ctx.reply(embed=embed)

@@ -12,11 +12,11 @@ import datetime
 async def setup(bot: commands.Bot):
 
     # ping command
-    @discord.app_commands.command(
+    @bot.hybrid_command(
         name='ping',
         description='Показывает пинг бота.'
     )
-    async def slash_ping(ctx: discord.Interaction):
+    async def slash_ping(ctx: commands.Context):
         '''
         Shows bot ping.
         '''
@@ -26,9 +26,7 @@ async def setup(bot: commands.Bot):
             title='🏓 Понг!', description=f'**{ping}** мс',
             color=DEFAULT_C
         )
-        await ctx.response.send_message(embed=embed)
-
-    bot.tree.add_command(slash_ping)
+        await ctx.reply(embed=embed)
 
 
     # purge command
@@ -37,12 +35,12 @@ async def setup(bot: commands.Bot):
         member='Фильтр для удаления сообщений только указанного участника',
         keywords='Фильтр для удаления сообщений только с нужным текстом'
     )
-    @discord.app_commands.command(
+    @bot.hybrid_command(
         name='purge',
         description='Удаляет определенное количество сообщений в канале.'
     )
     async def slash_purge(
-        ctx: discord.Interaction, amount:int,
+        ctx: commands.Context, amount:int,
         member:discord.User=None, keywords:str=''
     ):
         '''
@@ -50,8 +48,11 @@ async def setup(bot: commands.Bot):
         '''
         # checking permissions
         if not ctx.permissions.manage_messages:
-            await ctx.response.send_message(embed=MISSING_PERMS_EMBED)
+            await ctx.reply(embed=MISSING_PERMS_EMBED)
             return
+        
+        # sending loading message
+        await ctx.reply(embed=LOADING_EMBED)
 
         # just purge
         if member == None and keywords == '':
@@ -97,9 +98,7 @@ async def setup(bot: commands.Bot):
                 title='🗑 Очистка', description=text,
                 color=DEFAULT_C
             )
-        await ctx.response.send_message(embed=embed)
-
-    bot.tree.add_command(slash_purge)
+        await ctx.response.edit_message(embed=embed)
 
 
     # mute command
@@ -108,12 +107,12 @@ async def setup(bot: commands.Bot):
         time='Длина мута в формате "10h", "3д" и так далее',
         reason='Причина мута'
     )
-    @discord.app_commands.command(
+    @bot.hybrid_command(
         name='mute',
         description='Мутит определенного участника на сервере.'
     )
     async def slash_mute(
-        ctx: discord.Interaction, member:discord.Member,
+        ctx: commands.Context, member:discord.Member,
         time:str, reason:str=None
     ):
         '''
@@ -121,7 +120,7 @@ async def setup(bot: commands.Bot):
         '''
         # checking permissions
         if not ctx.permissions.moderate_members:
-            await ctx.response.send_message(embed=MISSING_PERMS_EMBED)
+            await ctx.reply(embed=MISSING_PERMS_EMBED)
             return
 
         # muting user
@@ -132,7 +131,7 @@ async def setup(bot: commands.Bot):
                 title='🤐 Таймаут', color=ERROR_C,
                 description=f'Указана некорректная длина.'
             )
-            await ctx.response.send_message(embed=embed, ephemeral=True)
+            await ctx.reply(embed=embed, ephemeral=True)
             return
         
         else:
@@ -153,7 +152,7 @@ async def setup(bot: commands.Bot):
                 title='🤐 Таймаут', color=ERROR_C,
                 description=f'Не удалось замутить участника.'
             )
-            await ctx.response.send_message(embed=embed, ephemeral=True)
+            await ctx.reply(embed=embed, ephemeral=True)
             return
 
         # sending message
@@ -168,28 +167,26 @@ async def setup(bot: commands.Bot):
                 description=f'{member.mention} успешно замьючен на **{unit_length} {unit_name}**'\
                     f' с причиной **{utils.remove_md(reason)}**.'
             )
-        await ctx.response.send_message(embed=embed)
-
-    bot.tree.add_command(slash_mute)
+        await ctx.reply(embed=embed)
 
 
     # unmute command
     @discord.app_commands.describe(
         member='Участник, которого нужно размутить'
     )
-    @discord.app_commands.command(
+    @bot.hybrid_command(
         name='unmute',
         description='Размучивает определенного участника на сервере.'
     )
     async def slash_unmute(
-        ctx: discord.Interaction, member:discord.Member
+        ctx: commands.Context, member:discord.Member
     ):
         '''
         Unmutes the specified user.
         '''
         # checking permissions
         if not ctx.permissions.moderate_members:
-            await ctx.response.send_message(embed=MISSING_PERMS_EMBED)
+            await ctx.reply(embed=MISSING_PERMS_EMBED)
             return
 
         # checking if the user is muted or not
@@ -198,7 +195,7 @@ async def setup(bot: commands.Bot):
                 title='🤐 Размут', color=ERROR_C,
                 description=f'Выбранный участник и так не в муте.'
             )
-            await ctx.response.send_message(embed=embed, ephemeral=True)
+            await ctx.reply(embed=embed, ephemeral=True)
             return
 
         # unmuting
@@ -212,13 +209,11 @@ async def setup(bot: commands.Bot):
                 title='🤐 Размут', color=ERROR_C,
                 description=f'Не удалось размутить участника.'
             )
-            await ctx.response.send_message(embed=embed, ephemeral=True)
+            await ctx.reply(embed=embed, ephemeral=True)
             return
             
         embed = discord.Embed(
             title='🤐 Размут', color=DEFAULT_C,
             description=f'Вы успешно размутили {member.mention}!'
         )
-        await ctx.response.send_message(embed=embed)
-
-    bot.tree.add_command(slash_unmute)
+        await ctx.reply(embed=embed)
