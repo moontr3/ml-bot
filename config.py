@@ -1,6 +1,6 @@
 import discord
 
-PREFIXES = ('!')
+PREFIXES = ('tml!')
 ADMINS = [698457845301248010]
 
 LEVELS = [
@@ -37,6 +37,9 @@ UNKNOWN_ERROR_EMBED = discord.Embed(
 ARGS_REQUIRED_EMBED = discord.Embed(
     title='❌ Ошибка!', color=ERROR_C,
     description='Приведено недостаточно аргументов.'
+)
+LOADING_EMBED = discord.Embed(
+    title='Загружаем...', color=LOADING_C
 )
 
 UNITTABLE = {
