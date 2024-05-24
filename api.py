@@ -9,44 +9,6 @@ from copy import deepcopy
 
 # user and user-related classes
 
-class PollOption:
-    def __init__(self, name:str, users:List[int]):
-        '''
-        Represents an option in a poll.
-        '''
-        self.name: str = name
-        self.users: List[int] = users
-        
-
-class Poll:
-    def __init__(self, data:dict):
-        '''
-        Represents a poll
-        '''
-        self.data: dict = data
-
-        self.channel_id: int = data['channel_id']
-        self.end_time: float = data['end_time']
-        self.duration: float = data['duration']
-        self.text: str = data['text']
-
-        self.options: List[PollOption] = [
-            PollOption(i, data['options'][i]) for i in data['options']
-        ]
-
-    def to_dict(self) -> dict:
-        '''
-        Converts the poll to a dict.
-        '''
-        return {
-            'channel_id': self.channel_id,
-            'end_time': self.end_time,
-            'duration': self.duration,
-            'text': self.text,
-            'options': {i.name: i.users for i in self.options}
-        }
-
-
 class Reminder:
     def __init__(self, data:dict):
         '''
@@ -113,7 +75,6 @@ class User:
         self.xp = XP(xp)
         self.warns: int = data.get('warns', 0)
         self.quarantine: float | None = data.get('quarantine', None)
-        self.polls: List[Poll] = [Poll(i) for i in data.get('polls', [])]
         self.reminders: List[Reminder] = [Reminder(i) for i in data.get('reminders', [])]
         self.tokens: Dict[int] = data.get('tokens', {})
 
@@ -130,7 +91,6 @@ class User:
             "hah": self.hah,
             "warns": self.warns,
             "quarantine": self.quarantine,
-            "polls": [i.to_dict() for i in self.polls],
             "reminders": [i.to_dict() for i in self.reminders],
             "tokens": self.tokens,
             "token_dig_timeout": self.token_dig_timeout,

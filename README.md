@@ -9,7 +9,6 @@ A bot I made for [my Discord server](https://discord.gg/s3NrXyYjnG) with Python 
 - [x] Basic moderation tools
 - [ ] Custom roles
 - [ ] Warn system
-- [ ] Polls
 - [ ] Reminders
 - [ ] Logging
 - [ ] Reporting users
