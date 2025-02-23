@@ -1,5 +1,6 @@
 from typing import *
 from config import *
+import datetime
 
 
 # functions
@@ -46,3 +47,22 @@ def remove_md(string:str, escape_spoilers:bool=False) -> str:
         string = string.replace('|', '\\|')
 
     return string
+
+def datetime_to_text(time:datetime.datetime) -> str:
+    '''
+    Converts a datetime.datetime object into a neat string eg.
+
+    11 Sep 2011, 14:22:16, Wed
+    '''
+    month = [
+        'Янв','Фев','Мар','Апр','Май','Июн',
+        'Июл','Авг','Сен','Окт','Ноя','Дек'
+    ][time.month-1]
+    weekday = [
+        'Пн','Вт','Ср','Чт','Пт','Сб','Вс'
+    ][time.weekday()]
+
+    text = f'{time.day} {month} {time.year}, '\
+        f'{time.hour}:{time.minute}:{time.second}'
+
+    return

@@ -2,6 +2,7 @@ from typing import *
 from config import *
 import json
 import os
+import time
 from log import *
 from copy import deepcopy
 
@@ -14,12 +15,12 @@ class Reminder:
         '''
         Represents a reminder.
         '''
-        self.message_id: int = data['id']
+        self.message_id: "int | None" = data['id']
         self.channel_id: int = data['channel_id']
         self.end_time: float = data['end_time']
         self.duration: float = data['duration']
-        self.text: str = data['text']
-        self.jump_url: str = data['jump_url']
+        self.text: "str | None" = data['text']
+        self.jump_url: "str | None" = data['jump_url']
 
     def to_dict(self) -> dict:
         '''
@@ -33,6 +34,26 @@ class Reminder:
             "text": self.text,
             "jump_url": self.jump_url
         }
+    
+    @staticmethod
+    def convert(
+        message_id:int,
+        channel_id:int,
+        duration:int,
+        jump_url:str,
+        text:"str | None"=None
+    ) -> "Reminder":
+        '''
+        Computes the stuff by itself.
+        '''
+        return Reminder({
+            "id": message_id,
+            "channel_id": channel_id,
+            "end_time": time.time()+duration,
+            "duration": duration,
+            "jump_url": jump_url,
+            "text": text
+        })
 
 
 class XP:
@@ -184,3 +205,33 @@ class Manager:
         '''
         self.check_user(id)
         return self.users[id]
+    
+    
+    def add_reminder(self,
+        user_id:int,
+        message_id:"int | None",
+        channel_id:int,
+        duration:float,
+        jump_url:"str | None",
+        text:"str | None"
+    ):
+        '''
+        Adds a reminder.
+        '''
+        self.check_user(user_id)
+
+        reminder = Reminder.convert(
+            message_id, channel_id,
+            duration, jump_url, text
+        )
+        self.users[user_id].reminders.append(reminder)
+
+        self.commit()
+    
+
+    def remove_reminder(self, user_id:int, index:int):
+        '''
+        Removes a reminder from a user.
+        '''
+        self.users[user_id].reminders.pop(index)
+        self.commit()
