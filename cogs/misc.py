@@ -1,6 +1,5 @@
 from discord.ext import commands
 import discord
-from data import *
 from log import *
 from typing import *
 from config import *

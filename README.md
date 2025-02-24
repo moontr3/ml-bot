@@ -8,11 +8,10 @@ A bot I made for [my Discord server](https://discord.gg/s3NrXyYjnG) with Python 
 - [ ] Info commands
 - [x] Basic moderation tools
 - [ ] Custom roles
-- [ ] Warn system
-- [ ] Reminders
+- [x] Reminders
 - [ ] Logging
 - [ ] Reporting users
-- [ ] Leveling system and ranks
+- [x] Leveling system and ranks
 - [ ] Ability to close channels
 - [ ] Quarantine
 - [ ] Server blacklist

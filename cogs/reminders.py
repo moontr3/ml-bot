@@ -2,7 +2,6 @@ from discord.ext import commands, tasks
 import discord
 import api
 import time
-from data import *
 from log import *
 from typing import *
 from config import *
@@ -66,7 +65,7 @@ async def setup(bot: commands.Bot):
                 index += 1
 
 
-    @bot.event
+    @bot.listen()
     async def on_ready():
         if not check_reminders.is_running():
             check_reminders.start()

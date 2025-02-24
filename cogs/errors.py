@@ -1,6 +1,5 @@
 from discord.ext import commands
 import discord
-from data import *
 from log import *
 from typing import *
 from config import *
@@ -16,7 +15,7 @@ async def setup(bot: commands.Bot):
 
 
     @bot.event
-    async def on_command_error(ctx, error):
+    async def on_command_error(ctx, error:Exception):
         '''Usually gets called when a user tries to incorrectly invoke a command.'''
         if isinstance(error, commands.MissingRequiredArgument):
             # not enough args
@@ -36,3 +35,4 @@ async def setup(bot: commands.Bot):
             # everything else basically
             log(f'{ctx.author} {ctx.author.id} issued a command error: {error}', level=ERROR)
             await ctx.reply(embed=UNKNOWN_ERROR_EMBED)
+            log(error.__repr__(), level=ERROR)

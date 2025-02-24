@@ -91,16 +91,16 @@ class User:
         '''
         self.id: int = id
 
-        self.hah: bool = data.get('hah', False)
         xp: int = data.get('xp', 0)
         self.xp = XP(xp)
-        self.warns: int = data.get('warns', 0)
         self.quarantine: float | None = data.get('quarantine', None)
         self.reminders: List[Reminder] = [Reminder(i) for i in data.get('reminders', [])]
         self.tokens: Dict[int] = data.get('tokens', {})
 
         self.token_dig_timeout: float = data.get('token_dig_timeout', 0.0)
         self.games_timeout: float = data.get('games_timeout', 0.0)
+
+        self.last_sent_zero: float = 0
 
     
     def to_dict(self) -> dict:
@@ -109,8 +109,6 @@ class User:
         '''
         return {
             "xp": self.xp.xp,
-            "hah": self.hah,
-            "warns": self.warns,
             "quarantine": self.quarantine,
             "reminders": [i.to_dict() for i in self.reminders],
             "tokens": self.tokens,
@@ -165,6 +163,7 @@ class Manager:
                 data = json.load(f)
         except:
             self.panic()
+            return
 
         self.users = {int(id): User(int(id), data) for id, data in data['users'].items()}
 
@@ -186,7 +185,7 @@ class Manager:
 
         # saving
         with open(self.users_file, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False)
+            json.dump(data, f, ensure_ascii=False, indent=4)
 
 
     def check_user(self, id:int):
@@ -235,3 +234,36 @@ class Manager:
         '''
         self.users[user_id].reminders.pop(index)
         self.commit()
+
+
+    def add_xp(self, user_id:int, xp:int) -> "int | None":
+        '''
+        Adds XP to user.
+
+        If user leveled up, return the new level.
+        '''
+        self.check_user(user_id)
+
+        old_level = deepcopy(self.users[user_id].xp.level)
+        self.users[user_id].xp.xp += xp
+        self.users[user_id].xp.reload_levels()
+
+        if old_level != self.users[user_id].xp.level:
+            return self.users[user_id].xp.level
+        
+        self.commit()
+
+
+    def check_user_zero(self, user_id:int) -> bool:
+        '''
+        Checks if user can gain XP for sending zero message.
+
+        If can, update the timer.
+        '''
+        self.check_user(user_id)
+
+        if time.time()-self.users[user_id].last_sent_zero > 120: # like 2 mins
+            self.users[user_id].last_sent_zero = time.time()
+            return True
+        
+        return False
