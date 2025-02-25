@@ -285,3 +285,13 @@ class Manager:
             return True
         
         return False
+
+    def get_all_xp(self) -> int:
+        '''
+        Returns sum of each members's xp
+        '''
+        total_xp = 0
+        for i in self.users.values():
+            total_xp += i.xp.xp
+        return total_xp
+
