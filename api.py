@@ -254,6 +254,24 @@ class Manager:
         self.commit()
 
 
+    def set_xp(self, user_id:int, xp:int) -> "int | None":
+        '''
+        Sets XP to user.
+
+        If user leveled up, return the new level.
+        '''
+        self.check_user(user_id)
+
+        old_level = deepcopy(self.users[user_id].xp.level)
+        self.users[user_id].xp.xp = xp
+        self.users[user_id].xp.reload_levels()
+
+        if old_level != self.users[user_id].xp.level:
+            return self.users[user_id].xp.level
+        
+        self.commit()
+
+
     def check_user_zero(self, user_id:int) -> bool:
         '''
         Checks if user can gain XP for sending zero message.

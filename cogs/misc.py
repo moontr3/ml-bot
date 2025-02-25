@@ -28,6 +28,28 @@ async def setup(bot: commands.Bot):
         await ctx.reply(embed=embed)
 
 
+    @bot.hybrid_command(
+        name='about',
+        description='Показывает информацию о боте.'
+    )
+    async def slash_about(ctx: commands.Context):
+        '''
+        Shows bot info.
+        '''
+        log(f'{ctx.author.id} requested bot info')
+        
+        embed = discord.Embed(
+            color=DEFAULT_C, title='ℹ О боте',
+            description='Создатель: `moontr3` (obviously)\n'\
+                f'Контрибьютор: `mbutsk`\n'\
+                f'Написан на **Python** и **discord.py**'\
+                f'Пользователей зарегистрировано: **{len(bot.mg.users)}**\n'\
+                f'Участников на сервере: **{ctx.guild.member_count}**'
+        )
+
+        await ctx.reply(embed=embed)
+
+
     # purge command
     @discord.app_commands.describe(
         amount='Количество сообщений для очистки',

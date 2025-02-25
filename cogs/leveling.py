@@ -17,12 +17,72 @@ def regen_bar(id, percentage: float, color=(252,186,0), bg_color=(20,21,23), siz
     draw.line([(0,size[1]//2), (percentage*size[0],size[1]//2)], fill=color, width=size[1]+2)
 
     # saving
-    image.save(f'temp/{id}.png')
+    image.save(f'temp\\{id}.png')
     image.close()
 
 
 # setup
 async def setup(bot: commands.Bot):
+
+    async def update_rank(member):
+        guild = bot.get_guild(GUILD_ID)
+        level = bot.mg.get_user(member.id).xp.level
+        roles = []
+        rank_roles = [guild.get_role(i) for i in LEVELS]
+
+        for i in range(min(len(LEVELS), level)):
+            roles.append(rank_roles[i])
+        cur_roles = [i for i in member.roles if i.id in LEVELS]
+
+        for i in cur_roles:
+            if i not in roles:
+                await member.remove_roles(i)
+
+        for i in roles:
+            if i not in cur_roles:
+                await member.add_roles(i)
+
+        log(f'Edited {member.id} with rank {level}')
+
+
+    # @discord.app_commands.describe(
+    #     member='Участник сервера, у которого нужно поменять опыт.',
+    #     action='Действие',
+    #     amount='Количество опыта'
+    # )
+    @bot.command(
+        name='manage',
+        description='Изменить опыт пользователя.'
+    )
+    async def slash_manage_xp(ctx:commands.Context, member:discord.Member, action:Literal['set','add'], amount:int):
+        '''
+        Changes user XP level.
+        '''
+        if ctx.author.id not in ADMINS:
+            embed = discord.Embed(
+                description='Вы не администратор бота!',
+                color=ERROR_C
+            )
+            await ctx.reply(embed=embed, ephemeral=True)
+            return
+
+        log(f'{ctx.author.id} {action}s xp of {member.id} by {amount}')
+        
+        if action == 'set':
+            new_lvl = bot.mg.set_xp(member.id, amount)
+            desc = f'Опыт {member.mention} изменен на **{amount} XP**'
+        else:
+            new_lvl = bot.mg.add_xp(member.id, amount)
+            desc = f'К {member.mention} добавлено **{amount} XP**'
+
+        if new_lvl:
+            desc += f'\n\nНовый уровень: **{new_lvl}**'
+            await update_rank(member)
+
+        embed = discord.Embed(
+            description=desc, color=DEFAULT_C
+        )
+        await ctx.reply(embed=embed)
 
     # xp command
     @discord.app_commands.describe(
