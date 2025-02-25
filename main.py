@@ -24,7 +24,7 @@ def to_extension_name(string:str) -> str:
     '''
     Converts relative path to filename without .py extension
     '''
-    filename = string.removeprefix(f'{COGS_FOLDER}\\').removesuffix('.py')
+    filename = string.removeprefix(f'{COGS_FOLDER}/').removesuffix('.py')
     return f'{COGS_FOLDER}.{filename}'
 
 
@@ -42,8 +42,9 @@ async def load_commands() -> List[str]:
         log(f'Unloaded extension {i}')
         out.append(f'Unloaded extension {i}')
 
-    for i in glob.glob(f'{COGS_FOLDER}\\*.py'):
+    for i in glob.glob(f'{COGS_FOLDER}/*.py'):
         try:
+            i = i.replace('\\','/')
             name = to_extension_name(i)
             await bot.load_extension(name)
             log(f'Loaded extension {name}')
