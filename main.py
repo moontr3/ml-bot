@@ -16,6 +16,7 @@ TOKEN = os.getenv('BOT_TOKEN')
 
 bot = commands.Bot(command_prefix=PREFIXES, intents=discord.Intents.all(), help_command=None)
 bot.mg = Manager(USERS_FILE, DATA_FILE)
+bot.WEBHOOK = os.getenv('LOGGING_WEBHOOK')
 
 
 # functions
