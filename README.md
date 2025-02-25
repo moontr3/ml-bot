@@ -2,14 +2,13 @@
 
 A bot I made for [my Discord server](https://discord.gg/s3NrXyYjnG) with Python and `discord.py`.
 
-
 ## Features/Todo list
 
 - [ ] Info commands
 - [x] Basic moderation tools
 - [ ] Custom roles
 - [x] Reminders
-- [ ] Logging
+- [x] Logging
 - [ ] Reporting users
 - [x] Leveling system and ranks
 - [ ] Ability to close channels
