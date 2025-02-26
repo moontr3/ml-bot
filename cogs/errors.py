@@ -3,6 +3,7 @@ import discord
 from log import *
 from typing import *
 from config import *
+import traceback
 
 # setup
 async def setup(bot: commands.Bot):
@@ -35,4 +36,4 @@ async def setup(bot: commands.Bot):
             # everything else basically
             log(f'{ctx.author} {ctx.author.id} issued a command error: {error}', level=ERROR)
             await ctx.reply(embed=UNKNOWN_ERROR_EMBED)
-            log(error.__repr__(), level=ERROR)
+            log('\n'.join(traceback.format_tb(error.__traceback__)), level=ERROR)

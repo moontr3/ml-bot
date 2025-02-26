@@ -123,6 +123,58 @@ async def setup(bot: commands.Bot):
         os.remove(f'temp/{member.id}.png')
 
 
+    @bot.hybrid_command(
+        name='leaders',
+        description='Показывает таблицу лидеров по опыту.'
+    )
+    async def slash_leaders(ctx:discord.Interaction):
+        '''
+        Shows user XP level.
+        '''
+        log(f'{ctx.author.id} requested xp leaders')
+
+        ppl = {k: v.xp for k, v in bot.mg.users.items()}
+        ppl = sorted(ppl.items(), key=lambda x: x[1].xp, reverse=True)
+
+        index = 0
+        counted = 0
+        place = 0
+        prev_xp = -1
+
+        embed = discord.Embed(
+            description='🎖 Таблица лидеров', color=DEFAULT_C
+        )
+
+        while counted < 10:
+            id = ppl[index][0]
+            xp = ppl[index][1]
+
+            if prev_xp != xp.xp:
+                place += 1
+                prev_xp = xp.xp
+            
+            level = xp.level
+            member = ctx.guild.get_member(id)
+            if member == None:
+                index += 1
+                continue
+
+            rank_role = ctx.guild.get_role(LEVELS[min(len(LEVELS)-1, level-1)])
+
+            embed.add_field(
+                name=f'`#{place}` › {member.name}', inline=False,
+                value=f'**{rank_role.name.capitalize()}** ・ Уровень **{level}** (**{int(xp.level_xp/xp.level_max_xp*100)}%**)'
+            )
+            index += 1
+            counted += 1
+
+        sum = bot.mg.get_all_xp()
+        embed.set_footer(
+            text=f'У всех участников суммарно {sum} XP'
+        )
+        await ctx.reply(embed=embed)
+
+
     # gaining xp
     @bot.listen()
     async def on_message(message: discord.Message):
