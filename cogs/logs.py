@@ -51,6 +51,9 @@ async def setup(bot: commands.Bot):
         if message.attachments != []:
             embed.add_field(name='Вложения', value='\n'.join([i.url for i in message.attachments]), inline=False)
 
+        elif message.content == '':
+            return
+
         await webhook.send(embed=embed, files=file)
         await session.close()
 
@@ -79,6 +82,9 @@ async def setup(bot: commands.Bot):
     @bot.listen()
     async def on_message_edit(before, after):
         if before.content == after.content:
+            return
+        
+        if not before.content:
             return
         
         session = aiohttp.ClientSession()
