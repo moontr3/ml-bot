@@ -1,11 +1,141 @@
+import random
 from typing import *
+
+import aiofiles
 from config import *
 import json
 import os
 import time
 from log import *
 from copy import deepcopy
+import pygame as pg
+import aiohttp
+import utils
 
+pg.display.init()
+pg.font.init()
+
+
+# pygame renderer
+
+class Renderer:
+    def __init__(self,
+        size: Tuple[int, int] = None,
+        fill: "Tuple[int, int, int] | None" = None,
+        image: "str | None" = None
+    ):
+        '''
+        A class that you can render images in.
+        '''
+        if image:
+            self.surface = pg.image.load(image)
+        
+        else:
+            self.surface: pg.Surface = pg.Surface(size, pg.SRCALPHA)
+            if fill:
+                self.surface.fill(fill)
+
+        self.images: Dict[str, pg.Surface] = {}
+        self.fonts: Dict[str, pg.font.Font] = {}
+        self.init_time = time.time()
+        self.cleanup: List[str] = []
+
+
+    async def download_image(self, url:str) -> str:
+        path = f'temp/{utils.rand_id()}.png'
+        start_time = time.time()
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                if resp.status == 200:
+                    f = await aiofiles.open(path, mode='wb')
+                    await f.write(await resp.read())
+                    await f.close()
+
+        log(f'image {path} downloaded in {time.time()-start_time}s', 'api')
+        self.cleanup.append(path)
+        return path
+
+
+    def get_image(self,
+        path: str
+    ):
+        if path not in self.images:
+            self.images[path] = pg.image.load(path)
+        return self.images[path]
+
+
+    def draw_image(self,
+        path: str, pos: Tuple[int, int],
+        size: Tuple[int, int] = None,
+        h=0, v=0, area: pg.Rect=None,
+        rotation: int = 0
+    ):
+        image = self.get_image(path)
+
+        if size:
+            image = image.copy()
+            image = pg.transform.smoothscale(image, size)
+        
+        if rotation != 0:
+            image = pg.transform.rotate(image, rotation)
+
+        if h != 0 or v != 0:
+            pos = [
+                pos[0]-image.get_width()*h,
+                pos[1]-image.get_height()*v,
+            ]
+            
+        if area:
+            self.surface.blit(image, pos, area)
+        else:
+            self.surface.blit(image, pos)
+
+
+    def get_font(self,
+        path: str, size: int
+    ) -> pg.font.Font:
+        if path+str(size) not in self.fonts:
+            self.fonts[path+str(size)] = pg.font.Font(path, size)
+        return self.fonts[path+str(size)]
+
+
+    def draw_text(self,
+        text: str, pos: Tuple[int, int], font:str, size:int,
+        color:Tuple[int, int, int], h=0, v=0, rotation: int = 0,
+        opacity: int = 255
+    ):
+        font: pg.font.Font = self.get_font(font, size)
+        text: pg.Surface = font.render(text, True, color)
+
+        if rotation != 0:
+            text = pg.transform.rotate(text, rotation)
+
+        if h != 0 or v != 0:
+            text.get_rect()
+            pos = [
+                pos[0]-text.get_width()*h,
+                pos[1]-text.get_height()*v,
+            ]
+
+        if opacity != 255:
+            text.set_alpha(opacity)
+
+        self.surface.blit(text, pos)
+
+
+    def save(self, dir:str, ext:str='jpg') -> str:
+        start_time = time.time()
+        filename = dir.rstrip('/\\')+'/' + utils.rand_id() + '.'+ext
+        pg.image.save(self.surface, filename)
+        log(f'image {filename} saved in {time.time()-start_time}s', 'api')
+
+        for i in self.cleanup:
+            os.remove(i)
+        self.cleanup = []
+        
+        log(f'image {filename} completed {time.time()-self.init_time}s', 'api')
+        return filename
 
 
 # user and user-related classes
@@ -101,6 +231,7 @@ class User:
         self.games_timeout: float = data.get('games_timeout', 0.0)
 
         self.last_sent_zero: float = 0
+        self.verifying: bool = False
 
     
     def to_dict(self) -> dict:
@@ -286,6 +417,7 @@ class Manager:
         
         return False
 
+
     def get_all_xp(self) -> int:
         '''
         Returns sum of each members's xp
@@ -295,3 +427,45 @@ class Manager:
             total_xp += i.xp.xp
         return total_xp
 
+
+    def render_captcha(self, text: int) -> str:
+        '''
+        Renders a captcha for a user.
+        '''
+        r = Renderer((3,3), (0,0,0))
+
+        # gradient bg
+        for x in range(3):
+            for y in range(3):
+                pg.draw.rect(r.surface, utils.random_color(50), (x,y,1,1))
+
+        r.surface = pg.transform.smoothscale(r.surface, (256,256))
+
+        # symbols bg
+        for i in range(100):
+            x = random.randint(0, 255)
+            y = random.randint(0, 255)
+            r.draw_text(
+                random.choice('QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm'),
+                (x,y), 'assets/captchabg.ttf', random.randint(10,60),
+                utils.random_color(128), 0.5, 0.5, random.randint(0,360),
+                random.randint(20,100)
+            )
+
+        # text
+        start = random.randint(30,50)
+        end = random.randint(210,230)
+
+        for index, i in enumerate(text):
+            x = utils.lerp(start, end, index/(len(text)-1))+random.randint(-5,5)
+            y = random.randint(90,150)
+
+            r.draw_text(
+                i, (x,y), 'assets/captchafont.ttf', random.randint(50,80),
+                utils.random_color(255,128), 0.5, 0.5, random.randint(-25,25),
+            )
+
+        # saving
+        path = r.save('temp')
+
+        return path

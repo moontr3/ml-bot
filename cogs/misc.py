@@ -5,12 +5,12 @@ from typing import *
 from config import *
 import utils
 import datetime
+import os
 
 
 # setup
 async def setup(bot: commands.Bot):
 
-    # ping command
     @bot.hybrid_command(
         name='ping',
         description='Показывает пинг бота.'

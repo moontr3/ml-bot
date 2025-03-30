@@ -4,5 +4,5 @@ log.txt
 .env
 users.json
 data.json
-templates
 conv.py
+temp

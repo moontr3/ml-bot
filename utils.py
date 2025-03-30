@@ -1,7 +1,8 @@
+import random
 from typing import *
 from config import *
 import datetime
-
+import time
 
 # functions
 
@@ -66,3 +67,30 @@ def datetime_to_text(time:datetime.datetime) -> str:
         f'{time.hour}:{time.minute}:{time.second}'
 
     return
+
+
+def random_color(lightness:int, min:int=0) -> Tuple[int,int,int]:
+    return (
+        random.randint(min,lightness),
+        random.randint(min,lightness),
+        random.randint(min,lightness)
+    )
+
+
+def lerp(a:float, b:float, t:float) -> float:
+    '''
+    Interpolates between A and B.
+    '''
+    t = max(0,min(1,t))
+    return (1 - t) * a + t * b
+
+
+def rand_id(k:int=4) -> str:
+    '''
+    Generates a random unique (probably) hexadecimal string that can be used as an ID.
+    '''
+    timestamp = str(int(time.time())) # unique timestamp that changes every second and never repeats after
+    random_part = "".join(random.choices('0123456789', k=k)) # randomly generated string to add
+                                                             # after the timestamp
+    string = hex(int(timestamp+random_part))[2:] # converting the number to hex to make it shorter
+    return string
