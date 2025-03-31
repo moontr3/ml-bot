@@ -11,18 +11,6 @@ from PIL import Image, ImageDraw, ImageFont
 import utils
 
 
-def regen_bar(id, percentage: float, color=(252,186,0), bg_color=(20,21,23), size=(1000, 50)):
-    image = Image.new('RGB', (size[0], size[1]), bg_color)
-    
-    # drawing bar
-    draw = ImageDraw.Draw(image)
-    draw.line([(0,size[1]//2), (percentage*size[0],size[1]//2)], fill=color, width=size[1]+2)
-
-    # saving
-    image.save(f'temp\\{id}.png')
-    image.close()
-
-
 # setup
 async def setup(bot: commands.Bot):
 
@@ -105,24 +93,27 @@ async def setup(bot: commands.Bot):
         log(f'{ctx.author.id} requested xp level of {member.id}')
         role = ctx.guild.get_role(acc.xp.level_data)
 
-        desc = f'### {role.name.title()} ・ Уровень {acc.xp.level} ・ {acc.xp.xp} XP'\
-            f'\n**{acc.xp.level_xp}** / **{acc.xp.level_max_xp}** (**{int(acc.xp.level_percentage*100)}%**)'
+        # desc = f'### {role.name.title()} ・ Уровень {acc.xp.level} ・ {acc.xp.xp} XP'\
+        #     f'\n**{acc.xp.level_xp}** / **{acc.xp.level_max_xp}** (**{int(acc.xp.level_percentage*100)}%**)'
 
-        embed = discord.Embed(
-            description=desc, color=role.color
-        )
-        embed.set_author(name=f'✨ Опыт {member.display_name}')
-        embed.set_image(url='attachment://image.png')
+        # embed = discord.Embed(
+        #     description=desc, color=role.color
+        # )
+        # embed.set_author(name=f'✨ Опыт {member.display_name}')
+        # embed.set_image(url='attachment://image.png')
 
-        if ctx.channel.id not in CHATTABLE_CHANNELS:
-            embed.set_footer(text='⚠ В этом канале нельзя получать опыт!')
+        # if ctx.channel.id not in CHATTABLE_CHANNELS:
+        #     embed.set_footer(text='⚠ В этом канале нельзя получать опыт!')
 
-        bar = regen_bar(member.id, acc.xp.level_xp/acc.xp.level_max_xp)
-        file = discord.File(f'temp/{member.id}.png', 'image.png')
-        await ctx.reply(embed=embed, file=file)
+        # bar = regen_bar(member.id, acc.xp.level_xp/acc.xp.level_max_xp)
+        # file = discord.File(f'temp/{member.id}.png', 'image.png')
+
+        path = await bot.mg.render_user_xp(member, role)
+        file = discord.File(path, 'image.png')
+        await ctx.reply(file=file)
 
         file.close()
-        os.remove(f'temp/{member.id}.png')
+        os.remove(path)
 
 
     @bot.hybrid_command(
@@ -192,7 +183,7 @@ async def setup(bot: commands.Bot):
             "sea": "season",
             "wee": "week",
             "day": "day",
-            "tod": "today",
+            "tod": "day",
             "все": "alltime",
             "всё": "alltime",
             ":ре": "season",

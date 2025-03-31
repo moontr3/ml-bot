@@ -127,6 +127,20 @@ class Renderer:
 
         self.surface.blit(text, pos)
         return text.get_rect().size
+    
+
+    def round_image(self, surface: pg.Surface, radius: int) -> pg.Surface:
+        '''
+        Makes an image have rounded corners.
+        '''
+        rect = pg.Rect((0,0), surface.get_size())
+        rect = rect.inflate(radius*2,radius*2)
+
+        new = pg.Surface(surface.get_size(), pg.SRCALPHA)
+        new.blit(surface, (0,0))
+        pg.draw.rect(new, (0,0,0,0), rect, radius, radius*3)
+
+        return new
 
 
     def save(self, dir:str, ext:str='jpg') -> str:
@@ -645,12 +659,188 @@ class Manager:
             )
 
             # name
-            r.draw_text(
-                user.display_name, (name,start+17), 'assets/regular.ttf',
-                18, (255,255,255), max_size=280+45-xp_size
-            )
+            if user:
+                r.draw_text(
+                    user.display_name, (name,start+17), 'assets/regular.ttf',
+                    18, (255,255,255), max_size=280+45-xp_size
+                )
+            else:
+                r.draw_text(
+                    str(i.id), (name,start+17), 'assets/regular.ttf',
+                    18, (128,128,128), max_size=280+45-xp_size
+                )
+
             start += 61
 
         # saving
+        path = r.save('temp', 'png')
+        return path
+    
+
+    async def render_user_xp(self, user: discord.User, role: discord.Role) -> str:
+        '''
+        Renders the XP embed for a discord user.
+        '''
+        botuser = self.get_user(user.id)
+        r = Renderer(image='assets/xpbg.png')
+
+        # avatar 14, 12, 32
+        start = 14
+        if user.avatar:
+            image = await r.download_image(user.avatar.with_size(32).url)
+            avatar = r.get_image(image)
+            avatar = r.round_image(avatar, 16)
+            r.surface.blit(avatar, (14,14))
+            start += 42
+
+        # level
+        max_pos = r.draw_text(
+            role.name.capitalize(), (398,15), 'assets/medium.ttf', 20, role.color.to_rgb(), h=1
+        )[0]
+        
+        pg.draw.circle(
+            r.surface, role.color.to_rgb(), (378-max_pos, 29), 12
+        )
+        r.draw_text(
+            f'{botuser.xp.level}', (378-max_pos, 29), 'assets/bold.ttf', 16,
+            (35,35,35), h=0.5, v=0.5,
+        )
+
+        # name
+        r.draw_text(
+            user.display_name, (start,16), 'assets/bold.ttf', 20,
+            (255,255,255), max_size=300-max_pos
+        )
+
+        # xp
+        r.draw_text(
+            f"{botuser.xp.xp} XP", (16,88), 'assets/bold.ttf', 24, (255,255,255),
+        )
+        size = r.draw_text(
+            f"{botuser.xp.total_xp} XP", (404,88), 'assets/regular.ttf', 24, (128,128,128), h=1
+        )[0]
+        r.draw_text(
+            'всего', (404-size-5, 92), 'assets/regular.ttf', 20, (128,128,128), h=1
+        )
+
+        # xp limit
+        r.draw_text(
+            f"{botuser.xp.level_xp} XP", (16,125), 'assets/regular.ttf', 14, (255,255,255),
+        )
+        r.draw_text(
+            f"{botuser.xp.level_max_xp} XP", (404,125), 'assets/regular.ttf',
+            14, (128,128,128), h=1
+        )
+
+        # bar
+        surface = pg.Surface((388,20), pg.SRCALPHA)
+        rect = pg.Rect((-30,0), (30+388*botuser.xp.level_percentage, 20))
+        pg.draw.rect(surface, role.color.to_rgb(), rect, border_radius=10)
+        image = r.round_image(surface, 10)
+        r.surface.blit(image, (16,151))
+
+        # percentage
+        percentage = f'{int(botuser.xp.level_percentage*100)}%'
+
+        if rect.right > 30:
+            r.draw_text(
+                percentage, (rect.right-5+15, rect.centery+150),
+                'assets/bold.ttf', 14, (35,35,35), h=1, v=0.5
+            )
+        else:
+            r.draw_text(
+                percentage, (rect.right+5+15, rect.centery+150),
+                'assets/medium.ttf', 14, (200,200,200), v=0.5
+            )
+
+        # xp today
+        try:
+            lb = self.get_leaders('day')
+            pos = lb.index(botuser)+1
+
+        except:
+            r.draw_text(
+                f"???", (68,217), 'assets/bolditalic.ttf', 20, (128,128,128), h=0.5
+            )
+
+        else:
+            if pos < 4:
+                r.draw_image(f'assets/{pos}1.png', (0,200))
+
+            color = (251,172,24) if pos == 1 else\
+                (140,140,140) if pos == 2 else\
+                (148,66,31) if pos == 3 else\
+                (192,192,192)
+            
+            r.draw_text(
+                f"#{pos}", (18,217), 'assets/bolditalic.ttf', 20, color,
+            )
+            r.draw_text(
+                f"сегодня", (137-15, 209), 'assets/regular.ttf',
+                14, (255,255,255), h=1, opacity=128
+            )
+            r.draw_text(
+                f"{self.timed_lb.get_daily_xp(botuser.id)} XP", (137-15, 230),
+                'assets/bold.ttf', 14, (255,255,255), h=1, opacity=128
+            )
+
+        # xp this week
+        try:
+            lb = self.get_leaders('week')
+            pos = lb.index(botuser)+1
+
+        except:
+            r.draw_text(
+                f"???", (68+142,217), 'assets/bolditalic.ttf', 20, (128,128,128), h=0.5
+            )
+
+        else:
+            if pos < 4:
+                r.draw_image(f'assets/{pos}2.png', (142,200))
+
+            color = (251,172,24) if pos == 1 else\
+                (140,140,140) if pos == 2 else\
+                (148,66,31) if pos == 3 else\
+                (192,192,192)
+            
+            r.draw_text(
+                f"#{pos}", (159,217), 'assets/bolditalic.ttf', 20, color,
+            )
+            r.draw_text(
+                f"неделя", (278-15, 209), 'assets/regular.ttf',
+                14, (255,255,255), h=1, opacity=128
+            )
+            r.draw_text(
+                f"{self.timed_lb.get_weekly_xp(botuser.id)} XP", (278-15, 230),
+                'assets/bold.ttf', 14, (255,255,255), h=1, opacity=128
+            )
+
+        # season placement
+        try:
+            lb = self.get_leaders('season')
+            pos = lb.index(botuser)+1
+
+        except:
+            r.draw_text(
+                f"???", (68+142+142,217), 'assets/bolditalic.ttf', 20, (128,128,128), h=0.5
+            )
+
+        else:
+            if pos < 4:
+                r.draw_image(f'assets/{pos}3.png', (283,200))
+
+            color = (251,172,24) if pos == 1 else\
+                (140,140,140) if pos == 2 else\
+                (148,66,31) if pos == 3 else\
+                (192,192,192)
+            
+            r.draw_text(
+                f"#{pos}", (300,217), 'assets/bolditalic.ttf', 20, color,
+            )
+            r.draw_text(
+                f"сезон", (414-15, 221), 'assets/regular.ttf',
+                14, (255,255,255), h=1, opacity=128
+            )
+
         path = r.save('temp', 'png')
         return path
