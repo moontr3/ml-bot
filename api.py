@@ -2,10 +2,12 @@ import random
 from typing import *
 
 import aiofiles
+import discord.ext.commands
 from config import *
 import json
 import os
 import time
+import discord.ext
 from log import *
 from copy import deepcopy
 import pygame as pg
@@ -103,16 +105,18 @@ class Renderer:
     def draw_text(self,
         text: str, pos: Tuple[int, int], font:str, size:int,
         color:Tuple[int, int, int], h=0, v=0, rotation: int = 0,
-        opacity: int = 255
-    ):
+        opacity: int = 255, max_size: int = None
+    ) -> Tuple[int,int]:
         font: pg.font.Font = self.get_font(font, size)
         text: pg.Surface = font.render(text, True, color)
 
         if rotation != 0:
             text = pg.transform.rotate(text, rotation)
 
+        if max_size and text.get_width() > max_size:
+            text = pg.transform.smoothscale(text, (max_size, text.get_height()))
+
         if h != 0 or v != 0:
-            text.get_rect()
             pos = [
                 pos[0]-text.get_width()*h,
                 pos[1]-text.get_height()*v,
@@ -122,6 +126,7 @@ class Renderer:
             text.set_alpha(opacity)
 
         self.surface.blit(text, pos)
+        return text.get_rect().size
 
 
     def save(self, dir:str, ext:str='jpg') -> str:
@@ -187,12 +192,18 @@ class Reminder:
 
 
 class XP:
-    def __init__(self, xp:int):
+    def __init__(self, data:dict={}):
         '''
         User experience points, level, rank, etc.
         '''
-        self.xp: int = xp
+        self.prev_xp: int = data.get('prev_xp', 0)
+        self.xp: int = data.get('xp', 0)
         self.reload_levels()
+
+
+    @property
+    def total_xp(self) -> int:
+        return self.prev_xp + self.xp
 
 
     def reload_levels(self):
@@ -212,6 +223,13 @@ class XP:
         self.level_xp: int = xp
         self.level_max_xp: int = xp_in_level
         self.level_percentage: float = xp/xp_in_level
+
+
+    def to_dict(self) -> dict:
+        return {
+            "xp": self.xp,
+            "prev_xp": self.prev_xp,
+        }
 
 
 class User:
@@ -239,13 +257,96 @@ class User:
         Converts the class to a dictionary to store in the file.
         '''
         return {
-            "xp": self.xp.xp,
+            "xp": self.xp.to_dict(),
             "quarantine": self.quarantine,
             "reminders": [i.to_dict() for i in self.reminders],
             "tokens": self.tokens,
             "token_dig_timeout": self.token_dig_timeout,
             "games_timeout": self.games_timeout
         }
+    
+
+# XP Leaderboard
+
+class TimedLeaderboard:
+    def __init__(self, data: dict = {}):
+        '''
+        Daily and weekly leaderboard.
+        '''
+        self.daily = data.get('daily', {})
+        self.weekly = data.get('weekly', {})
+
+        self.daily = {
+            int(k): {int(k1): v1 for k1, v1 in v.items()}\
+                for k, v in self.daily.items()
+        }
+        self.weekly = {
+            int(k): {int(k1): v1 for k1, v1 in v.items()}\
+                for k, v in self.weekly.items()
+        }
+
+
+    @property
+    def current_day(self) -> int:
+        return int(time.time()//86400)
+    
+
+    @property
+    def current_week(self) -> int:
+        return int(time.time()//604800)
+
+
+    def check_leaderboard(self):
+        if self.current_day not in self.daily:
+            self.daily[self.current_day] = {}
+
+        if self.current_week not in self.weekly:
+            self.weekly[self.current_week] = {}
+
+
+    def check_user(self, id:int):
+        if id not in self.daily[self.current_day]:
+            self.daily[self.current_day][id] = 0
+
+        if id not in self.weekly[self.current_week]:
+            self.weekly[self.current_week][id] = 0
+
+
+    def add_xp(self, id:int, amount:int):
+        '''
+        Updates the leaderboard.
+        '''
+        self.check_leaderboard()
+        self.check_user(id)
+
+        self.daily[self.current_day][id] += amount
+        self.weekly[self.current_week][id] += amount
+
+
+    def get_daily_xp(self, id:int) -> int:
+        self.check_leaderboard()
+
+        if id not in self.daily[self.current_day]:
+            return 0
+        
+        return self.daily[self.current_day][id]
+
+
+    def get_weekly_xp(self, id:int) -> int:
+        self.check_leaderboard()
+        
+        if id not in self.weekly[self.current_week]:
+            return 0
+        
+        return self.weekly[self.current_week][id]
+
+
+    def to_dict(self) -> dict:
+        return {
+            "daily": self.daily,
+            "weekly": self.weekly
+        }
+        
 
 
 # manager
@@ -265,6 +366,7 @@ class Manager:
         Rewrites the old database with the new one.
         '''
         self.users: Dict[int, User] = {}
+        self.timed_lb = TimedLeaderboard()
 
         self.commit()
 
@@ -298,6 +400,8 @@ class Manager:
 
         self.users = {int(id): User(int(id), data) for id, data in data['users'].items()}
 
+        self.timed_lb = TimedLeaderboard(data.get('timed_lb', {}))
+
         # saving
         self.commit()
 
@@ -307,12 +411,15 @@ class Manager:
         Saves user data to the file.
         '''
         data = {
-            'users': {}    
+            'users': {}
         }
 
         # users
         for i in self.users:
             data['users'][i] = self.users[i].to_dict()
+
+        # timed lb
+        data['timed_lb'] = self.timed_lb.to_dict()
 
         # saving
         with open(self.users_file, 'w', encoding='utf-8') as f:
@@ -381,6 +488,8 @@ class Manager:
 
         if old_level != self.users[user_id].xp.level:
             return self.users[user_id].xp.level
+        
+        self.timed_lb.add_xp(user_id, xp)
         
         self.commit()
 
@@ -468,4 +577,80 @@ class Manager:
         # saving
         path = r.save('temp')
 
+        return path
+    
+
+    def get_leaders(self, type: Literal['alltime','season','week','day'], places=9) -> List[User]:
+        '''
+        Returns a list of users sorted by xp.
+        '''
+        if type == 'alltime':
+            users = sorted(self.users.values(), key=lambda x: x.xp.total_xp, reverse=True)
+        elif type == 'season':
+            users = sorted(self.users.values(), key=lambda x: x.xp.xp, reverse=True)
+        elif type == 'week':
+            users = sorted(self.users.values(), key=lambda x: self.timed_lb.get_weekly_xp(x.id), reverse=True)
+        elif type == 'day':
+            users = sorted(self.users.values(), key=lambda x: self.timed_lb.get_daily_xp(x.id), reverse=True)
+        return users[:places]
+
+
+    async def render_leaders(self,
+        guild: discord.Guild,
+        type: Literal['alltime','season','week','day']='season'
+    ) -> str:
+        '''
+        Renders leaderboard as an image.
+        '''
+        users = self.get_leaders(type)
+
+        r = Renderer(image='assets/leadersbg.png')
+
+        # 61, 17, 12
+        start = 0
+        for i in users:
+            user = guild.get_member(i.id)
+            name = 52
+
+            # xp
+            if type == 'alltime':
+                xp = i.xp.total_xp
+            elif type == 'season':
+                xp = i.xp.xp
+            elif type == 'week':
+                xp = self.timed_lb.get_weekly_xp(i.id)
+            elif type == 'day':
+                xp = self.timed_lb.get_daily_xp(i.id)
+
+            # avatar
+            # if user.avatar:
+            #     image = await r.download_image(user.avatar.with_size(32).url)
+            #     r.draw_image(image, (name, start+12), (32,32))
+            #     name = 96
+
+            # xp
+            xp_size = 20
+            xp_size += r.draw_text(
+                f'{xp} XP', (402, start+17), 'assets/semibold.ttf', 18,
+                (255,255,255), h=1
+            )[0]
+
+            role = guild.get_role(i.xp.level_data)
+            pg.draw.circle(
+                r.surface, role.color.to_rgb(), (402-xp_size, start+28), 12
+            )
+            r.draw_text(
+                f'{i.xp.level}', (402-xp_size, start+28), 'assets/bold.ttf', 14,
+                (35,35,35), h=0.5, v=0.5,
+            )
+
+            # name
+            r.draw_text(
+                user.display_name, (name,start+17), 'assets/regular.ttf',
+                18, (255,255,255), max_size=280+45-xp_size
+            )
+            start += 61
+
+        # saving
+        path = r.save('temp', 'png')
         return path

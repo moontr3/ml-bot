@@ -6,3 +6,4 @@ users.json
 data.json
 conv.py
 temp
+*.ignore

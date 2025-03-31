@@ -8,6 +8,8 @@ from config import *
 import api
 from PIL import Image, ImageDraw, ImageFont
 
+import utils
+
 
 def regen_bar(id, percentage: float, color=(252,186,0), bg_color=(20,21,23), size=(1000, 50)):
     image = Image.new('RGB', (size[0], size[1]), bg_color)
@@ -125,59 +127,116 @@ async def setup(bot: commands.Bot):
 
     @bot.hybrid_command(
         name='leaders',
+        aliases=['лидеры','leaderboard','lb','top','топ'],
         description='Показывает таблицу лидеров по опыту.'
     )
-    async def slash_leaders(ctx:discord.Interaction):
+    @discord.app_commands.describe(
+        board='Нужная таблица лидеров - Всё время, День, Неделя, Сезон.'
+    )
+    async def slash_leaders(ctx:commands.Context, board:str=':re'):
         '''
         Shows user XP level.
         '''
         log(f'{ctx.author.id} requested xp leaders')
 
-        ppl = {k: v.xp for k, v in bot.mg.users.items()}
-        ppl = sorted(ppl.items(), key=lambda x: x[1].xp, reverse=True)
+        if ctx.interaction:
+            await ctx.interaction.response.defer()
+        else:
+            await ctx.channel.typing()
 
-        index = 0
-        counted = 0
-        place = 0
-        prev_xp = -1
+        # ppl = {k: v.xp for k, v in bot.mg.users.items()}
+        # ppl = sorted(ppl.items(), key=lambda x: x[1].xp, reverse=True)
 
-        embed = discord.Embed(
-            description='🎖 Таблица лидеров', color=DEFAULT_C
-        )
+        # index = 0
+        # counted = 0
+        # place = 0
+        # prev_xp = -1
 
-        while counted < 10:
-            id = ppl[index][0]
-            xp = ppl[index][1]
+        # embed = discord.Embed(
+        #     description='🎖 Таблица лидеров', color=DEFAULT_C
+        # )
 
-            if prev_xp != xp.xp:
-                place += 1
-                prev_xp = xp.xp
+        # while counted < 10:
+        #     id = ppl[index][0]
+        #     xp = ppl[index][1]
+
+        #     if prev_xp != xp.xp:
+        #         place += 1
+        #         prev_xp = xp.xp
             
-            level = xp.level
-            member = ctx.guild.get_member(id)
-            if member == None:
-                index += 1
-                continue
+        #     level = xp.level
+        #     member = ctx.guild.get_member(id)
+        #     if member == None:
+        #         index += 1
+        #         continue
 
-            rank_role = ctx.guild.get_role(LEVELS[min(len(LEVELS)-1, level-1)])
+        #     rank_role = ctx.guild.get_role(LEVELS[min(len(LEVELS)-1, level-1)])
 
-            embed.add_field(
-                name=f'`#{place}` › {member.name}', inline=False,
-                value=f'**{rank_role.name.capitalize()}** ・ Уровень **{level}** (**{int(xp.level_xp/xp.level_max_xp*100)}%**)'
+        #     embed.add_field(
+        #         name=f'`#{place}` › {member.name}', inline=False,
+        #         value=f'**{rank_role.name.capitalize()}** ・ Уровень **{level}** (**{int(xp.level_xp/xp.level_max_xp*100)}%**)'
+        #     )
+        #     index += 1
+        #     counted += 1
+
+        # sum = bot.mg.get_all_xp()
+        # embed.set_footer(
+        #     text=f'У всех участников суммарно {sum} XP'
+        # )
+
+        # board
+        boards = {
+            "all": "alltime",
+            "re": "season",
+            ":re": "season",
+            "sea": "season",
+            "wee": "week",
+            "day": "day",
+            "tod": "today",
+            "все": "alltime",
+            "всё": "alltime",
+            ":ре": "season",
+            "сез": "season",
+            "ре": "season",
+            "нед": "week",
+            "ден": "day",
+            "сег": "day",
+        }
+
+        if board.lower()[:3] not in boards:
+            embed = discord.Embed(
+                description='Такой таблицы лидеров нет! Попробуй одно из:\n\n'\
+                    '`День`, `Неделя`, `Сезон`, `Всё время`',
+                color=ERROR_C
             )
-            index += 1
-            counted += 1
+            await ctx.reply(embed=embed, ephemeral=True)
+            return
+        
+        board = boards[board.lower()[:3]]
 
-        sum = bot.mg.get_all_xp()
-        embed.set_footer(
-            text=f'У всех участников суммарно {sum} XP'
-        )
-        await ctx.reply(embed=embed)
+        # badges
+        badges_text = '·　'
+        for i in ['alltime', 'season', 'week', 'day']:
+            badges_text += f'{utils.get_lb_badge(i, board == i)}　'
+
+        badges_text += '·'
+
+        # image
+        image = await bot.mg.render_leaders(ctx.guild, board)
+        file = discord.File(image, 'image.png')
+
+        await ctx.reply(badges_text, file=file)
+        file.close()
+        os.remove(image)
 
 
     # gaining xp
     @bot.listen()
     async def on_message(message: discord.Message):
+        # checking if bot
+        if message.author.bot:
+            return
+        
         # on reply
         try:
             m = await message.channel.fetch_message(
