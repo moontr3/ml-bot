@@ -129,6 +129,13 @@ class Renderer:
         return text.get_rect().size
     
 
+    def get_text_size(self,
+        text: str, font:str, size:int
+    ) -> Tuple[int,int]:
+        font: pg.font.Font = self.get_font(font, size)
+        return font.size(text)
+
+
     def round_image(self, surface: pg.Surface, radius: int) -> pg.Surface:
         '''
         Makes an image have rounded corners.
@@ -253,7 +260,7 @@ class User:
         '''
         self.id: int = id
 
-        xp: int = data.get('xp', 0)
+        xp: int = data.get('xp', {})
         self.xp = XP(xp)
         self.quarantine: float | None = data.get('quarantine', None)
         self.reminders: List[Reminder] = [Reminder(i) for i in data.get('reminders', [])]
@@ -755,7 +762,7 @@ class Manager:
 
         # xp today
         try:
-            lb = self.get_leaders('day')
+            lb = self.get_leaders('day', 99999)
             pos = lb.index(botuser)+1
 
         except:
@@ -786,7 +793,7 @@ class Manager:
 
         # xp this week
         try:
-            lb = self.get_leaders('week')
+            lb = self.get_leaders('week', 99999)
             pos = lb.index(botuser)+1
 
         except:
@@ -817,7 +824,7 @@ class Manager:
 
         # season placement
         try:
-            lb = self.get_leaders('season')
+            lb = self.get_leaders('season', 99999)
             pos = lb.index(botuser)+1
 
         except:
@@ -840,6 +847,53 @@ class Manager:
             r.draw_text(
                 f"сезон", (414-15, 221), 'assets/regular.ttf',
                 14, (255,255,255), h=1, opacity=128
+            )
+
+        path = r.save('temp', 'png')
+        return path
+    
+
+    def render_prom(self, level: int, role: discord.Role = None) -> str:
+        r = Renderer(image='assets/prombg.png' if role else 'assets/prombg2.png')
+
+        # title
+        r.draw_text(
+            f"Повышение!", (17,14), 'assets/bold.ttf', 24, (255,255,255)
+        )
+
+        # levels
+        size = 420-18
+
+        size -= r.draw_text(
+            f'{level}', (size, 14), 'assets/bold.ttf', 24, (128,128,128), h=1
+        )[0]+7
+        size -= r.draw_text(
+            f'>', (size, 14), 'assets/regular.ttf', 24, (128,128,128), h=1
+        )[0]+7
+        size -= r.draw_text(
+            f'{level-1}', (size, 14), 'assets/bold.ttf', 24, (128,128,128), h=1
+        )[0]+7
+        r.draw_text(
+            f'Уровень', (size, 18), 'assets/regular.ttf', 18, (128,128,128), h=1
+        )
+
+        # up indicator
+        if role:
+            pos = 359*((level-1)/(len(LEVELS)-1))+30
+            size = r.get_text_size(role.name, 'assets/medium.ttf', 16)[0]
+            text_pos = deepcopy(pos)
+            if text_pos-size/2 < 20:
+                text_pos = 20+size/2
+            if text_pos+size/2 > 300:
+                text_pos = 400-size/2
+
+            r.draw_text(
+                role.name.capitalize(), (text_pos, 51), 'assets/medium.ttf', 16,
+                role.color.to_rgb(), h=0.5
+            )
+
+            pg.draw.line(
+                r.surface, (255,255,255), (pos, 81-3), (pos, 101+2), width=2
             )
 
         path = r.save('temp', 'png')

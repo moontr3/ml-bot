@@ -57,6 +57,14 @@ ARGS_REQUIRED_EMBED = discord.Embed(
     title='❌ Ошибка!', color=ERROR_C,
     description='Приведено недостаточно аргументов.'
 )
+UNKNOWN_USER_EMBED = discord.Embed(
+    title='❌ Ошибка!', color=ERROR_C,
+    description='Неизвестный пользователь.'
+)
+UNKNOWN_CHANNEL_EMBED = discord.Embed(
+    title='❌ Ошибка!', color=ERROR_C,
+    description='Неизвестный канал.'
+)
 LOADING_EMBED = discord.Embed(
     title='Загружаем...', color=LOADING_C
 )

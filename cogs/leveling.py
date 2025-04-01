@@ -124,7 +124,7 @@ async def setup(bot: commands.Bot):
     @discord.app_commands.describe(
         board='Нужная таблица лидеров - Всё время, День, Неделя, Сезон.'
     )
-    async def slash_leaders(ctx:commands.Context, board:str=':re'):
+    async def slash_leaders(ctx:commands.Context, board:str='day'):
         '''
         Shows user XP level.
         '''
@@ -279,21 +279,32 @@ async def setup(bot: commands.Bot):
         out = bot.mg.add_xp(message.author.id, to_add)
 
         if out:
-            if out < len(LEVELS):
+            # if role:
+            #     role = message.guild.get_role(LEVELS[out-1])
+            #     await message.author.add_roles(role)
+            #     embed = discord.Embed(
+            #         title='Повышение',
+            #         description=f'Ваш ранг был повышен до **{role.name.capitalize()}**!',
+            #         color=role.color
+            #     )
+            # else:
+            #     embed = discord.Embed(
+            #         title='Повышение',
+            #         description=f'Ваш уровень был повышен до **{out}**!',
+            #         color=role.color
+            #     )
+            # await message.reply(embed=embed)
+
+            if out <= len(LEVELS):
                 role = message.guild.get_role(LEVELS[out-1])
-                await message.author.add_roles(role)
-                embed = discord.Embed(
-                    title='Повышение',
-                    description=f'Ваш ранг был повышен до **{role.name.capitalize()}**!',
-                    color=role.color
-                )
             else:
-                embed = discord.Embed(
-                    title='Повышение',
-                    description=f'Ваш уровень был повышен до **{out}**!',
-                    color=role.color
-                )
-            await message.reply(embed=embed)
+                role = None
             
+            image = bot.mg.render_prom(out, role) 
+            file = discord.File(image, 'image.png')
+            await message.reply(file=file)
+            file.close()
+            os.remove(image)
+
 
     # todo: giving roles upon member joining
