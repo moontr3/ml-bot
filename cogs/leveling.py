@@ -93,6 +93,11 @@ async def setup(bot: commands.Bot):
         log(f'{ctx.author.id} requested xp level of {member.id}')
         role = ctx.guild.get_role(acc.xp.level_data)
 
+        if ctx.interaction:
+            await ctx.interaction.response.defer()
+        else:
+            await ctx.channel.typing()
+
         # desc = f'### {role.name.title()} ・ Уровень {acc.xp.level} ・ {acc.xp.xp} XP'\
         #     f'\n**{acc.xp.level_xp}** / **{acc.xp.level_max_xp}** (**{int(acc.xp.level_percentage*100)}%**)'
 
@@ -213,7 +218,7 @@ async def setup(bot: commands.Bot):
         badges_text += '·'
 
         # image
-        image = await bot.mg.render_leaders(ctx.guild, board)
+        image = await bot.mg.render_leaders(bot.mg.get_user(ctx.author.id), ctx.guild, board)
         file = discord.File(image, 'image.png')
 
         await ctx.reply(badges_text, file=file)
@@ -300,7 +305,7 @@ async def setup(bot: commands.Bot):
             else:
                 role = None
             
-            image = bot.mg.render_prom(out, role) 
+            image = bot.mg.render_prom(bot.mg.get_user(message.author.id), out, role) 
             file = discord.File(image, 'image.png')
             await message.reply(file=file)
             file.close()

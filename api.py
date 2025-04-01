@@ -251,6 +251,27 @@ class XP:
             "xp": self.xp,
             "prev_xp": self.prev_xp,
         }
+    
+
+class Skins:
+    def __init__(self, data: dict = {}):
+        '''
+        Embed skins.
+        '''
+        self.skins: list = data.get('skins', [])
+        self._selected: "str | None" = data.get('selected', None)
+
+    
+    @property
+    def selected(self) -> str:
+        return self._selected if self._selected else 'default'
+
+
+    def to_dict(self) -> dict:
+        return {
+            "skins": self.skins,
+            "selected": self._selected
+        }
 
 
 class User:
@@ -272,6 +293,8 @@ class User:
         self.last_sent_zero: float = 0
         self.verifying: bool = False
 
+        self.skins: Skins = Skins(data.get('skins', {}))
+
     
     def to_dict(self) -> dict:
         '''
@@ -283,7 +306,8 @@ class User:
             "reminders": [i.to_dict() for i in self.reminders],
             "tokens": self.tokens,
             "token_dig_timeout": self.token_dig_timeout,
-            "games_timeout": self.games_timeout
+            "games_timeout": self.games_timeout,
+            "skins": self.skins.to_dict()
         }
     
 
@@ -556,6 +580,46 @@ class Manager:
         for i in self.users.values():
             total_xp += i.xp.xp
         return total_xp
+    
+
+    def set_skin(self, user_id:int, skin:str):
+        '''
+        Sets skin for a user.
+        '''
+        user = self.get_user(user_id)
+        user.skins._selected = skin
+
+        self.commit()
+    
+
+    def add_skin(self, user_id:int, skin:str):
+        '''
+        Adds skin to a user.
+        '''
+        user = self.get_user(user_id)
+
+        if skin in user.skins.skins:
+            return False
+        
+        user.skins.skins.append(skin)
+        self.commit()
+
+        return True
+    
+
+    def remove_skin(self, user_id:int, skin:str):
+        '''
+        Removes skin from a user.
+        '''
+        user = self.get_user(user_id)
+
+        if skin not in user.skins.skins:
+            return False
+        
+        user.skins.skins.remove(skin)
+        self.commit()
+
+        return True
 
 
     def render_captcha(self, text: int) -> str:
@@ -617,6 +681,7 @@ class Manager:
 
 
     async def render_leaders(self,
+        user: User,
         guild: discord.Guild,
         type: Literal['alltime','season','week','day']='season'
     ) -> str:
@@ -625,7 +690,8 @@ class Manager:
         '''
         users = self.get_leaders(type)
 
-        r = Renderer(image='assets/leadersbg.png')
+        skin = user.skins.selected
+        r = Renderer(image=f'assets/skins/{skin}/leadersbg.png')
 
         # 61, 17, 12
         start = 0
@@ -674,7 +740,7 @@ class Manager:
             else:
                 r.draw_text(
                     str(i.id), (name,start+17), 'assets/regular.ttf',
-                    18, (128,128,128), max_size=280+45-xp_size
+                    18, (255,255,255), opacity=128, max_size=280+45-xp_size
                 )
 
             start += 61
@@ -689,7 +755,8 @@ class Manager:
         Renders the XP embed for a discord user.
         '''
         botuser = self.get_user(user.id)
-        r = Renderer(image='assets/xpbg.png')
+        skin = botuser.skins.selected
+        r = Renderer(image=f'assets/skins/{skin}/xpbg.png')
 
         # avatar 14, 12, 32
         start = 14
@@ -724,10 +791,12 @@ class Manager:
             f"{botuser.xp.xp} XP", (16,88), 'assets/bold.ttf', 24, (255,255,255),
         )
         size = r.draw_text(
-            f"{botuser.xp.total_xp} XP", (404,88), 'assets/regular.ttf', 24, (128,128,128), h=1
+            f"{botuser.xp.total_xp} XP", (404,88), 'assets/regular.ttf', 24, (255,255,255),
+            h=1, opacity=128
         )[0]
         r.draw_text(
-            'всего', (404-size-5, 92), 'assets/regular.ttf', 20, (128,128,128), h=1
+            'всего', (404-size-5, 92), 'assets/regular.ttf', 20, (255,255,255), 
+            h=1, opacity=128
         )
 
         # xp limit
@@ -736,7 +805,7 @@ class Manager:
         )
         r.draw_text(
             f"{botuser.xp.level_max_xp} XP", (404,125), 'assets/regular.ttf',
-            14, (128,128,128), h=1
+            14, (255,255,255), h=1, opacity=128
         )
 
         # bar
@@ -767,7 +836,8 @@ class Manager:
 
         except:
             r.draw_text(
-                f"???", (68,217), 'assets/bolditalic.ttf', 20, (128,128,128), h=0.5
+                f"???", (68,217), 'assets/bolditalic.ttf', 20, (255,255,255),
+                h=0.5, opacity=128
             )
 
         else:
@@ -798,7 +868,8 @@ class Manager:
 
         except:
             r.draw_text(
-                f"???", (68+142,217), 'assets/bolditalic.ttf', 20, (128,128,128), h=0.5
+                f"???", (68+142,217), 'assets/bolditalic.ttf', 20, (255,255,255),
+                h=0.5, opacity=128
             )
 
         else:
@@ -829,7 +900,8 @@ class Manager:
 
         except:
             r.draw_text(
-                f"???", (68+142+142,217), 'assets/bolditalic.ttf', 20, (128,128,128), h=0.5
+                f"???", (68+142+142,217), 'assets/bolditalic.ttf', 20, (255,255,255),
+                h=0.5, opacity=128
             )
 
         else:
@@ -853,8 +925,12 @@ class Manager:
         return path
     
 
-    def render_prom(self, level: int, role: discord.Role = None) -> str:
-        r = Renderer(image='assets/prombg.png' if role else 'assets/prombg2.png')
+    def render_prom(self, user: User, level: int, role: discord.Role = None) -> str:
+        skin = user.skins.selected
+        r = Renderer(
+            image=f'assets/skins/{skin}/prombg.png' if role else\
+                f'assets/skins/{skin}/prombg2.png'
+            )
 
         # title
         r.draw_text(
@@ -865,16 +941,16 @@ class Manager:
         size = 420-18
 
         size -= r.draw_text(
-            f'{level}', (size, 14), 'assets/bold.ttf', 24, (128,128,128), h=1
+            f'{level}', (size, 14), 'assets/bold.ttf', 24, (255,255,255), h=1, opacity=128
         )[0]+7
         size -= r.draw_text(
-            f'>', (size, 14), 'assets/regular.ttf', 24, (128,128,128), h=1
+            f'>', (size, 14), 'assets/regular.ttf', 24, (255,255,255), h=1, opacity=128
         )[0]+7
         size -= r.draw_text(
-            f'{level-1}', (size, 14), 'assets/bold.ttf', 24, (128,128,128), h=1
+            f'{level-1}', (size, 14), 'assets/bold.ttf', 24, (255,255,255), h=1, opacity=128
         )[0]+7
         r.draw_text(
-            f'Уровень', (size, 18), 'assets/regular.ttf', 18, (128,128,128), h=1
+            f'Уровень', (size, 18), 'assets/regular.ttf', 18, (255,255,255), h=1, opacity=128
         )
 
         # up indicator
