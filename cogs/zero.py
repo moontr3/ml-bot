@@ -18,7 +18,7 @@ async def setup(bot: commands.Bot):
         global sent
         cur_time = datetime.datetime.now()
 
-        if cur_time.minute == 0 and cur_time.hour == 0:
+        if cur_time.minute == 0 and cur_time.hour == 0 and cur_time.second > 10:
             if not sent:
                 sent = True
                 await bot.get_guild(GUILD_ID).get_channel(ZERO_ID).send(ZERO_TEXT)

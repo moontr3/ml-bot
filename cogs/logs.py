@@ -10,27 +10,6 @@ from config import *
 # setup
 async def setup(bot: commands.Bot):
 
-    async def update_rank(member):
-        guild = bot.get_guild(GUILD_ID)
-        level = bot.mg.get_user(member.id).xp.level
-        roles = []
-        rank_roles = [guild.get_role(i) for i in LEVELS]
-
-        for i in range(min(len(LEVELS), level)):
-            roles.append(rank_roles[i])
-        cur_roles = [i for i in member.roles if i.id in LEVELS]
-
-        for i in cur_roles:
-            if i not in roles:
-                await member.remove_roles(i)
-
-        for i in roles:
-            if i not in cur_roles:
-                await member.add_roles(i)
-
-        log(f'Edited {member.id} with rank {level}')
-
-
     @bot.listen()
     async def on_message_delete(message):
         session = aiohttp.ClientSession()
@@ -77,6 +56,7 @@ async def setup(bot: commands.Bot):
 
         await webhook.send(embed=embed, file=file)
         await session.close()
+        
 
     # editing
     @bot.listen()
@@ -126,13 +106,13 @@ async def setup(bot: commands.Bot):
         webhook = Webhook.from_url(bot.WEBHOOK, session=session)
 
         embed = discord.Embed(title='Участник присоединился к серверу', color=member.color)
-        await update_rank(member)
 
         embed.add_field(name='Участник', value=f'{member.mention} _({member} / {member.id})_', inline=False)
         embed.set_thumbnail(url=member.avatar.url)
 
         await webhook.send(embed=embed)
         await session.close()
+
 
     # member leaving
     @bot.listen()

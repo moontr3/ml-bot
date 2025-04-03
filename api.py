@@ -47,6 +47,8 @@ class Renderer:
         path = f'temp/{utils.rand_id()}.png'
         start_time = time.time()
 
+        log(f'downloading image {url}', 'api')
+
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as resp:
                 if resp.status == 200:
@@ -57,6 +59,12 @@ class Renderer:
         log(f'image {path} downloaded in {time.time()-start_time}s', 'api')
         self.cleanup.append(path)
         return path
+    
+
+    def extend(self, size: int):
+        new = pg.Surface((self.surface.get_width(), self.surface.get_height()+size), pg.SRCALPHA)
+        new.blit(self.surface, (0,0))
+        self.surface = new
 
 
     def get_image(self,
@@ -393,6 +401,23 @@ class TimedLeaderboard:
         }
         
 
+# skin data
+
+class SkinData:
+    def __init__(self, key: str, data: dict = {}):
+        '''
+        Skin data.
+        '''
+        self.key: str = key
+        self.name: str = data.get('name', None)
+        self.emoji: str = data.get('emoji', None)
+        self.rarity: int = data.get('rarity', None)
+
+        # checking skin files
+        for i in ['onelinerbg', 'prombg', 'xpbg', 'leadersbg', 'skintopbg', 'skinbottombg']:
+            if not os.path.exists(f'assets/skins/{self.key}/{i}.png'):
+                log(f'File {i} not found for skin {self.key}', 'api', WARNING)
+
 
 # manager
 
@@ -403,6 +428,7 @@ class Manager:
         '''
         self.users_file: str = users_file
         self.data_file: str = data_file
+        self.unclaimed: List[int] = []
         self.reload()
 
 
@@ -446,6 +472,17 @@ class Manager:
         self.users = {int(id): User(int(id), data) for id, data in data['users'].items()}
 
         self.timed_lb = TimedLeaderboard(data.get('timed_lb', {}))
+
+        # data
+        try:
+            with open(self.data_file, encoding='utf-8') as f:
+                self.data = json.load(f)
+        except Exception as e:
+            log(f'Unable to load data file: {e}', 'api')
+
+        self.skins: Dict[str, SkinData] = {
+            k: SkinData(k, v) for k, v in self.data.get('skins', {}).items()
+        }
 
         # saving
         self.commit()
@@ -620,6 +657,17 @@ class Manager:
         self.commit()
 
         return True
+    
+    
+    def get_random_skin(self) -> SkinData:
+        '''
+        Returns a random skin.
+        '''
+        skin = random.choices(
+            list(self.skins.values()),
+            [i.rarity for i in self.skins.values()]
+        )[0]
+        return skin
 
 
     def render_captcha(self, text: int) -> str:
@@ -760,7 +808,7 @@ class Manager:
 
         # avatar 14, 12, 32
         start = 14
-        if user.avatar:
+        if user.avatar and False: # DEBUG REMOVE LATER. AVATARS TAKE LIKE ONE MIN TO DOWNLOAD
             image = await r.download_image(user.avatar.with_size(32).url)
             avatar = r.get_image(image)
             avatar = r.round_image(avatar, 16)
@@ -783,7 +831,7 @@ class Manager:
         # name
         r.draw_text(
             user.display_name, (start,16), 'assets/bold.ttf', 20,
-            (255,255,255), max_size=300-max_pos
+            (255,255,255), max_size=300+42+14-start-max_pos
         )
 
         # xp
@@ -929,7 +977,7 @@ class Manager:
         skin = user.skins.selected
         r = Renderer(
             image=f'assets/skins/{skin}/prombg.png' if role else\
-                f'assets/skins/{skin}/prombg2.png'
+                f'assets/skins/{skin}/onelinerbg.png'
             )
 
         # title
@@ -971,6 +1019,152 @@ class Manager:
             pg.draw.line(
                 r.surface, (255,255,255), (pos, 81-3), (pos, 101+2), width=2
             )
+
+        path = r.save('temp', 'png')
+        return path
+    
+
+    def render_skin_claim(self, user: discord.User, skin: str) -> str:
+        '''
+        Renders image for skin claiming.
+        '''
+        r = Renderer(image=f'assets/skins/{skin}/onelinerbg.png')
+        skin: SkinData = self.skins[skin]
+        
+        # skin name
+        name_size = r.get_text_size('получил скин', 'assets/regular.ttf', 20)[0]+\
+            r.get_text_size(skin.name+'!', 'assets/bold.ttf', 20)[0]+10
+        
+        # name
+        pos = 17
+        max_size = 420-17-17-name_size
+
+        if type(user) != int:
+            # username
+            pos += r.draw_text(
+                user.display_name, (pos,14), 'assets/regular.ttf', 20, (255,255,255),
+                max_size=max_size
+            )[0]+5
+        else:
+            # user id if couldnt fetch the user
+            pos += r.draw_text(
+                str(user), (pos,14), 'assets/regular.ttf', 20, (255,255,255),
+                opacity=96, max_size=max_size
+            )[0]+5
+
+        # text
+        pos += r.draw_text(
+            'получил скин', (pos,14), 'assets/regular.ttf', 20, (255,255,255),
+            opacity=128
+        )[0]+5
+        r.draw_text(
+            skin.name+'!', (pos,14), 'assets/bold.ttf', 20, (255,255,255)
+        )
+
+        path = r.save('temp', 'png')
+        return path
+    
+
+    def render_skin_set(self, skin: str) -> str:
+        '''
+        Renders image for skin setting.
+        '''
+        r = Renderer(image=f'assets/skins/{skin}/onelinerbg.png')
+        skin: SkinData = self.skins[skin]
+
+        # text
+        pos = r.draw_text(
+            'Вы установили скин', (17,14), 'assets/regular.ttf', 20, (255,255,255),
+            opacity=128
+        )[0]+4
+        r.draw_text(
+            skin.name+'!', (pos+17,14), 'assets/bold.ttf', 20, (255,255,255)
+        )
+
+        path = r.save('temp', 'png')
+        return path
+    
+
+    def render_skin_list(self, user: discord.User) -> str:
+        '''
+        Renders a list of skins this user has.
+        '''
+        botuser = self.get_user(user.id)
+        r = Renderer(image=f'assets/skins/{botuser.skins.selected}/skintopbg.png')
+
+        # title
+        r.draw_text(
+            f'Скины {user.display_name}', (17,14), 'assets/bold.ttf', 20, (255,255,255),
+            max_size=420-17-17
+        )
+        pos = r.draw_text(
+            f'Разблокировано: ', (17,45), 'assets/regular.ttf', 16, (255,255,255),
+            opacity=128
+        )[0]
+        r.draw_text(
+            f'{len(botuser.skins.skins)} / {len(self.skins)}', (pos+17,45),
+            'assets/medium.ttf', 16, (255,255,255)
+        )
+
+        # skin list
+        x = 0
+        y = 85
+        r.extend(65+6+6)
+
+        for index, i in enumerate(self.skins.values()):
+            r.draw_image(
+                f'assets/skins/{i.key}/badge.png', (x,y),
+            )
+
+            # badge
+            if i.key == botuser.skins.selected:
+                r.draw_image(f'assets/selected.png', (x,y))
+                r.draw_text(
+                    f'{index+1}', (x+8,y+4), 'assets/bolditalic.ttf', 16, (132,255,87),
+                    opacity=128
+                )
+
+            elif i.key not in botuser.skins.skins:
+                r.draw_image(f'assets/locked.png', (x,y))
+
+            else:
+                r.draw_text(
+                    f'{index+1}', (x+7,y+3), 'assets/bolditalic.ttf', 16, (255,255,255),
+                    opacity=128
+                )
+
+            # changing pos
+            x += 65+6
+
+            if x >= 370 and index < len(self.skins)-1:
+                x = 0
+                y += 65+6
+                r.extend(65+6)
+
+        # end
+        y += 65+6
+        r.extend(45)
+        r.draw_image(
+            f'assets/skins/{botuser.skins.selected}/skinbottombg.png', (0, y)
+        )
+
+        pos = r.draw_text(
+            f'ml!setskin <номер> ', (17,y+12), 'assets/medium.ttf', 14,
+            (255,255,255), opacity=128
+        )[0]
+        if botuser.skins._selected:
+            pos += r.draw_text(
+                f'или ', (pos+17,y+12), 'assets/regular.ttf', 14,
+                (255,255,255), opacity=128
+            )[0]
+            pos += r.draw_text(
+                f'ml!removeskin ', (pos+17,y+12), 'assets/medium.ttf', 14,
+                (255,255,255), opacity=128
+            )[0]
+        r.draw_text(
+            f'для смены', (pos+17,y+12), 'assets/regular.ttf', 14,
+            (255,255,255), opacity=128
+        )
 
         path = r.save('temp', 'png')
         return path
