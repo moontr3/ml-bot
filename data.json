@@ -1,0 +1,94 @@
+{   
+    "skins": {
+        "red": {
+            "name": "Красный",
+            "rarity": 3,
+            "emoji": "<:red:1357086642149785722>"
+        },
+        "yellow": {
+            "name": "Желтый",
+            "rarity": 3,
+            "emoji": "<:yellow:1357086717529821306>"
+        },
+        "green": {
+            "name": "Зеленый",
+            "rarity": 3,
+            "emoji": "<:green:1357086565934960670>"
+        },
+        "lightblue": {
+            "name": "Голубой",
+            "rarity": 3,
+            "emoji": "<:lightblue:1357086578257825812>"
+        },
+        "blue": {
+            "name": "Синий",
+            "rarity": 3,
+            "emoji": "<:blue:1357086510339326052>"
+        },
+        "pink": {
+            "name": "Розовый",
+            "rarity": 3,
+            "emoji": "<:pink:1357086613766934729>"
+        },
+        "fire": {
+            "name": "Огонь",
+            "rarity": 2,
+            "emoji": "<:fire:1357086555461783612>"
+        },
+        "mint": {
+            "name": "Мята",
+            "rarity": 2,
+            "emoji": "<:mint:1357086588580007938>"
+        },
+        "dusk": {
+            "name": "Сумерки",
+            "rarity": 2,
+            "emoji": "<:dusk:1357086543319273513>"
+        },
+        "void": {
+            "name": "Пустота",
+            "rarity": 2,
+            "emoji": "<:void:1357086706037297213>"
+        },
+        "chroma": {
+            "name": "Хрома",
+            "rarity": 1,
+            "emoji": "<:chroma:1357086520976081037>"
+        },
+        "stars": {
+            "name": "Звезды",
+            "rarity": 1,
+            "emoji": "<:stars:1357086667982246058>"
+        },
+        "skeuo": {
+            "name": "Скево",
+            "rarity": 1,
+            "emoji": "<:skeuo:1357086655378493732>"
+        },
+        "null": {
+            "name": "null",
+            "rarity": 1,
+            "emoji": "<:null:1357086600324190248>"
+        },
+        "suhariki": {
+            "name": "СУХАРИКИ",
+            "rarity": 1,
+            "emoji": "<:suhariki:1357086680258973756>"
+        },
+        "discord": {
+            "name": "Discord",
+            "rarity": 2,
+            "emoji": "<:discord:1357086531222900866>"
+        },
+        "pitchblack": {
+            "name": "Полная темнота",
+            "rarity": 2,
+            "emoji": "<:pitchblack:1357086626588917933>"
+        },
+        "2409": {
+            "name": "2409",
+            "rarity": 1,
+            "emoji": "<:2409:1357486577919725598>"
+        }
+    }
+}
