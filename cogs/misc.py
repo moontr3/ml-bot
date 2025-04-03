@@ -39,12 +39,13 @@ async def setup(bot: commands.Bot):
         log(f'{ctx.author.id} requested bot info')
         
         embed = discord.Embed(
-            color=DEFAULT_C, title='ℹ О боте',
+            color=DEFAULT_C, title='ℹ️ О боте',
             description='Создатель: `moontr3` (obviously)\n'\
                 f'Контрибьютор: `mbutsk`\n'\
-                f'Написан на **Python** и **discord.py**'\
+                f'Написан на **Python** и **discord.py**\n\n'\
                 f'Пользователей зарегистрировано: **{len(bot.mg.users)}**\n'\
-                f'Участников на сервере: **{ctx.guild.member_count}**'
+                f'Участников на сервере: **{ctx.guild.member_count}**\n'\
+                f'Всего заработано опыта: **{bot.mg.get_all_xp()} XP**\n'\
         )
 
         await ctx.reply(embed=embed)

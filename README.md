@@ -4,7 +4,7 @@ A bot I made for [my Discord server](https://discord.gg/s3NrXyYjnG) with Python 
 
 ## Features/Todo list
 
-- [ ] Info commands
+- [x] Info commands
 - [x] Basic moderation tools
 - [ ] Custom roles
 - [x] Reminders
@@ -13,6 +13,6 @@ A bot I made for [my Discord server](https://discord.gg/s3NrXyYjnG) with Python 
 - [x] Leveling system and ranks
 - [ ] Ability to close channels
 - [ ] Quarantine
-- [ ] User verification
+- [x] User verification
 - [ ] Minigames
 - [ ] Some other community-related stuff
