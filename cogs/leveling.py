@@ -218,7 +218,7 @@ async def setup(bot: commands.Bot):
         badges_text += '·'
 
         # image
-        image = await bot.mg.render_leaders(bot.mg.get_user(ctx.author.id), ctx.guild, board)
+        image = await bot.mg.render_leaders(ctx.guild, board)
         file = discord.File(image, 'image.png')
 
         await ctx.reply(badges_text, file=file)

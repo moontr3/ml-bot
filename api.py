@@ -414,7 +414,7 @@ class SkinData:
         self.rarity: int = data.get('rarity', None)
 
         # checking skin files
-        for i in ['onelinerbg', 'prombg', 'xpbg', 'leadersbg', 'skintopbg', 'skinbottombg']:
+        for i in ['onelinerbg', 'prombg', 'xpbg', 'lbtopbg', 'lbmidbg', 'lbbottombg', 'skintopbg', 'skinbottombg']:
             if not os.path.exists(f'assets/skins/{self.key}/{i}.png'):
                 log(f'File {i} not found for skin {self.key}', 'api', WARNING)
 
@@ -726,10 +726,33 @@ class Manager:
         elif type == 'day':
             users = sorted(self.users.values(), key=lambda x: self.timed_lb.get_daily_xp(x.id), reverse=True)
         return users[:places]
+    
+
+    def get_place(self, user_id:int, type: Literal['alltime','season','week','day']) -> int:
+        users = self.get_leaders(type, places=99999)
+
+        place = 0
+        prev_xp = None
+
+        for i in users:
+            if type == 'alltime':
+                xp = i.xp.total_xp
+            elif type == 'season':
+                xp = i.xp.xp
+            elif type == 'week':
+                xp = self.timed_lb.get_weekly_xp(i.id)
+            elif type == 'day':
+                xp = self.timed_lb.get_daily_xp(i.id)
+
+            if prev_xp != xp:
+                place += 1
+                prev_xp = xp
+
+            if i.id == user_id:
+                return place
 
 
     async def render_leaders(self,
-        user: User,
         guild: discord.Guild,
         type: Literal['alltime','season','week','day']='season'
     ) -> str:
@@ -738,12 +761,14 @@ class Manager:
         '''
         users = self.get_leaders(type)
 
-        skin = user.skins.selected
-        r = Renderer(image=f'assets/skins/{skin}/leadersbg.png')
+        r = Renderer((420, 544))
 
         # 61, 17, 12
         start = 0
-        for i in users:
+        place = 0
+        prev_xp = None
+
+        for index, i in enumerate(users):
             user = guild.get_member(i.id)
             name = 52
 
@@ -756,6 +781,33 @@ class Manager:
                 xp = self.timed_lb.get_weekly_xp(i.id)
             elif type == 'day':
                 xp = self.timed_lb.get_daily_xp(i.id)
+
+            if prev_xp != xp:
+                place += 1
+                prev_xp = xp
+
+            # bg
+            pos = 'top' if index == 0 else 'mid' if index < len(users)-1 else 'bottom'
+            r.draw_image(
+                f'assets/skins/{i.skins.selected}/lb{pos}bg.png', (0,start),
+            )
+
+            # glow
+            if place <= 3:
+                r.draw_image(
+                    f'assets/place{place}.png', (0,start),
+                )
+
+            # pos
+            color = (251,172,24) if place == 1 else\
+                (140,140,140) if place == 2 else\
+                (148,66,31) if place == 3 else\
+                (255,255,255)
+            
+            r.draw_text(
+                str(place), (17, start+7), 'assets/bolditalic.ttf', 32,
+                color, opacity=96 if place > 3 else 255
+            )
 
             # avatar
             # if user.avatar:
@@ -878,11 +930,9 @@ class Manager:
             )
 
         # xp today
-        try:
-            lb = self.get_leaders('day', 99999)
-            pos = lb.index(botuser)+1
+        pos = self.get_place(user.id, 'day')
 
-        except:
+        if pos == None:
             r.draw_text(
                 f"???", (68,217), 'assets/bolditalic.ttf', 20, (255,255,255),
                 h=0.5, opacity=128
@@ -910,11 +960,9 @@ class Manager:
             )
 
         # xp this week
-        try:
-            lb = self.get_leaders('week', 99999)
-            pos = lb.index(botuser)+1
+        pos = self.get_place(user.id, 'week')
 
-        except:
+        if pos == None:
             r.draw_text(
                 f"???", (68+142,217), 'assets/bolditalic.ttf', 20, (255,255,255),
                 h=0.5, opacity=128
@@ -942,11 +990,9 @@ class Manager:
             )
 
         # season placement
-        try:
-            lb = self.get_leaders('season', 99999)
-            pos = lb.index(botuser)+1
+        pos = self.get_place(user.id, 'season')
 
-        except:
+        if pos == None:
             r.draw_text(
                 f"???", (68+142+142,217), 'assets/bolditalic.ttf', 20, (255,255,255),
                 h=0.5, opacity=128
