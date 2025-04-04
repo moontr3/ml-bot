@@ -235,10 +235,11 @@ async def setup(bot: commands.Bot):
         
         # on reply
         try:
+            assert message.channel.id in CHATTABLE_CHANNELS
             m = await message.channel.fetch_message(
                 message.reference.message_id
             )
-            if not message.author.bot:
+            if not message.author.bot and not m.author.bot:
                 bot.mg.add_xp(m.author.id, 1)
             reply = 1
         except:

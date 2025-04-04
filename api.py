@@ -808,7 +808,7 @@ class Manager:
 
         # avatar 14, 12, 32
         start = 14
-        if user.avatar and False: # DEBUG REMOVE LATER. AVATARS TAKE LIKE ONE MIN TO DOWNLOAD
+        if user.avatar:
             image = await r.download_image(user.avatar.with_size(32).url)
             avatar = r.get_image(image)
             avatar = r.round_image(avatar, 16)
