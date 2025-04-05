@@ -860,7 +860,7 @@ class Manager:
 
         # avatar 14, 12, 32
         start = 14
-        if user.avatar:
+        if user.avatar and False:
             image = await r.download_image(user.avatar.with_size(32).url)
             avatar = r.get_image(image)
             avatar = r.round_image(avatar, 16)
