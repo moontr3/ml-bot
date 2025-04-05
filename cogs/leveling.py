@@ -127,7 +127,7 @@ async def setup(bot: commands.Bot):
         description='Показывает таблицу лидеров по опыту.'
     )
     @discord.app_commands.describe(
-        board='Нужная таблица лидеров - Всё время, День, Неделя, Сезон.'
+        board='Нужная таблица лидеров - Всё время, День, Неделя, Сезон, Войс, Микро, Стрим.'
     )
     async def slash_leaders(ctx:commands.Context, board:str='day'):
         '''
@@ -197,12 +197,24 @@ async def setup(bot: commands.Bot):
             "нед": "week",
             "ден": "day",
             "сег": "day",
+
+            "vc": "vc",
+            "voi": "vc",
+            "str": "stream",
+            "liv": "stream",
+            "mic": "mic",
+            "spe": "mic",
+            "вой": "vc",
+            "гол": "vc",
+            "стр": "stream",
+            "мик": "mic",
+            "гов": "mic"
         }
 
         if board.lower()[:3] not in boards:
             embed = discord.Embed(
                 description='Такой таблицы лидеров нет! Попробуй одно из:\n\n'\
-                    '`День`, `Неделя`, `Сезон`, `Всё время`',
+                    '`День`, `Неделя`, `Сезон`, `Всё время`, `Войс`, `Микро`, `Стрим`',
                 color=ERROR_C
             )
             await ctx.reply(embed=embed, ephemeral=True)
@@ -211,11 +223,15 @@ async def setup(bot: commands.Bot):
         board = boards[board.lower()[:3]]
 
         # badges
-        badges_text = '·　'
-        for i in ['alltime', 'season', 'week', 'day']:
-            badges_text += f'{utils.get_lb_badge(i, board == i)}　'
+        badges_text = ''
 
-        badges_text += '·'
+        for i in ['alltime', 'season', 'week', 'day']:
+            badges_text += f'{utils.get_lb_badge(i, board == i)}<:no:1358207748294316253>'
+
+        badges_text += '\n' + '<:sep:1358207969472286801>'*11 + '\n'
+
+        for i in ['vc', 'stream', 'mic']:
+            badges_text += f'{utils.get_lb_badge(i, board == i)}<:no:1358207748294316253>'
 
         # image
         image = await bot.mg.render_leaders(ctx.guild, board)

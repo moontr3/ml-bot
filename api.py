@@ -808,7 +808,7 @@ class Manager:
         return path
     
 
-    def get_leaders(self, type: Literal['alltime','season','week','day'], places=9) -> List[User]:
+    def get_leaders(self, type: Literal['alltime','season','week','day','vc','stream','mic'], places=9) -> List[User]:
         '''
         Returns a list of users sorted by xp.
         '''
@@ -820,10 +820,16 @@ class Manager:
             users = sorted(self.users.values(), key=lambda x: self.timed_lb.get_weekly_xp(x.id), reverse=True)
         elif type == 'day':
             users = sorted(self.users.values(), key=lambda x: self.timed_lb.get_daily_xp(x.id), reverse=True)
+        elif type == 'vc':
+            users = sorted(self.users.values(), key=lambda x: x.vc.vc_time, reverse=True)
+        elif type == 'stream':
+            users = sorted(self.users.values(), key=lambda x: x.vc.vc_time_streaming, reverse=True)
+        elif type == 'mic':
+            users = sorted(self.users.values(), key=lambda x: x.vc.vc_time_speaking, reverse=True)
         return users[:places]
     
 
-    def get_place(self, user_id:int, type: Literal['alltime','season','week','day']) -> int:
+    def get_place(self, user_id:int, type: Literal['alltime','season','week','day','vc','stream','mic']) -> int:
         users = self.get_leaders(type, places=99999)
 
         place = 0
@@ -849,7 +855,7 @@ class Manager:
 
     async def render_leaders(self,
         guild: discord.Guild,
-        type: Literal['alltime','season','week','day']='season'
+        type: Literal['alltime','season','week','day','vc','stream','mic']='season'
     ) -> str:
         '''
         Renders leaderboard as an image.
@@ -876,6 +882,17 @@ class Manager:
                 xp = self.timed_lb.get_weekly_xp(i.id)
             elif type == 'day':
                 xp = self.timed_lb.get_daily_xp(i.id)
+            elif type == 'vc':
+                xp = i.vc.vc_time
+            elif type == 'stream':
+                xp = i.vc.vc_time_streaming
+            elif type == 'mic':
+                xp = i.vc.vc_time_speaking
+
+            if type in ('vc','stream','mic'):
+                string = f'{xp//60//60}ч {xp//60%60:02}м {xp%60:02}с'
+            else:
+                string = f'{xp:,} XP'
 
             if prev_xp != xp:
                 place += 1
@@ -913,7 +930,7 @@ class Manager:
             # xp
             xp_size = 20
             xp_size += r.draw_text(
-                f'{xp} XP', (402, start+17), 'assets/semibold.ttf', 18,
+                string, (402, start+17), 'assets/semibold.ttf', 18,
                 (255,255,255), h=1
             )[0]
 

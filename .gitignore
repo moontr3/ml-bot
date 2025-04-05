@@ -6,3 +6,4 @@ users.json
 conv.py
 temp
 *.ignore
+backups/*
