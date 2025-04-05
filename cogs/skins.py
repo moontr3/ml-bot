@@ -9,7 +9,6 @@ from log import *
 from typing import *
 from config import *
 import api
-from PIL import Image, ImageDraw, ImageFont
 
 import utils
 
@@ -198,6 +197,20 @@ async def setup(bot: commands.Bot):
         await ctx.reply(embed=embed)
 
 
+    @bot.command(name='spawnskin')
+    async def cmd_spawnskin(ctx:commands.Context, skin:str=None):
+        '''
+        Spawns a skin.
+        '''
+        if ctx.author.id not in ADMINS: return
+        
+        skin: api.SkinData = bot.mg.get_random_skin()
+        log(f'spawning manual skin {skin.key} in {ctx.channel.id} (msg {ctx.message.id})')
+
+        await ctx.message.add_reaction(skin.emoji)
+        bot.mg.unclaimed.append(ctx.message.id)
+
+
     @bot.listen()
     async def on_message(message:discord.Message):
         '''
@@ -227,26 +240,14 @@ async def setup(bot: commands.Bot):
 
         # checking if 30 mins have passed
         if time.time()-message.created_at.timestamp() > 60*30:
-            bot.mg.unclaimed.remove(reaction.message_id)
-            return
-        
-        # checking if the reaction was added by the bot
-        for i in message.reactions:
-            if i.emoji == reaction.emoji:
-                msg_reaction = i
-                break
-        else:
-            return
-
-        users = [i async for i in msg_reaction.users()]
-
-        if bot.user.id not in [i.id for i in users]:
             return
         
         # getting skin
-        skin = reaction.emoji.name
-        if skin not in bot.mg.skins:
+        skin = str(reaction.emoji.id)+'>'
+        if skin not in [i.emoji.split(':')[2] for i in bot.mg.skins.values()]:
             return
+        
+        skin = reaction.emoji.name
 
         log(f'{reaction.user_id} tries to collect skin {skin} in {reaction.channel_id}')
 
@@ -257,13 +258,14 @@ async def setup(bot: commands.Bot):
 
         if not out:
             log(f'{reaction.user_id} already has skin {skin}')
-            await message.remove_reaction(reaction.emoji, user)
             return
         
         # success
+        if reaction.message_id not in bot.mg.unclaimed: return
+        bot.mg.unclaimed.remove(reaction.message_id)
+
         log(f'{reaction.user_id} collected skin {skin}')
 
-        bot.mg.unclaimed.remove(reaction.message_id)
         await message.remove_reaction(reaction.emoji, user)
 
         image = bot.mg.render_skin_claim(user if user else reaction.user_id, skin)

@@ -280,6 +280,40 @@ class Skins:
             "skins": self.skins,
             "selected": self._selected
         }
+    
+
+class VCData:
+    def __init__(self, data: dict = {}):
+        '''
+        Voice channel data.
+        '''
+        self.vc_time: int = int(data.get('vc_time', 0))
+        self.vc_time_streaming: int = int(data.get('vc_time_streaming', 0))
+        self.vc_time_speaking: int = int(data.get('vc_time_speaking', 0))
+        self.xp_to_add: float = data.get('xp_to_add', 0.0)
+        
+        self.state: Literal['none', 'deafen', 'mute', 'normal'] = 'none'
+        self.is_streaming: bool = False
+
+    
+    @property
+    def xp_mult(self) -> int:
+        return {
+            'none': 0,
+            'deafen': 0,
+            'mute': 2,
+            'normal': 4
+        }[self.state] + int(self.is_streaming)
+
+    
+    def to_dict(self) -> dict:
+        return {
+            "vc_time": self.vc_time,
+            "vc_time_streaming": self.vc_time_streaming,
+            "vc_time_speaking": self.vc_time_speaking,
+            "xp_to_add": self.xp_to_add
+        }
+
 
 
 class User:
@@ -303,6 +337,8 @@ class User:
 
         self.skins: Skins = Skins(data.get('skins', {}))
 
+        self.vc: VCData = VCData(data.get('vc', {}))
+
     
     def to_dict(self) -> dict:
         '''
@@ -315,7 +351,8 @@ class User:
             "tokens": self.tokens,
             "token_dig_timeout": self.token_dig_timeout,
             "games_timeout": self.games_timeout,
-            "skins": self.skins.to_dict()
+            "skins": self.skins.to_dict(),
+            "vc": self.vc.to_dict()
         }
     
 
@@ -504,8 +541,14 @@ class Manager:
         data['timed_lb'] = self.timed_lb.to_dict()
 
         # saving
+        try:
+            json_data = json.dumps(data, indent=4)
+        except Exception as e:
+            log(f'Unable to save user data: {e}', 'api', WARNING)    
+            return
+
         with open(self.users_file, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
+            f.write(json_data)
 
 
     def check_user(self, id:int):
@@ -668,6 +711,58 @@ class Manager:
             [i.rarity for i in self.skins.values()]
         )[0]
         return skin
+    
+
+    def update_vc_state(self, id: int, state: discord.VoiceState) -> str:
+        '''
+        Updates the vc state of a user.
+        '''
+        user = self.get_user(id)
+
+        if state == None or state.channel == None:
+            user.vc.state = 'none'
+            user.vc.is_streaming = False
+            return user.vc.state
+
+        elif state.self_deaf or state.deaf:
+            user.vc.state = 'deafen'
+
+        elif state.self_mute or state.mute:
+            user.vc.state = 'mute'
+
+        else:
+            user.vc.state = 'normal'
+
+        user.vc.is_streaming = state.self_stream or state.self_video
+
+        return user.vc.state
+
+
+    def update_vc_xp(self, id: int):
+        '''
+        Updates the vc xp of a user.
+        '''
+        user = self.get_user(id)
+
+        # checking xp
+        xp = user.vc.xp_mult * 1/60
+        user.vc.xp_to_add += xp
+
+        # adding stats
+        user.vc.vc_time += 1
+
+        if user.vc.is_streaming:
+            user.vc.vc_time_streaming += 1
+
+        if user.vc.state == 'normal':
+            user.vc.vc_time_speaking += 1
+
+        # adding xp
+        while user.vc.xp_to_add >= 1:
+            self.add_xp(id, 1)
+            user.vc.xp_to_add -= 1
+
+        self.commit()
 
 
     def render_captcha(self, text: int) -> str:

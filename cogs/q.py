@@ -47,5 +47,5 @@ async def setup(bot: commands.Bot):
     # randomly setting reaction
     @bot.listen()
     async def on_message(message: discord.Message):
-        if random.random() < 0.05:
+        if random.random() < 0.02:
             await message.add_reaction('🇶')
