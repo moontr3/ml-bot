@@ -76,22 +76,36 @@ async def setup(bot: commands.Bot):
             await msg.remove_attachments()
 
             if text.lower() == message.content.lower():
+                # verified
+                log(f'verified {ctx.author.id}')
+                
+                # sending success message
                 embed = discord.Embed(
                     title='Верификация',
                     description='Верификация прошла успешно!',
                     color=DEFAULT_C
                 )
+                await msg.edit(embed=embed)
+
+                # adding role
                 await message.author.add_roles(
                     ctx.guild.get_role(config.VERIFY_ROLE)
                 )
 
-            else:
+                # sending message in chat
                 embed = discord.Embed(
-                    title='Верификация',
-                    description='Верификация не пройдена.\n\nВы написали: '\
-                        f'`{message.content}`\nНужно было написать: `{text}`\n\n'\
-                        'Попробуйте ввести команду ещё раз.',
-                    color=ERROR_C
+                    title=f'Добро пожаловать, {ctx.author.name}!',
+                    description=f'Не забудь прочитать <#975810446579879986>!\n\nНачинай общаться и зарабатывать опыт - `ml!xp`.'
                 )
+                channel = ctx.guild.get_channel(CHAT_CHANNEL)
+                await channel.send(f'<@{ctx.author.id}>', embed=embed)
+                return
 
+            embed = discord.Embed(
+                title='Верификация',
+                description='Верификация не пройдена.\n\nВы написали: '\
+                    f'`{message.content}`\nНужно было написать: `{text}`\n\n'\
+                    'Попробуйте ввести команду ещё раз.',
+                color=ERROR_C
+            )
             await msg.edit(embed=embed)

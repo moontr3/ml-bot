@@ -136,7 +136,7 @@ async def setup(bot: commands.Bot):
     )
     async def slash_mute(
         ctx: commands.Context, member:discord.Member,
-        time:str, reason:str=None
+        time:str, *, reason:str=None
     ):
         '''
         Mutes the specified user.

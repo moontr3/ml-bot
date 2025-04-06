@@ -36,9 +36,6 @@ async def setup(bot: commands.Bot):
         '''
         Member joins
         '''
-        # sending message
-
-        # updating rank
         log(f'Updating rank for {member.id}', level=INFO)
         await update_rank(member)
         log(f'Done updating rank for {member.id}', level=INFO)
