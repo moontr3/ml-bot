@@ -137,3 +137,28 @@ def shorten_number(num:int) -> str:
     ptnum = f'{num:.1f}' if num < 100 else f'{int(num)}'
 
     return f'{ptnum if i != 0 else num}{sizes[i]}'
+
+
+def get_datetime(date: str) -> datetime.datetime:
+    year = datetime.datetime.now(datetime.timezone.utc).year
+    try:
+        return datetime.datetime.strptime(date, '%Y.%m')
+    except:
+        try:
+            return datetime.datetime.strptime(date, '%m.%Y')
+        except:
+            try:
+                return datetime.datetime.strptime(date+f'.{year}', '%m.%Y')
+            except:
+                months = [
+                    'янв', 'фев', 'мар', 'апр', 'май', 'июн',
+                    'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'
+                ]
+                
+                if date.lower()[:3] in months:
+                    try:
+                        return datetime.datetime.strptime(
+                            str(months.index(date.lower()[:3])+1)+f'.{year}', '%m.%Y'
+                        )
+                    except:
+                        return None

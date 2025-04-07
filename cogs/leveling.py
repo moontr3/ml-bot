@@ -84,7 +84,7 @@ async def setup(bot: commands.Bot):
         aliases=['календарь','cal'],
         description='Показывает календарь опыта участника.'
     )
-    async def slash_calendar(ctx:discord.Interaction, date: str=None, member:discord.Member=None):
+    async def slash_calendar(ctx:discord.Interaction, member:Optional[discord.User]=None, date: str=None):
         '''
         Shows user calendar.
         '''
@@ -98,9 +98,23 @@ async def setup(bot: commands.Bot):
         else:
             await ctx.channel.typing()
 
-        today = datetime.date.today()
+        # checking date
+        if date == None:
+            day = datetime.datetime.now(datetime.timezone.utc)
 
-        path = bot.mg.render_xp_calendar(member, today.year, today.month)
+        else:
+            day = utils.get_datetime(date)
+
+            if day == None:
+                embed = discord.Embed(
+                    color=ERROR_C, description='Некорректный формат даты!\n\n'\
+                        f'Вводить нужно название месяца или дату в формате `ММ.ГГГГ`, `ГГГГ.ММ` или `ММ`.'
+                )
+                await ctx.reply(embed=embed, ephemeral=True)
+                return
+
+        # sending image
+        path = bot.mg.render_xp_calendar(member, day.year, day.month)
         file = discord.File(path, 'image.png')
         await ctx.reply(file=file)
 

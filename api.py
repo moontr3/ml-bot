@@ -1483,7 +1483,7 @@ class Manager:
             opacity=128
         )[0]
         r.draw_text(
-            f'{utils.month_name(month%12)}, {year}', (pos+17,45),
+            f'{utils.month_name((month-1)%12)}, {year}', (pos+17,45),
             'assets/medium.ttf', 16, (255,255,255), opacity=128
         )
 
@@ -1492,7 +1492,7 @@ class Manager:
         y = 85
         r.extend(65+6+6)
 
-        today = datetime.date.today()
+        today = datetime.datetime.now(datetime.timezone.utc)
 
         while date <= target_date:
             is_today = date.day == today.day and date.month == today.month
@@ -1510,7 +1510,7 @@ class Manager:
             )
 
             # data
-            day = int(date.timestamp()//86400)
+            day = int(date.timestamp()//86400)+1
             lb = self.timed_lb.daily.get(day, {})
             xp = lb.get(user.id, 0)
             

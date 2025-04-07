@@ -43,7 +43,7 @@ async def setup(bot: commands.Bot):
         embed = discord.Embed(
             color=DEFAULT_C, title='ℹ️ О боте',
             description='Создатель: `moontr3` (obviously)\n'\
-                f'Контрибьютор: `mbutsk`\n'\
+                f'Контрибьюторы: `n0n1m`, `mbutsk`\n'\
                 f'Написан на **Python** и **discord.py**\n'\
                 f'Рендеринг картинок через **pygame-ce**\n\n'\
                 f'Пользователей зарегистрировано: **{len(bot.mg.users)}**\n'\
