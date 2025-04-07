@@ -13,6 +13,7 @@ async def setup(bot: commands.Bot):
 
     @bot.hybrid_command(
         name='ping',
+        aliases=['пинг'],
         description='Показывает пинг бота.'
     )
     async def slash_ping(ctx: commands.Context):
@@ -30,6 +31,7 @@ async def setup(bot: commands.Bot):
 
     @bot.hybrid_command(
         name='about',
+        aliases=['info','оботе','инфо','информация'],
         description='Показывает информацию о боте.'
     )
     async def slash_about(ctx: commands.Context):
@@ -60,6 +62,7 @@ async def setup(bot: commands.Bot):
     )
     @bot.hybrid_command(
         name='purge',
+        aliases=['очистить'],
         description='Удаляет определенное количество сообщений в канале.'
     )
     async def slash_purge(
@@ -132,6 +135,7 @@ async def setup(bot: commands.Bot):
     )
     @bot.hybrid_command(
         name='mute',
+        aliases=['мут','timeout','таймаут'],
         description='Мутит определенного участника на сервере.'
     )
     async def slash_mute(
@@ -199,6 +203,7 @@ async def setup(bot: commands.Bot):
     )
     @bot.hybrid_command(
         name='unmute',
+        aliases=['размут','анмут'],
         description='Размучивает определенного участника на сервере.'
     )
     async def slash_unmute(

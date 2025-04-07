@@ -79,7 +79,7 @@ class Renderer:
         path: str, pos: Tuple[int, int],
         size: Tuple[int, int] = None,
         h=0, v=0, area: pg.Rect=None,
-        rotation: int = 0
+        rotation: int = 0, opacity: int = 255
     ):
         image = self.get_image(path)
 
@@ -95,7 +95,9 @@ class Renderer:
                 pos[0]-image.get_width()*h,
                 pos[1]-image.get_height()*v,
             ]
-            
+
+        image.set_alpha(opacity)
+        
         if area:
             self.surface.blit(image, pos, area)
         else:
@@ -451,7 +453,10 @@ class SkinData:
         self.rarity: int = data.get('rarity', None)
 
         # checking skin files
-        for i in ['onelinerbg', 'prombg', 'xpbg', 'lbtopbg', 'lbmidbg', 'lbbottombg', 'skintopbg', 'skinbottombg']:
+        for i in [
+            'onelinerbg', 'prombg', 'xpbg', 'lbtopbg', 'lbmidbg', 'lbbottombg',
+            'skintopbg', 'skinbottombg', 'badge', 'vcbg'
+        ]:
             if not os.path.exists(f'assets/skins/{self.key}/{i}.png'):
                 log(f'File {i} not found for skin {self.key}', 'api', WARNING)
 
@@ -844,6 +849,12 @@ class Manager:
                 xp = self.timed_lb.get_weekly_xp(i.id)
             elif type == 'day':
                 xp = self.timed_lb.get_daily_xp(i.id)
+            elif type == 'vc':
+                xp = i.vc.vc_time
+            elif type == 'stream':
+                xp = i.vc.vc_time_streaming
+            elif type == 'mic':
+                xp = i.vc.vc_time_speaking
 
             if prev_xp != xp:
                 place += 1
@@ -892,7 +903,7 @@ class Manager:
             if type in ('vc','stream','mic'):
                 string = f'{xp//60//60}ч {xp//60%60:02}м {xp%60:02}с'
             else:
-                string = f'{xp:,} XP'
+                string = f'{xp:,} XP'.replace(',',' ')
 
             if prev_xp != xp:
                 place += 1
@@ -1131,6 +1142,123 @@ class Manager:
         return path
     
 
+    async def render_user_vc(self, user: discord.User) -> str:
+        '''
+        Renders the VC time embed for a discord user.
+        '''
+        botuser = self.get_user(user.id)
+        skin = botuser.skins.selected
+        r = Renderer(image=f'assets/skins/{skin}/vcbg.png')
+
+        # time
+        t = botuser.vc.vc_time
+        vc_time_str = f'{t//60//60}ч {t//60%60:02}м {t%60:02}с'
+        t = botuser.vc.vc_time_speaking
+        vc_speak_str = f'{t//60//60}ч {t//60%60:02}м {t%60:02}с'
+        t = botuser.vc.vc_time_streaming
+        vc_stream_str = f'{t//60//60}ч {t//60%60:02}м {t%60:02}с'
+        
+        r.draw_text(
+            vc_time_str, (17,15), 'assets/bold.ttf', 24, (255,255,255),
+        )
+        r.draw_text(
+            vc_speak_str, (33,50), 'assets/medium.ttf', 16, (255,255,255), opacity=128
+        )
+        r.draw_text(
+            vc_stream_str, (420-40,50), 'assets/medium.ttf', 16, (255,255,255),
+            h=1, opacity=128
+        )
+
+        # icons
+        r.draw_image(
+            'assets/mic.png', (17,56)
+        )
+        r.draw_image(
+            'assets/stream.png', (389,56)
+        )
+        
+        # time vc
+        pos = self.get_place(user.id, 'vc')
+
+        if pos == None:
+            r.draw_text(
+                f"???", (68,217), 'assets/bolditalic.ttf', 20, (255,255,255),
+                h=0.5, opacity=128
+            )
+
+        else:
+            if pos < 4:
+                r.draw_image(f'assets/{pos}1.png', (0,103))
+
+            color = (251,172,24) if pos == 1 else\
+                (140,140,140) if pos == 2 else\
+                (148,66,31) if pos == 3 else\
+                (192,192,192)
+            
+            r.draw_text(
+                f"#{pos}", (18,119), 'assets/bolditalic.ttf', 20, color,
+            )
+            r.draw_text(
+                f"войс", (137-15, 123), 'assets/regular.ttf',
+                14, (255,255,255), h=1, opacity=128
+            )
+
+        # time streaming
+        pos = self.get_place(user.id, 'stream')
+
+        if pos == None:
+            r.draw_text(
+                f"???", (68+142,217), 'assets/bolditalic.ttf', 20, (255,255,255),
+                h=0.5, opacity=128
+            )
+
+        else:
+            if pos < 4:
+                r.draw_image(f'assets/{pos}2.png', (142,103))
+
+            color = (251,172,24) if pos == 1 else\
+                (140,140,140) if pos == 2 else\
+                (148,66,31) if pos == 3 else\
+                (192,192,192)
+            
+            r.draw_text(
+                f"#{pos}", (159,119), 'assets/bolditalic.ttf', 20, color,
+            )
+            r.draw_text(
+                f"стрим", (278-15, 123), 'assets/regular.ttf',
+                14, (255,255,255), h=1, opacity=128
+            )
+
+        # time with mic on
+        pos = self.get_place(user.id, 'mic')
+
+        if pos == None:
+            r.draw_text(
+                f"???", (68+142+142,217), 'assets/bolditalic.ttf', 20, (255,255,255),
+                h=0.5, opacity=128
+            )
+
+        else:
+            if pos < 4:
+                r.draw_image(f'assets/{pos}3.png', (283,103))
+
+            color = (251,172,24) if pos == 1 else\
+                (140,140,140) if pos == 2 else\
+                (148,66,31) if pos == 3 else\
+                (192,192,192)
+            
+            r.draw_text(
+                f"#{pos}", (300,119), 'assets/bolditalic.ttf', 20, color,
+            )
+            r.draw_text(
+                f"с микро", (414-15, 123), 'assets/regular.ttf',
+                14, (255,255,255), h=1, opacity=128
+            )
+
+        path = r.save('temp', 'png')
+        return path
+    
+
     def render_prom(self, user: User, level: int, role: discord.Role = None) -> str:
         skin = user.skins.selected
         r = Renderer(
@@ -1321,6 +1449,142 @@ class Manager:
             )[0]
         r.draw_text(
             f'для смены', (pos+17,y+12), 'assets/regular.ttf', 14,
+            (255,255,255), opacity=128
+        )
+
+        path = r.save('temp', 'png')
+        return path
+
+
+    def render_xp_calendar(self, user: discord.User, year: int, month: int) -> str:
+        '''
+        Renders a calendar of user's XP earnings.
+        '''
+        botuser = self.get_user(user.id)
+        r = Renderer(image=f'assets/skins/{botuser.skins.selected}/skintopbg.png')
+        
+        # date
+        date = datetime.datetime(year, month, 1)
+        while date.weekday() != 0:
+            date -= datetime.timedelta(days=1)
+
+        target_date = datetime.datetime(year, month, 1)
+        while (target_date.year == year and target_date.month == month)\
+            or target_date.weekday() != 6:
+                target_date += datetime.timedelta(days=1)
+
+        # title
+        r.draw_text(
+            f'Опыт {user.display_name}', (17,14), 'assets/bold.ttf', 20, (255,255,255),
+            max_size=420-17-17
+        )
+        pos = r.draw_text(
+            f'За ', (17,45), 'assets/regular.ttf', 16, (255,255,255),
+            opacity=128
+        )[0]
+        r.draw_text(
+            f'{utils.month_name(month%12)}, {year}', (pos+17,45),
+            'assets/medium.ttf', 16, (255,255,255), opacity=128
+        )
+
+        # date list
+        x = 0
+        y = 85
+        r.extend(65+6+6)
+
+        today = datetime.date.today()
+
+        while date <= target_date:
+            is_today = date.day == today.day and date.month == today.month
+            r.draw_image(
+                (
+                    'assets/calendartodaybg.png' if is_today else\
+                    'assets/calendarempty.png' if date.weekday() not in [5,6] else\
+                    'assets/calendarweekday.png'
+                ), (x,y), opacity=128 if date.month != month else 255
+            )
+
+            r.draw_text(
+                f'{date.day}', (x+6,y+3), 'assets/bolditalic.ttf', 14, (255,255,255),
+                opacity=128
+            )
+
+            # data
+            day = int(date.timestamp()//86400)
+            lb = self.timed_lb.daily.get(day, {})
+            xp = lb.get(user.id, 0)
+            
+            lb = sorted(lb.items(), key=lambda x: x[1], reverse=True)
+
+            place = 0
+            prev_xp = None
+
+            for i in lb:
+                cur_xp = i[1]
+
+                if prev_xp != cur_xp:
+                    place += 1
+                    prev_xp = cur_xp
+
+                if i[0] == user.id:
+                    break
+
+            # underlay
+            if place in [1,2,3]:
+                r.draw_image(
+                    f'assets/calendar{place}.png', (x, y)
+                )
+            elif is_today:
+                r.draw_image(
+                    f'assets/calendartoday.png', (x, y)
+                )
+
+            # place
+            if place > 0:
+                color = (251,172,24) if place == 1 else\
+                    (140,140,140) if place == 2 else\
+                    (148,66,31) if place == 3 else\
+                    (192,192,192)
+                
+                r.draw_text(
+                    f"#{place}", (x+54-6, y+3), 'assets/bold.ttf', 14, color, h=1,
+                )
+
+            # xp
+            if xp > 0:
+                r.draw_text(
+                    utils.shorten_number(xp), (x+28, y+25),
+                    'assets/medium.ttf', 16, (255,255,255), h=0.5
+                )
+            else:
+                r.draw_text(
+                    '0', (x+27, y+25),
+                    'assets/medium.ttf', 16, (255,255,255), h=0.5, opacity=60
+                )
+
+            # changing pos
+            x += 54+6
+            date += datetime.timedelta(days=1)
+
+            if x >= 380:
+                x = 0
+                if date <= target_date:
+                    y += 54+6
+                    r.extend(54+6)
+
+        # end
+        y += 54+6
+        r.extend(45)
+        r.draw_image(
+            f'assets/skins/{botuser.skins.selected}/skinbottombg.png', (0, y)
+        )
+
+        pos = r.draw_text(
+            f'ml!calendar <дата> ', (17,y+12), 'assets/medium.ttf', 14,
+            (255,255,255), opacity=128
+        )[0]
+        r.draw_text(
+            f'для смены месяца', (pos+17,y+12), 'assets/regular.ttf', 14,
             (255,255,255), opacity=128
         )
 

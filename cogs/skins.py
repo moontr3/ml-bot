@@ -70,6 +70,7 @@ async def setup(bot: commands.Bot):
     )
     @bot.hybrid_command(
         name='skins',
+        aliases=['скины'],
         description='Показывает список разблокированных скинов пользователя.'
     )
     async def slash_skins(ctx:discord.Interaction, member:discord.Member=None):
