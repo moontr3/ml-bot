@@ -4,12 +4,11 @@ from config import *
 
 async def setup(bot: commands.Bot):
     # faq things
-    question_list = bot.mg.data.get('faq', [])
 
     class CustomSelect(discord.ui.Select):
         async def callback(self, interaction:discord.Interaction):
             index = int(self.values[0])
-            data = question_list[index]
+            data = bot.mg.data.get('faq', [])[index]
             
             embed = discord.Embed(
                 title=data['name'],
@@ -33,7 +32,7 @@ async def setup(bot: commands.Bot):
 
         options = []
 
-        for c, i in enumerate(question_list):
+        for c, i in enumerate(bot.mg.data.get('faq', [])):
             options.append(discord.SelectOption(label=i['name'], value=str(c)))
 
         view = discord.ui.View(timeout=None)
