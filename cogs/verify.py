@@ -95,7 +95,9 @@ async def setup(bot: commands.Bot):
                 # sending message in chat
                 embed = discord.Embed(
                     title=f'Добро пожаловать, {ctx.author.name}!',
-                    description=f'Не забудь прочитать <#975810446579879986>!\n\nНачинай общаться и зарабатывать опыт - `ml!xp`.'
+                    description=f'Не забудь прочитать <#975810446579879986>!\n\n'\
+                        f'Начинай общаться и зарабатывать опыт - `ml!xp`.\n'\
+                        f'Также советую взглянуть в `ml!help`!'
                 )
                 channel = ctx.guild.get_channel(CHAT_CHANNEL)
                 await channel.send(f'<@{ctx.author.id}>', embed=embed)

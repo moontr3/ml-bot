@@ -249,6 +249,8 @@ async def setup(bot: commands.Bot):
             return
         
         skin = reaction.emoji.name
+        
+        if reaction.message_id not in bot.mg.unclaimed: return
 
         log(f'{reaction.user_id} tries to collect skin {skin} in {reaction.channel_id}')
 
@@ -262,10 +264,8 @@ async def setup(bot: commands.Bot):
             return
         
         # success
-        if reaction.message_id not in bot.mg.unclaimed: return
-        bot.mg.unclaimed.remove(reaction.message_id)
-
         log(f'{reaction.user_id} collected skin {skin}')
+        bot.mg.unclaimed.remove(reaction.message_id)
 
         await message.remove_reaction(reaction.emoji, user)
 

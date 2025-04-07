@@ -6,26 +6,28 @@ async def setup(bot: commands.Bot):
     # command
     @bot.hybrid_command(
         name='faq',
-        aliases=['чаво',"гайд",'guide'],
+        aliases=['чаво',"гайд",'guide','help','хелп','помощь'],
         description='Показывает часто задаваемые вопросы.'
     )
     async def faq(ctx: commands.Context):
         embed = discord.Embed(
-            title='Часто задаваемые вопросы',
-            description='Выберете интересующий вопрос:',
+            title='Помощь',
+            description='Приветствую в FAQ!\n\nЗдесь можно узнать больше о сервере и боте.',
             color=DEFAULT_C
         )
 
         options = []
 
         for c, i in enumerate(bot.mg.data.get('faq', [])):
-            options.append(discord.SelectOption(label=i['name'], value=str(c)))
+            options.append(discord.SelectOption(
+                label=i['name'], value=str(c), emoji=i['emoji']
+            ))
 
         view = discord.ui.View(timeout=None)
         view.add_item(discord.ui.Select(
             custom_id='faq',
             options=options,
-            placeholder='Выберите вопрос...'
+            placeholder='Выбери вопрос...'
         ))
 
         await ctx.reply(embed=embed, view=view)

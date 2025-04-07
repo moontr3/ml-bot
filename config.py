@@ -1,6 +1,6 @@
 import discord
 
-PREFIXES = ('tml!', 'ml!')
+PREFIXES = ('tml!', 'ml!', 'odbs!','мл!')
 ADMINS = [698457845301248010]
 
 LEVELS = [
@@ -102,4 +102,4 @@ UNITNAMES = {
 }
 
 
-SKIN_CHANCE = 0.007
+SKIN_CHANCE = 0.005
