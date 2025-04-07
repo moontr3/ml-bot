@@ -34,6 +34,36 @@ async def setup(bot: commands.Bot):
         log(f'Edited {member.id} with rank {level}')
 
 
+    @discord.app_commands.describe(
+        member='Участник сервера, у которого нужно узнать время.'
+    )
+    @bot.hybrid_command(
+        name='vc',
+        aliases=['войс','голос','voice'],
+        description='Показывает время пользователя в голосовом канале.'
+    )
+    async def slash_vc(ctx:discord.Interaction, member:discord.Member=None):
+        '''
+        Shows user time in VC.
+        '''
+        if member == None:
+            member = ctx.author
+
+        log(f'{ctx.author.id} requested vc time of {member.id}')
+
+        if ctx.interaction:
+            await ctx.interaction.response.defer()
+        else:
+            await ctx.channel.typing()
+
+        path = await bot.mg.render_user_vc(member)
+        file = discord.File(path, 'image.png')
+        await ctx.reply(file=file)
+
+        file.close()
+        os.remove(path)
+
+
     @bot.listen()
     async def on_voice_state_update(
         member: discord.Member, before: discord.VoiceState, after: discord.VoiceState

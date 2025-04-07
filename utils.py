@@ -117,3 +117,23 @@ def get_lb_badge(lb: Literal['alltime','season','week','day','vc','stream','mic'
             'stream': '<:streamd1:1358204762302185492><:streamd2:1358204798477795528>',
             'mic': '<:micd1:1358204688851533874><:micd2:1358204705813172376>'
         }[lb]
+
+
+def month_name(month:int) -> str:
+    return [
+        'Январь','Февраль','Март','Апрель','Май','Июнь',
+        'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'
+    ][month]
+
+
+def shorten_number(num:int) -> str:
+    sizes = ['', 'k','m','b','t']
+
+    i = 0
+    while num >= 1000 and i < len(sizes)-1:
+        num /= 1000
+        i += 1
+
+    ptnum = f'{num:.1f}' if num < 100 else f'{int(num)}'
+
+    return f'{ptnum if i != 0 else num}{sizes[i]}'

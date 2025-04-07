@@ -74,12 +74,46 @@ async def setup(bot: commands.Bot):
         )
         await ctx.reply(embed=embed)
 
-    # xp command
+
+    @discord.app_commands.describe(
+        date='Дата в формате ММ.ГГГГ, ГГГГ.ММ, ММ или название месяца.',
+        member='Участник сервера, у которого нужно посмотреть календарь опыта.'
+    )
+    @bot.hybrid_command(
+        name='calendar',
+        aliases=['календарь','cal'],
+        description='Показывает календарь опыта участника.'
+    )
+    async def slash_calendar(ctx:discord.Interaction, date: str=None, member:discord.Member=None):
+        '''
+        Shows user calendar.
+        '''
+        if member == None:
+            member = ctx.author
+
+        log(f'{ctx.author.id} requested calendar of {member.id}')
+        
+        if ctx.interaction:
+            await ctx.interaction.response.defer()
+        else:
+            await ctx.channel.typing()
+
+        today = datetime.date.today()
+
+        path = bot.mg.render_xp_calendar(member, today.year, today.month)
+        file = discord.File(path, 'image.png')
+        await ctx.reply(file=file)
+
+        file.close()
+        os.remove(path)
+
+
     @discord.app_commands.describe(
         member='Участник сервера, у которого нужно узнать опыт.'
     )
     @bot.hybrid_command(
         name='xp',
+        aliases=['опыт','lvl','rank','level','уровень','ранк','ранг'],
         description='Показывает текущий опыт пользователя.'
     )
     async def slash_xp(ctx:discord.Interaction, member:discord.Member=None):
@@ -319,6 +353,7 @@ async def setup(bot: commands.Bot):
 
             if out <= len(LEVELS):
                 role = message.guild.get_role(LEVELS[out-1])
+                await message.author.add_roles(role)
             else:
                 role = None
             

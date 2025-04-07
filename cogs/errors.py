@@ -20,12 +20,12 @@ async def setup(bot: commands.Bot):
         '''Usually gets called when a user tries to incorrectly invoke a command.'''
         if isinstance(error, commands.MissingRequiredArgument):
             # not enough args
-            log(f'{ctx.author} {ctx.author.id} missing required argument(s): {ctx.content}', level=ERROR)
+            log(f'{ctx.author} {ctx.author.id} missing required argument(s): {ctx.message.content}', level=ERROR)
             await ctx.reply(embed=ARGS_REQUIRED_EMBED)
 
         elif isinstance(error, commands.MissingPermissions):
             # missing required permissions
-            log(f'{ctx.author} {ctx.author.id} missing permissions: {ctx.content}', level=ERROR)
+            log(f'{ctx.author} {ctx.author.id} missing permissions: {ctx.message.content}', level=ERROR)
             await ctx.reply(embed=MISSING_PERMS_EMBED)
 
         elif isinstance(error, commands.CommandNotFound):

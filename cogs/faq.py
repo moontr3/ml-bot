@@ -3,8 +3,6 @@ import discord
 from config import *
 
 async def setup(bot: commands.Bot):
-    question_list = bot.mg.data.get('faq', [])
-
     # command
     @bot.hybrid_command(
         name='faq',
@@ -19,7 +17,7 @@ async def setup(bot: commands.Bot):
 
         options = []
 
-        for c, i in enumerate(question_list):
+        for c, i in enumerate(bot.mg.data.get('faq', [])):
             options.append(discord.SelectOption(label=i['name'], value=str(c)))
 
         view = discord.ui.View(timeout=None)
@@ -36,7 +34,7 @@ async def setup(bot: commands.Bot):
     async def on_interaction(interaction:discord.Interaction):
         if interaction.type == discord.InteractionType.component and interaction.data['custom_id'] == 'faq':
             index = int(interaction.data['values'][0])
-            data = question_list[index]
+            data = bot.mg.data.get('faq', [])[index]
             
             embed = discord.Embed(
                 title=data['name'],
