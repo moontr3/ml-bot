@@ -471,6 +471,7 @@ class Manager:
         self.users_file: str = users_file
         self.data_file: str = data_file
         self.unclaimed: List[int] = []
+        self.in_vc: List[int] = []
         self.reload()
 
 
@@ -727,9 +728,16 @@ class Manager:
         if state == None or state.channel == None:
             user.vc.state = 'none'
             user.vc.is_streaming = False
-            return user.vc.state
 
-        elif state.self_deaf or state.deaf:
+            if user.id in self.in_vc:
+                self.in_vc.remove(user.id)
+
+            return user.vc.state
+        
+        if user.id not in self.in_vc:
+            self.in_vc.append(user.id)
+
+        if state.self_deaf or state.deaf:
             user.vc.state = 'deafen'
 
         elif state.self_mute or state.mute:
@@ -761,6 +769,10 @@ class Manager:
 
         if user.vc.state == 'normal':
             user.vc.vc_time_speaking += 1
+
+        # not adding xp if alone in vc
+        if len(self.in_vc) == 1:
+            return
 
         # adding xp
         while user.vc.xp_to_add >= 1:
