@@ -6,6 +6,7 @@ async def setup(bot: commands.Bot):
     # command
     @bot.hybrid_command(
         name='faq',
+        aliases=['чаво',"гайд",'guide'],
         description='Показывает часто задаваемые вопросы.'
     )
     async def faq(ctx: commands.Context):
