@@ -1,4 +1,5 @@
 import random
+import threading
 from typing import *
 
 import aiofiles
@@ -532,6 +533,14 @@ class Manager:
 
 
     def commit(self):
+        '''
+        Это костыль или гениальное решение?
+        Anti Ctrl+C Device
+        '''
+        threading.Thread(target=self._commit).start()
+        
+
+    def _commit(self):
         '''
         Saves user data to the file.
         '''

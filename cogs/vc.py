@@ -71,6 +71,7 @@ async def setup(bot: commands.Bot):
         '''
         Updates user's VC state on update
         '''
+        if member.bot: return
         bot.mg.update_vc_state(member.id, after)
 
 
@@ -83,6 +84,7 @@ async def setup(bot: commands.Bot):
 
         for channel in guild.voice_channels:
             for member in channel.members:
+                if member.bot: continue
                 bot.mg.update_vc_state(member.id, member.voice)
 
 
