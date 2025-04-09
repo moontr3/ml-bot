@@ -341,6 +341,9 @@ class User:
         self.skins: Skins = Skins(data.get('skins', {}))
 
         self.vc: VCData = VCData(data.get('vc', {}))
+        
+        self.last_msg_channel: int = data.get('last_msg_channel', deepcopy(CHAT_CHANNEL)) 
+        self.to_send_lvl_up_msg: bool = False
 
     
     def to_dict(self) -> dict:
@@ -355,7 +358,8 @@ class User:
             "token_dig_timeout": self.token_dig_timeout,
             "games_timeout": self.games_timeout,
             "skins": self.skins.to_dict(),
-            "vc": self.vc.to_dict()
+            "vc": self.vc.to_dict(),
+            "last_msg_channel": self.last_msg_channel
         }
     
 
@@ -595,13 +599,13 @@ class Manager:
         '''
         Adds a reminder.
         '''
-        self.check_user(user_id)
+        user = self.get_user(user_id)
 
         reminder = Reminder.convert(
             message_id, channel_id,
             duration, jump_url, text
         )
-        self.users[user_id].reminders.append(reminder)
+        user.reminders.append(reminder)
 
         self.commit()
     
@@ -610,26 +614,30 @@ class Manager:
         '''
         Removes a reminder from a user.
         '''
-        self.users[user_id].reminders.pop(index)
+        user = self.get_user(user_id)
+        user.reminders.pop(index)
         self.commit()
 
 
-    def add_xp(self, user_id:int, xp:int) -> "int | None":
+    def add_xp(self, user_id:int, xp:int, store_lvl_up:bool=True) -> "int | None":
         '''
         Adds XP to user.
 
         If user leveled up, return the new level.
         '''
-        self.check_user(user_id)
+        user = self.get_user(user_id)
 
-        old_level = deepcopy(self.users[user_id].xp.level)
-        self.users[user_id].xp.xp += xp
-        self.users[user_id].xp.reload_levels()
+        old_level = deepcopy(user.xp.level)
+        user.xp.xp += xp
+        user.xp.reload_levels()
 
-        if old_level != self.users[user_id].xp.level:
-            return self.users[user_id].xp.level
-        
         self.timed_lb.add_xp(user_id, xp)
+
+        if old_level != user.xp.level:
+            if store_lvl_up:
+                user.to_send_lvl_up_msg = True
+                
+            return user.xp.level
         
         self.commit()
 
@@ -640,14 +648,15 @@ class Manager:
 
         If user leveled up, return the new level.
         '''
-        self.check_user(user_id)
+        user = self.get_user(user_id)
 
-        old_level = deepcopy(self.users[user_id].xp.level)
-        self.users[user_id].xp.xp = xp
-        self.users[user_id].xp.reload_levels()
+        old_level = deepcopy(user.xp.level)
+        user.xp.xp = xp
+        user.xp.reload_levels()
 
-        if old_level != self.users[user_id].xp.level:
-            return self.users[user_id].xp.level
+        if old_level != user.xp.level:
+            user.to_send_lvl_up_msg = True
+            return user.xp.level
         
         self.commit()
 
@@ -726,6 +735,15 @@ class Manager:
             [i.rarity for i in self.skins.values()]
         )[0]
         return skin
+    
+
+    def set_last_msg_channel(self, user_id:int, channel_id:int):
+        '''
+        Sets last message channel for a user.
+        '''
+        user = self.get_user(user_id)
+        user.last_msg_channel = channel_id
+        self.commit()
     
 
     def update_vc_state(self, id: int, state: discord.VoiceState) -> str:

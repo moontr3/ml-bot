@@ -1,13 +1,11 @@
 import os
 import random
-from discord.ext import commands
+from discord.ext import commands, tasks
 import discord
 from log import *
 from typing import *
 from config import *
 import api
-from PIL import Image, ImageDraw, ImageFont
-
 import utils
 
 
@@ -297,6 +295,8 @@ async def setup(bot: commands.Bot):
         if message.author.bot:
             return
         
+        bot.mg.set_last_msg_channel(message.author.id, message.channel.id)
+        
         # on reply
         try:
             assert message.channel.id in CHATTABLE_CHANNELS
@@ -346,7 +346,7 @@ async def setup(bot: commands.Bot):
             to_add = 0
         to_add += additional
 
-        out = bot.mg.add_xp(message.author.id, to_add)
+        out = bot.mg.add_xp(message.author.id, to_add, False)
 
         if out:
             # if role:
@@ -377,5 +377,27 @@ async def setup(bot: commands.Bot):
             file.close()
             os.remove(image)
 
+        
+    @tasks.loop(seconds=1)
+    async def level_up_loop():
+        guild = bot.get_guild(GUILD_ID)
 
-    # todo: giving roles upon member joining
+        for user in bot.mg.users.values():
+            user: api.User
+
+            if user.to_send_lvl_up_msg:
+                role = guild.get_role(LEVELS[user.xp.level-1])
+                channel = guild.get_channel(user.last_msg_channel)
+
+                image = bot.mg.render_prom(bot.mg.get_user(user.id), user.xp.level, role) 
+                file = discord.File(image, 'image.png')
+                await channel.send(f'<@{user.id}>', file=file)
+                file.close()
+                os.remove(image)
+
+                user.to_send_lvl_up_msg = False
+
+    @bot.listen()
+    async def on_ready():
+        if not level_up_loop.is_running():
+            level_up_loop.start()
