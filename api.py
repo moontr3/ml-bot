@@ -1193,28 +1193,32 @@ class Manager:
         t = botuser.vc.vc_time
         vc_time_str = f'{t//60//60}ч {t//60%60:02}м {t%60:02}с'
         t = botuser.vc.vc_time_speaking
-        vc_speak_str = f'{t//60//60}ч {t//60%60:02}м {t%60:02}с'
+        vc_speak_str = f'{t//60//60}:{t//60%60:02}:{t%60:02}'
         t = botuser.vc.vc_time_streaming
-        vc_stream_str = f'{t//60//60}ч {t//60%60:02}м {t%60:02}с'
+        vc_stream_str = f'{t//60//60}:{t//60%60:02}:{t%60:02}'
         
         r.draw_text(
-            vc_time_str, (17,15), 'assets/bold.ttf', 24, (255,255,255),
+            f'Статистика войсов {user.display_name}', (17,15),
+            'assets/medium.ttf', 16, (255,255,255), opacity=128
         )
         r.draw_text(
-            vc_speak_str, (33,50), 'assets/medium.ttf', 16, (255,255,255), opacity=128
+            vc_time_str, (17,40), 'assets/bold.ttf', 24, (255,255,255),
         )
-        r.draw_text(
-            vc_stream_str, (420-40,50), 'assets/medium.ttf', 16, (255,255,255),
-            h=1, opacity=128
-        )
+        # r.draw_text(
+        #     vc_speak_str, (33,50), 'assets/medium.ttf', 16, (255,255,255), opacity=128
+        # )
+        # r.draw_text(
+        #     vc_stream_str, (420-40,50), 'assets/medium.ttf', 16, (255,255,255),
+        #     h=1, opacity=128
+        # )
 
         # icons
-        r.draw_image(
-            'assets/mic.png', (17,56)
-        )
-        r.draw_image(
-            'assets/stream.png', (389,56)
-        )
+        # r.draw_image(
+        #     'assets/mic.png', (17,56)
+        # )
+        # r.draw_image(
+        #     'assets/stream.png', (389,56)
+        # )
         
         # time vc
         pos = self.get_place(user.id, 'vc')
@@ -1264,7 +1268,11 @@ class Manager:
                 f"#{pos}", (159,119), 'assets/bolditalic.ttf', 20, color,
             )
             r.draw_text(
-                f"стрим", (278-15, 123), 'assets/regular.ttf',
+                f"стрим", (278-15, 113), 'assets/regular.ttf',
+                14, (255,255,255), h=1, opacity=128
+            )
+            r.draw_text(
+                vc_stream_str, (278-15, 132), 'assets/bold.ttf',
                 14, (255,255,255), h=1, opacity=128
             )
 
@@ -1290,7 +1298,11 @@ class Manager:
                 f"#{pos}", (300,119), 'assets/bolditalic.ttf', 20, color,
             )
             r.draw_text(
-                f"с микро", (414-15, 123), 'assets/regular.ttf',
+                f"с микро", (414-15, 113), 'assets/regular.ttf',
+                14, (255,255,255), h=1, opacity=128
+            )
+            r.draw_text(
+                vc_speak_str, (414-15, 132), 'assets/bold.ttf',
                 14, (255,255,255), h=1, opacity=128
             )
 

@@ -34,13 +34,11 @@ async def load_commands() -> List[str]:
 
     Returns a list of log entries.
     '''
-    out = []
     extensions = dict(bot.extensions)
 
     for i in extensions:
         await bot.unload_extension(i)
         log(f'Unloaded extension {i}')
-        out.append(f'Unloaded extension {i}')
 
     for i in glob.glob(f'{COGS_FOLDER}/*.py'):
         try:
@@ -48,13 +46,9 @@ async def load_commands() -> List[str]:
             name = to_extension_name(i)
             await bot.load_extension(name)
             log(f'Loaded extension {name}')
-            out.append(f'Loaded extension {name}')
 
         except Exception as e:
             log(f'Extension unable to load: {e}', level=ERROR)
-            out.append(f'Extension unable to load: {e}')
-            
-    return out
 
 
 # inbuilt commands
@@ -66,10 +60,9 @@ async def reload(ctx):
     if ctx.author.id not in ADMINS: return
 
     log(f'{ctx.author.id} requested command reload')
-    out = await load_commands()
+    await load_commands()
     desc = f'{len(bot.commands)} commands, {len(bot.tree.get_commands())} slash, '\
-        f'{len(bot.extensions)}/{len(glob.glob(f"{COGS_FOLDER}/*.py"))} cogs loaded'\
-        f'```'+'\n'.join([i for i in out])+'```'
+        f'{len(bot.extensions)}/{len(glob.glob(f"{COGS_FOLDER}/*.py"))} cogs loaded'
     
     embed = discord.Embed(title=f'✅ Commands reloaded!', description=desc, color=DEFAULT_C)
     await ctx.reply(embed=embed)

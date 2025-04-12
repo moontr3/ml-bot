@@ -39,3 +39,13 @@ async def setup(bot: commands.Bot):
         log(f'Updating rank for {member.id}', level=INFO)
         await update_rank(member)
         log(f'Done updating rank for {member.id}', level=INFO)
+
+        # sending verify hint
+        channel = bot.get_channel(VERIFY_ID)
+
+        embed = discord.Embed(
+            color=DEFAULT_C
+        )
+        embed.set_image(url='https://moontr3.ru/assets/mlverify.png')
+
+        await channel.send(f'<@{member.id}>', embed=embed)

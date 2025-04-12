@@ -22,16 +22,34 @@ async def setup(bot: commands.Bot):
         Verify yourself.
         '''
         log(f'{ctx.author.id} requested verification')
-        
-        if ctx.channel.id != config.VERIFY_ID:
-            return
-        
+
         if ctx.author.get_role(config.VERIFY_ROLE):
+            embed = discord.Embed(
+                description='Долбоеб! Ты уже.', color=ERROR_C
+            )
+            await ctx.reply(embed=embed, ephemeral=True)
+            return
+
+        if ctx.channel.id != config.VERIFY_ID:
+            embed = discord.Embed(
+                description='Не тот канал!', color=ERROR_C
+            )
+            await ctx.reply(embed=embed, ephemeral=True)
             return
             
         user = bot.mg.get_user(ctx.author.id)
         if user.verifying:
+            embed = discord.Embed(
+                description='Ты уже верифицируешься!\n\nТебе надо ввести код с картинки в чат.',
+                color=ERROR_C
+            )
+            await ctx.reply(embed=embed)
             return
+
+        if ctx.interaction:
+            await ctx.interaction.response.defer()
+        else:
+            await ctx.channel.typing()
 
         user.verifying = True
 
