@@ -113,7 +113,7 @@ async def setup(bot: commands.Bot):
                 # sending message in chat
                 embed = discord.Embed(
                     title=f'Добро пожаловать, {ctx.author.name}!',
-                    description=f'Не забудь прочитать <#975810446579879986>!\n\n'\
+                    description=f'Не забудь прочитать <#1364721575282217074>!\n\n'\
                         f'Начинай общаться и зарабатывать опыт - `ml!xp`.\n'\
                         f'Также советую взглянуть в `ml!help`!'
                 )
