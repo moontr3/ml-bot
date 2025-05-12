@@ -316,7 +316,39 @@ class VCData:
             "vc_time_speaking": self.vc_time_speaking,
             "xp_to_add": self.xp_to_add
         }
+    
 
+class MinuteStats:
+    def __init__(self):
+        '''
+        Tracks stats of XP gained in the last minute.
+        '''
+        self.minute: int = 0
+        self.update_minute()
+
+        self.xp: int = 0
+        self.one_word_messages: int = 0
+
+
+    def update_minute(self):
+        '''
+        Updates the current minute.
+        '''
+        old_min = deepcopy(self.minute)
+        self.minute = int(time.time()/60)
+
+        if old_min != self.minute:
+            self.xp = 0
+            self.one_word_messages = 0
+
+    
+    def add_xp(self, xp: int):
+        '''
+        Adds XP to the counter.
+        '''
+        self.update_minute()
+
+        self.xp += xp
 
 
 class User:
@@ -341,10 +373,13 @@ class User:
         self.skins: Skins = Skins(data.get('skins', {}))
 
         self.vc: VCData = VCData(data.get('vc', {}))
-        
+        self.temp_vc_timeout: float = data.get('temp_vc_timeout', 0)
+
         self.last_msg_channel: int = data.get('last_msg_channel', deepcopy(CHAT_CHANNEL)) 
         self.to_send_lvl_up_msg: bool = False
         self.marked_by_beast: bool = data.get('marked_by_beast', False)
+
+        self.minute_stats = MinuteStats()
 
     
     def to_dict(self) -> dict:
@@ -360,6 +395,7 @@ class User:
             "games_timeout": self.games_timeout,
             "skins": self.skins.to_dict(),
             "vc": self.vc.to_dict(),
+            "temp_vc_timeout": self.temp_vc_timeout,
             "last_msg_channel": self.last_msg_channel,
             "marked_by_beast": self.marked_by_beast
         }
@@ -468,6 +504,31 @@ class SkinData:
                 log(f'File {i} not found for skin {self.key}', 'api', WARNING)
 
 
+# temp VC
+
+class TempVC:
+    def __init__(self, id: int, data: dict = {}):
+        '''
+        Temporary voice channel.
+        '''
+        self.id: int = id
+        self.owner_id: int = data['owner_id']
+        self.last_activity: float = data.get('last_activity', time.time())
+        self.has_people: "bool | None" = None
+        self.name: str = data['name']
+        self.checked: bool = False # whether this vc was checked when updating activity
+        self.created_at: float = data.get('created_at', time.time())
+
+    
+    def to_dict(self) -> dict:
+        return {
+            "owner_id": self.owner_id,
+            "last_activity": self.last_activity,
+            "name": self.name,
+            "created_at": self.created_at
+        }
+
+
 # manager
 
 class Manager:
@@ -479,6 +540,7 @@ class Manager:
         self.data_file: str = data_file
         self.unclaimed: List[int] = []
         self.in_vc: List[int] = []
+        self.temp_vcs: Dict[int, TempVC] = {}
         self.reload()
 
 
@@ -520,7 +582,7 @@ class Manager:
             return
 
         self.users = {int(id): User(int(id), data) for id, data in data['users'].items()}
-
+        self.temp_vcs = {int(id): TempVC(int(id), data) for id, data in data.get('temp_vcs', {}).items()}
         self.timed_lb = TimedLeaderboard(data.get('timed_lb', {}))
 
         # data
@@ -558,8 +620,8 @@ class Manager:
         for i in self.users:
             data['users'][i] = self.users[i].to_dict()
 
-        # timed lb
         data['timed_lb'] = self.timed_lb.to_dict()
+        data['temp_vcs'] = {id: i.to_dict() for id, i in self.temp_vcs.items()}
 
         # saving
         try:
@@ -808,6 +870,26 @@ class Manager:
             self.add_xp(id, 1)
             user.vc.xp_to_add -= 1
 
+        self.commit()
+
+
+    def get_temp_vc(self, id: int) -> "TempVC | None":
+        '''
+        Returns a temporary VC of a user, if there is one.
+        '''
+        for i in self.temp_vcs.values():
+            if i.owner_id == id:
+                return i
+
+
+    def new_temp_vc(self, name: str, id: int, user: User):
+        '''
+        Creates a new temporary vc.
+        '''
+        vc = TempVC(id, {"owner_id": user.id, "name": name})
+        self.temp_vcs[id] = vc
+
+        user.temp_vc_timeout = time.time()+TEMP_VC_CREATION_TIMEOUT
         self.commit()
 
 

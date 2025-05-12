@@ -295,7 +295,13 @@ async def setup(bot: commands.Bot):
         if message.author.bot:
             return
         
+        if not message.author.guild or message.author.guild.id != GUILD_ID:
+            return
+        
         bot.mg.set_last_msg_channel(message.author.id, message.channel.id)
+        
+        botuser = bot.mg.get_user(message.author.id)
+        botuser.minute_stats.update_minute()
         
         # on reply
         try:
@@ -320,8 +326,12 @@ async def setup(bot: commands.Bot):
                         i.author.id != message.author.id:
                             log(f'{message.author.id} counted {int(message.content)} on {i.author.id}')
                             additional += random.randint(2,4)
+                        else:
+                            await message.delete()
+                            return
                     except:
-                        pass
+                        await message.delete()
+                        return
                     break
 
         # Zero
@@ -337,14 +347,28 @@ async def setup(bot: commands.Bot):
 
         # message itself
         if message.channel.id in CHATTABLE_CHANNELS:
-            to_add = 1 + int(len(message.content)/100)+\
+            to_add = int(len(message.content)/100)+\
                 len(message.attachments)*2 +\
                 len(message.embeds) +\
                 reply
             to_add = min(10, to_add)
+
+            is_one_word = len(message.content.split()) == 1
+            if is_one_word:
+                botuser.minute_stats.one_word_messages += 1
+                if botuser.minute_stats.one_word_messages < ONE_WORD_MSGS:
+                    to_add += 1
+            else:
+                to_add += 1
         else:
             to_add = 0
         to_add += additional
+
+        # minute stats
+        if MAX_MINUTE_XP-botuser.minute_stats.xp < to_add:
+            to_add = MAX_MINUTE_XP-botuser.minute_stats.xp
+
+        botuser.minute_stats.add_xp(to_add)
 
         out = bot.mg.add_xp(message.author.id, to_add, False)
 

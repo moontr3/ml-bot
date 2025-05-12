@@ -9,7 +9,23 @@ async def setup(bot: commands.Bot):
         aliases=['чаво',"гайд",'guide','help','хелп','помощь'],
         description='Показывает часто задаваемые вопросы.'
     )
-    async def faq(ctx: commands.Context):
+    @discord.app_commands.describe(
+        page="Имя или сокращение желаемой страницы / вопроса."
+    )
+    async def faq(ctx: commands.Context, page: str = None):
+        # page detected
+        if page:
+            for i in bot.mg.data.get('faq', []):
+                if any([item.lower() == page.lower() for item in i['alt']]):
+                    embed = discord.Embed(
+                        title=i['name'],
+                        description=i['contents'],
+                        color=DEFAULT_C
+                    )
+                    await ctx.reply(embed=embed)
+                    return
+        
+        # no page
         embed = discord.Embed(
             title='Помощь',
             description='Приветствую в FAQ!\n\nЗдесь можно узнать больше о сервере и боте.',
