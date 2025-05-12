@@ -344,6 +344,7 @@ class User:
         
         self.last_msg_channel: int = data.get('last_msg_channel', deepcopy(CHAT_CHANNEL)) 
         self.to_send_lvl_up_msg: bool = False
+        self.marked_by_beast: bool = data.get('marked_by_beast', False)
 
     
     def to_dict(self) -> dict:
@@ -359,7 +360,8 @@ class User:
             "games_timeout": self.games_timeout,
             "skins": self.skins.to_dict(),
             "vc": self.vc.to_dict(),
-            "last_msg_channel": self.last_msg_channel
+            "last_msg_channel": self.last_msg_channel,
+            "marked_by_beast": self.marked_by_beast
         }
     
 
