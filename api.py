@@ -1528,7 +1528,7 @@ class Manager:
         # skin list
         x = 0
         y = 85
-        r.extend(65+6+6)
+        r.extend(48+5+5)
 
         for index, i in enumerate(self.skins.values()):
             r.draw_image(
@@ -1539,7 +1539,7 @@ class Manager:
             if i.key == botuser.skins.selected:
                 r.draw_image(f'assets/selected.png', (x,y))
                 r.draw_text(
-                    f'{index+1}', (x+8,y+4), 'assets/bolditalic.ttf', 16, (132,255,87),
+                    f'{index+1}', (x+6,y+2), 'assets/bolditalic.ttf', 14, (132,255,87),
                     opacity=128
                 )
 
@@ -1548,20 +1548,20 @@ class Manager:
 
             else:
                 r.draw_text(
-                    f'{index+1}', (x+7,y+3), 'assets/bolditalic.ttf', 16, (255,255,255),
+                    f'{index+1}', (x+6,y+2), 'assets/bolditalic.ttf', 14, (255,255,255),
                     opacity=128
                 )
 
             # changing pos
-            x += 65+6
+            x += 48+5
 
-            if x >= 370 and index < len(self.skins)-1:
+            if x >= 400 and index < len(self.skins)-1:
                 x = 0
-                y += 65+6
-                r.extend(65+6)
+                y += 48+5
+                r.extend(48+5)
 
         # end
-        y += 65+6
+        y += 48+5
         r.extend(45)
         r.draw_image(
             f'assets/skins/{botuser.skins.selected}/skinbottombg.png', (0, y)

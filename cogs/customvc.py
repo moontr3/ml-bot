@@ -87,7 +87,9 @@ async def setup(bot: commands.Bot):
         # no channel
         if channel == None:
             embed = discord.Embed(
-                description='Вы не создавали временных войсов!', color=ERROR_C
+                description='Вы не создавали временных войсов!\n\n'\
+                    'Для создания введите `!типо где <название войса>`.',
+                color=ERROR_C
             )
             return await ctx.reply(embed=embed, ephemeral=True)
         
@@ -97,7 +99,9 @@ async def setup(bot: commands.Bot):
             f'Канал создал <@{channel.owner_id}> <t:{int(channel.created_at)}:R>\n'
 
         if channel.has_people == False:
-            desc += f'-# Канал удалится <t:{int(channel.last_activity+TEMP_VC_INACTIVITY_TIME)}:R>'
+            desc += f'\n-# Канал удалится <t:{int(channel.last_activity+TEMP_VC_INACTIVITY_TIME)}:R>'
+
+        desc += f'\n-# Удалить или переименовать канал можно через настройки Discord.'
 
         embed = discord.Embed(
             title=f'🔊 {channel.name}', color=DEFAULT_C, description=desc

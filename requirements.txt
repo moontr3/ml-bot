@@ -1,0 +1,6 @@
+colorama
+discord.py
+python-dotenv
+pygame
+aiofiles
+aiohttp
