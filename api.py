@@ -538,7 +538,7 @@ class Manager:
         self.data_file: str = data_file
         self.unclaimed: List[int] = []
         self.in_vc: List[int] = []
-        self.temp_vcs: Dict[int, TempVC] = []
+        self.temp_vcs: Dict[int, TempVC] = {}
         self.reload()
 
 
