@@ -377,6 +377,7 @@ class User:
 
         self.last_msg_channel: int = data.get('last_msg_channel', deepcopy(CHAT_CHANNEL)) 
         self.to_send_lvl_up_msg: bool = False
+        self.marked_by_beast: bool = data.get('marked_by_beast', False)
 
         self.minute_stats = MinuteStats()
 
@@ -395,7 +396,8 @@ class User:
             "skins": self.skins.to_dict(),
             "vc": self.vc.to_dict(),
             "temp_vc_timeout": self.temp_vc_timeout,
-            "last_msg_channel": self.last_msg_channel
+            "last_msg_channel": self.last_msg_channel,
+            "marked_by_beast": self.marked_by_beast
         }
     
 
