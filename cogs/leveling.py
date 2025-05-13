@@ -42,7 +42,7 @@ async def setup(bot: commands.Bot):
         name='manage',
         description='Изменить опыт пользователя.'
     )
-    async def slash_manage_xp(ctx:commands.Context, member:discord.Member, action:Literal['set','add'], amount:int):
+    async def slash_manage_xp(ctx: commands.Context, member:discord.Member, action:Literal['set','add'], amount:int):
         '''
         Changes user XP level.
         '''
@@ -82,7 +82,7 @@ async def setup(bot: commands.Bot):
         aliases=['календарь','cal'],
         description='Показывает календарь опыта участника.'
     )
-    async def slash_calendar(ctx:discord.Interaction, member:Optional[discord.User]=None, date: str=None):
+    async def slash_calendar(ctx: commands.Context, member:Optional[discord.User]=None, date: str=None):
         '''
         Shows user calendar.
         '''
@@ -121,6 +121,49 @@ async def setup(bot: commands.Bot):
 
 
     @discord.app_commands.describe(
+        date='Дата в формате ММ.ГГГГ, ГГГГ.ММ, ММ или название месяца.'
+    )
+    @bot.hybrid_command(
+        name='server-calendar',
+        description='Показывает календарь опыта сервера.',
+        aliases=['scal','скал','server_calendar','servercalendar','серверкалендарь','сервер-календарь','сервер_календарь'],
+    )
+    async def slash_server_calendar(ctx: commands.Context, date: str=None):
+        '''
+        Shows server calendar.
+        '''
+        log(f'{ctx.author.id} requested server calendar')
+        
+        if ctx.interaction:
+            await ctx.interaction.response.defer()
+        else:
+            await ctx.channel.typing()
+
+        # checking date
+        if date == None:
+            day = datetime.datetime.now(datetime.timezone.utc)
+
+        else:
+            day = utils.get_datetime(date)
+
+            if day == None:
+                embed = discord.Embed(
+                    color=ERROR_C, description='Некорректный формат даты!\n\n'\
+                        f'Вводить нужно название месяца или дату в формате `ММ.ГГГГ`, `ГГГГ.ММ` или `ММ`.'
+                )
+                await ctx.reply(embed=embed, ephemeral=True)
+                return
+
+        # sending image
+        path = bot.mg.render_server_calendar(ctx.author, day.year, day.month)
+        file = discord.File(path, 'image.png')
+        await ctx.reply(file=file)
+
+        file.close()
+        os.remove(path)
+
+
+    @discord.app_commands.describe(
         member='Участник сервера, у которого нужно узнать опыт.'
     )
     @bot.hybrid_command(
@@ -128,7 +171,7 @@ async def setup(bot: commands.Bot):
         aliases=['опыт','lvl','rank','level','уровень','ранк','ранг'],
         description='Показывает текущий опыт пользователя.'
     )
-    async def slash_xp(ctx:discord.Interaction, member:discord.Member=None):
+    async def slash_xp(ctx: commands.Context, member:discord.Member=None):
         '''
         Shows user XP level.
         '''

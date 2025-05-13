@@ -371,6 +371,7 @@ class User:
         self.verifying: bool = False
 
         self.skins: Skins = Skins(data.get('skins', {}))
+        self.fonts: Skins = Skins(data.get('fonts', {}))
 
         self.vc: VCData = VCData(data.get('vc', {}))
         self.temp_vc_timeout: float = data.get('temp_vc_timeout', 0)
@@ -394,6 +395,7 @@ class User:
             "token_dig_timeout": self.token_dig_timeout,
             "games_timeout": self.games_timeout,
             "skins": self.skins.to_dict(),
+            "fonts": self.fonts.to_dict(),
             "vc": self.vc.to_dict(),
             "temp_vc_timeout": self.temp_vc_timeout,
             "last_msg_channel": self.last_msg_channel,
@@ -1716,6 +1718,126 @@ class Manager:
 
         pos = r.draw_text(
             f'ml!calendar <дата> ', (17,y+12), 'assets/medium.ttf', 14,
+            (255,255,255), opacity=128
+        )[0]
+        r.draw_text(
+            f'для смены месяца', (pos+17,y+12), 'assets/regular.ttf', 14,
+            (255,255,255), opacity=128
+        )
+
+        path = r.save('temp', 'png')
+        return path
+
+
+    def render_server_calendar(self, user: discord.User, year: int, month: int) -> str:
+        '''
+        Renders a calendar of the server total's XP earnings.
+        '''
+        botuser = self.get_user(user.id)
+        r = Renderer(image=f'assets/skins/{botuser.skins.selected}/skintopbg.png')
+        
+        # date
+        date = datetime.datetime(year, month, 1)
+        while date.weekday() != 0:
+            date -= datetime.timedelta(days=1)
+
+        target_date = datetime.datetime(year, month, 1)
+        while (target_date.year == year and target_date.month == month)\
+            or target_date.weekday() != 6:
+                target_date += datetime.timedelta(days=1)
+
+        # title
+        r.draw_text(
+            f'Серверный опыт', (17,14), 'assets/bold.ttf', 20, (255,255,255),
+            max_size=420-17-17
+        )
+        pos = r.draw_text(
+            f'За ', (17,45), 'assets/regular.ttf', 16, (255,255,255),
+            opacity=128
+        )[0]
+        r.draw_text(
+            f'{utils.month_name((month-1)%12)}, {year}', (pos+17,45),
+            'assets/medium.ttf', 16, (255,255,255), opacity=128
+        )
+
+        # date list
+        x = 0
+        y = 85
+        r.extend(65+6+6)
+
+        today = datetime.datetime.now(datetime.timezone.utc)
+
+        while date <= target_date:
+            # data
+            is_today = date.day == today.day and date.month == today.month
+
+            day = int(date.timestamp()//86400)+1
+            lb = self.timed_lb.daily.get(day, {})
+            xp = sum(lb.values())
+            max_xp = max([sum(i.values()) for i in self.timed_lb.daily.values()])
+            key = xp/(max_xp+1)*4
+            opacity = (key%1)*255
+            image = round(key//1)
+            darken = int(date.month != month)+1
+            bgopacity = 255 if date.month == month else\
+                128-(opacity/128)
+
+            # temperature bg
+            r.draw_image(
+                f'assets/calendartemp{image+1}.png', (x, y), opacity=bgopacity
+            )
+            r.draw_image(
+                f'assets/calendartemp{image+2}.png', (x, y), opacity=opacity/(darken)
+            )
+
+            r.draw_text(
+                f'{date.day}', (x+6,y+3), 'assets/bolditalic.ttf', 14, (255,255,255),
+                opacity=128
+            )
+
+            if date.weekday() in [5,6]:
+                r.draw_image(
+                    f'assets/calendarweekdayborder.png', (x, y),
+                    opacity=128 if date.month != month else 255
+                )
+
+            if is_today:
+                r.draw_image(
+                    f'assets/calendartoday.png', (x, y),
+                    opacity=128 if date.month != month else 255
+                )
+
+            # xp
+            if xp > 0:
+                r.draw_text(
+                    utils.shorten_number(xp), (x+28, y+25),
+                    'assets/medium.ttf', 16, (255,255,255), h=0.5
+                )
+            else:
+                r.draw_text(
+                    '0', (x+27, y+25),
+                    'assets/medium.ttf', 16, (255,255,255), h=0.5, opacity=60
+                )
+
+            # changing pos
+            x += 54+6
+            date += datetime.timedelta(days=1)
+
+            if x >= 380:
+                x = 0
+                if date <= target_date:
+                    y += 54+6
+                    r.extend(54+6)
+
+        # end
+        y += 54+6
+        r.extend(45)
+        r.draw_image(
+            f'assets/skins/{botuser.skins.selected}/skinbottombg.png', (0, y)
+        )
+
+        pos = r.draw_text(
+            f'ml!scal <дата> ', (17,y+12), 'assets/medium.ttf', 14,
             (255,255,255), opacity=128
         )[0]
         r.draw_text(

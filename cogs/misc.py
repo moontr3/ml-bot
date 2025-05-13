@@ -32,7 +32,7 @@ async def setup(bot: commands.Bot):
     @bot.hybrid_command(
         name='invites',
         aliases=['invite','инвайты','инвайтов','инвайт'],
-        description='Показывает количество инвайтов на сервер.'
+        description='Показывает количество использовний ссылки-приглашения.'
     )
     async def slash_invite(ctx: commands.Context):
         '''
