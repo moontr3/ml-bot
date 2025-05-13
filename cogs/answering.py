@@ -35,10 +35,10 @@ async def setup(bot: commands.Bot):
 
     @bot.listen()
     async def on_message(message: discord.Message):
-        if message.content in {'-настройки ответки да', 'дабот настройки ответки да'}:
+        if message.content.lower() in {'-настройки ответки да', 'дабот настройки ответки да'}:
             await switch_answers(message, True)
             return
-        if message.content in {'-настройки ответки нет', 'дабот настройки ответки нет'}:
+        if message.content.lower() in {'-настройки ответки нет', 'дабот настройки ответки нет'}:
             await switch_answers(message, False)
             return
         if bot.mg.get_user(message.author.id).marked_by_beast:
