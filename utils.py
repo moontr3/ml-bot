@@ -162,3 +162,13 @@ def get_datetime(date: str) -> datetime.datetime:
                         )
                     except:
                         return None
+                    
+
+def to_cool_numbers(string: str) -> str:
+    string = str(string)
+    out = ''
+
+    for i in string:
+        out += COOL_NUMBERS.get(i, i)
+    
+    return out

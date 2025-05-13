@@ -30,6 +30,30 @@ async def setup(bot: commands.Bot):
 
 
     @bot.hybrid_command(
+        name='invites',
+        aliases=['invite','инвайты','инвайтов','инвайт'],
+        description='Показывает количество инвайтов на сервер.'
+    )
+    async def slash_invite(ctx: commands.Context):
+        '''
+        Shows invite count.
+        '''
+        log(f'{ctx.author.id} requested invite count')
+
+        invites = 0
+        invitelist = await ctx.guild.invites()
+
+        for i in invitelist:
+            invites += i.uses
+        
+        embed = discord.Embed(
+            description=f'# {utils.to_cool_numbers(invites)}',
+            color=DEFAULT_C
+        )
+        await ctx.reply(embed=embed)
+
+
+    @bot.hybrid_command(
         name='about',
         aliases=['info','оботе','инфо','информация'],
         description='Показывает информацию о боте.'
