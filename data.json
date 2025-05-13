@@ -144,6 +144,61 @@
             "name": "Фанкод",
             "rarity": 1,
             "emoji": "<:funcode:1371457627136983071>"
+        },
+        "crimson": {
+            "name": "Малиновый",
+            "rarity": 1,
+            "emoji": "<:crimson:1371960567891361803>"
+        },
+        "nebula1": {
+            "name": "Туманность 1",
+            "rarity": 1,
+            "emoji": "<:nebula1:1371960580113432636>"
+        },
+        "nebula2": {
+            "name": "Туманность 2",
+            "rarity": 1,
+            "emoji": "<:nebula2:1371960592968974406>"
+        },
+        "nebula3": {
+            "name": "Туманность 3",
+            "rarity": 1,
+            "emoji": "<:nebula3:1371960605392502849>"
+        },
+        "rainbow": {
+            "name": "Радуга",
+            "rarity": 1,
+            "emoji": "<:rainbow:1371960619879895040>"
+        },
+        "glitter": {
+            "name": "Блестки",
+            "rarity": 1,
+            "emoji": "<:glitter:1371960632533975050>"
+        },
+        "leaves": {
+            "name": "Листья",
+            "rarity": 1,
+            "emoji": "<:leaves:1371960644374630572>"
+        },
+        "tech": {
+            "name": "Техно",
+            "rarity": 1,
+            "emoji": "<:tech:1371960655552184400>"
+        },
+        "vierland": {
+            "name": "Виерленд",
+            "rarity": 1,
+            "emoji": "<:vierland:1371960667073941595>"
+        },
+        "delusional": {
+            "name": "Delusional",
+            "rarity": 0.5,
+            "emoji": "<:delusional:1371960679954907176>"
+        },
+        "ice": {
+            "name": "Лед",
+            "rarity": 0.5,
+            "emoji": "<:ice:1371960692160073838>"
         }
     },
     "faq": [
