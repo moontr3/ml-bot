@@ -56,7 +56,7 @@ async def setup(bot: commands.Bot):
         else:
             await ctx.channel.typing()
 
-        path = await bot.mg.render_user_vc(member)
+        path = await bot.mg.renderer.user_vc(member)
         file = discord.File(path, 'image.png')
         await ctx.reply(file=file)
 

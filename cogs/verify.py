@@ -54,7 +54,7 @@ async def setup(bot: commands.Bot):
         user.verifying = True
 
         text = ''.join(random.choices('0123456789', k=5))
-        image = bot.mg.render_captcha(text)
+        image = bot.mg.renderer.captcha(text)
         file = discord.File(image, filename='captcha.png')
 
         embed = discord.Embed(

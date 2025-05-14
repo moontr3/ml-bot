@@ -87,7 +87,7 @@ async def setup(bot: commands.Bot):
         else:
             await ctx.channel.typing()
 
-        path = bot.mg.render_skin_list(member)
+        path = bot.mg.renderer.skin_list(member)
         file = discord.File(path, 'image.png')
         await ctx.reply(file=file)
 
@@ -156,7 +156,7 @@ async def setup(bot: commands.Bot):
 
         # selecting
         bot.mg.set_skin(ctx.author.id, skin)
-        path = bot.mg.render_skin_set(user, skin)
+        path = bot.mg.renderer.skin_set(user, skin)
         file = discord.File(path, 'image.png')
         await ctx.reply(file=file)
 
@@ -270,7 +270,7 @@ async def setup(bot: commands.Bot):
 
         await message.remove_reaction(reaction.emoji, user)
 
-        image = bot.mg.render_skin_claim(user if user else reaction.user_id, skin)
+        image = bot.mg.renderer.skin_claim(user if user else reaction.user_id, skin)
         file = discord.File(image, filename='skin.png')
         await message.reply(file=file)
 

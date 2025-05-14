@@ -137,7 +137,7 @@ async def setup(bot: commands.Bot):
                 return
 
         # sending image
-        path = bot.mg.render_xp_calendar(member, day.year, day.month)
+        path = bot.mg.renderer.xp_calendar(member, day.year, day.month)
         file = discord.File(path, 'image.png')
         await ctx.reply(file=file)
 
@@ -180,7 +180,7 @@ async def setup(bot: commands.Bot):
                 return
 
         # sending image
-        path = bot.mg.render_server_calendar(ctx.author, day.year, day.month)
+        path = bot.mg.renderer.server_calendar(ctx.author, day.year, day.month)
         file = discord.File(path, 'image.png')
         await ctx.reply(file=file)
 
@@ -227,7 +227,7 @@ async def setup(bot: commands.Bot):
         # bar = regen_bar(member.id, acc.xp.level_xp/acc.xp.level_max_xp)
         # file = discord.File(f'temp/{member.id}.png', 'image.png')
 
-        path = await bot.mg.render_user_xp(member, role)
+        path = await bot.mg.renderer.user_xp(member, role)
         file = discord.File(path, 'image.png')
         await ctx.reply(file=file)
 
@@ -348,7 +348,7 @@ async def setup(bot: commands.Bot):
             badges_text += f'{utils.get_lb_badge(i, board == i)}<:no:1358207748294316253>'
 
         # image
-        image = await bot.mg.render_leaders(ctx.guild, board)
+        image = await bot.mg.renderer.leaders(ctx.guild, board)
         file = discord.File(image, 'image.png')
 
         await ctx.reply(badges_text, file=file)
@@ -463,7 +463,7 @@ async def setup(bot: commands.Bot):
             else:
                 role = None
             
-            image = bot.mg.render_prom(bot.mg.get_user(message.author.id), out, role) 
+            image = bot.mg.renderer.prom(bot.mg.get_user(message.author.id), out, role) 
             file = discord.File(image, 'image.png')
             await message.reply(file=file)
             file.close()
@@ -484,7 +484,7 @@ async def setup(bot: commands.Bot):
 
                 channel = guild.get_channel(user.last_msg_channel)
 
-                image = bot.mg.render_prom(user, user.xp.level, role) 
+                image = bot.mg.renderer.prom(user, user.xp.level, role) 
                 file = discord.File(image, 'image.png')
                 await channel.send(f'<@{user.id}>', file=file)
                 file.close()

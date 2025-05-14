@@ -89,7 +89,7 @@ async def setup(bot: commands.Bot):
         else:
             await ctx.channel.typing()
 
-        path = bot.mg.render_font_list(member)
+        path = bot.mg.renderer.font_list(member)
         file = discord.File(path, 'image.png')
         await ctx.reply(file=file)
 
@@ -146,7 +146,7 @@ async def setup(bot: commands.Bot):
 
         # selecting
         bot.mg.set_font(ctx.author.id, font)
-        path = bot.mg.render_font_set(font)
+        path = bot.mg.renderer.font_set(font)
         file = discord.File(path, 'image.png')
         await ctx.reply(file=file)
 
@@ -260,7 +260,7 @@ async def setup(bot: commands.Bot):
 
         await message.remove_reaction(reaction.emoji, user)
 
-        image = bot.mg.render_font_claim(user if user else reaction.user_id, font)
+        image = bot.mg.renderer.font_claim(user if user else reaction.user_id, font)
         file = discord.File(image, filename='font.png')
         await message.reply(file=file)
 
