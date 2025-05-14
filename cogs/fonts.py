@@ -146,7 +146,7 @@ async def setup(bot: commands.Bot):
 
         # selecting
         bot.mg.set_font(ctx.author.id, font)
-        path = bot.mg.renderer.font_set(font)
+        path = bot.mg.renderer.font_set(user, font)
         file = discord.File(path, 'image.png')
         await ctx.reply(file=file)
 

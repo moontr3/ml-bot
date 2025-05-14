@@ -792,21 +792,21 @@ class RendererCollection:
         return path
     
 
-    def font_set(self, user, skin: str) -> str:
+    def font_set(self, user, font: str) -> str:
         '''
         Renders image for font setting.
         '''
         r = Renderer(image=f'assets/skins/{skin}/onelinerbg.png')
-        font = user.fonts.selected
-        skin = self.mg.skins[skin]
+        font = self.mg.fonts[skin]
+        skin = user.skins.selected
 
         # text
         pos = r.draw_text(
-            'Вы установили шрифт', (17,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
+            'Вы установили шрифт', (17,14), f'assets/fonts/{font.key}/regular.ttf', 20, (255,255,255),
             opacity=128
         )[0]+4
         r.draw_text(
-            skin.name+'!', (pos+17,14), f'assets/fonts/{font}/bold.ttf', 20, (255,255,255)
+            font.name+'!', (pos+17,14), f'assets/fonts/{font.key}/bold.ttf', 20, (255,255,255)
         )
 
         path = r.save('temp', 'png')
