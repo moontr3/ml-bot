@@ -73,6 +73,31 @@ async def setup(bot: commands.Bot):
         await ctx.reply(embed=embed)
 
 
+    @bot.command(
+        name='reloadroles',
+        description='Изменить опыт пользователя.'
+    )
+    async def slash_manage_xp(ctx: commands.Context, member:discord.Member):
+        '''
+        Relads user XP roles.
+        '''
+        if ctx.author.id not in ADMINS:
+            embed = discord.Embed(
+                description='Вы не администратор бота!',
+                color=ERROR_C
+            )
+            await ctx.reply(embed=embed, ephemeral=True)
+            return
+
+        log(f'{ctx.author.id} reloads roles of {member.id}')
+        await update_rank(member)
+
+        embed = discord.Embed(
+            description='Yuh-uh.', color=DEFAULT_C
+        )
+        await ctx.reply(embed=embed)
+
+
     @discord.app_commands.describe(
         date='Дата в формате ММ.ГГГГ, ГГГГ.ММ, ММ или название месяца.',
         member='Участник сервера, у которого нужно посмотреть календарь опыта.'
@@ -453,10 +478,13 @@ async def setup(bot: commands.Bot):
             user: api.User
 
             if user.to_send_lvl_up_msg:
-                role = guild.get_role(LEVELS[user.xp.level-1])
+                if user.xp.level <= len(LEVELS):
+                    role = guild.get_role(LEVELS[user.xp.level-1])
+                    await guild.get_member(user.id).add_roles(role)
+
                 channel = guild.get_channel(user.last_msg_channel)
 
-                image = bot.mg.render_prom(bot.mg.get_user(user.id), user.xp.level, role) 
+                image = bot.mg.render_prom(user, user.xp.level, role) 
                 file = discord.File(image, 'image.png')
                 await channel.send(f'<@{user.id}>', file=file)
                 file.close()

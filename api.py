@@ -264,12 +264,12 @@ class XP:
         }
     
 
-class Skins:
+class Collectibles:
     def __init__(self, data: dict = {}):
         '''
-        Embed skins.
+        Collectible list.
         '''
-        self.skins: list = data.get('skins', [])
+        self.items: list = data.get('items', [])
         self._selected: "str | None" = data.get('selected', None)
 
     
@@ -280,7 +280,7 @@ class Skins:
 
     def to_dict(self) -> dict:
         return {
-            "skins": self.skins,
+            "items": self.items,
             "selected": self._selected
         }
     
@@ -370,8 +370,8 @@ class User:
         self.last_sent_zero: float = 0
         self.verifying: bool = False
 
-        self.skins: Skins = Skins(data.get('skins', {}))
-        self.fonts: Skins = Skins(data.get('fonts', {}))
+        self.skins: Collectibles = Collectibles(data.get('skins', {}))
+        self.fonts: Collectibles = Collectibles(data.get('fonts', {}))
 
         self.vc: VCData = VCData(data.get('vc', {}))
         self.temp_vc_timeout: float = data.get('temp_vc_timeout', 0)
@@ -506,6 +506,25 @@ class SkinData:
                 log(f'File {i} not found for skin {self.key}', 'api', WARNING)
 
 
+class FontData:
+    def __init__(self, key: str, data: dict = {}):
+        '''
+        Skin data.
+        '''
+        self.key: str = key
+        self.name: str = data.get('name', None)
+        self.emoji: str = data.get('emoji', None)
+        self.rarity: int = data.get('rarity', None)
+        self.alt: List[str] = data.get('alt', [])
+
+        # checking skin files
+        for i in [
+            'bolditalic', 'bold', 'semibold', 'medium', 'regular'
+        ]:
+            if not os.path.exists(f'assets/fonts/{self.key}/{i}.ttf'):
+                log(f'File {i} not found for font {self.key}', 'api', WARNING)
+
+
 # temp VC
 
 class TempVC:
@@ -596,6 +615,9 @@ class Manager:
 
         self.skins: Dict[str, SkinData] = {
             k: SkinData(k, v) for k, v in self.data.get('skins', {}).items()
+        }
+        self.fonts: Dict[str, FontData] = {
+            k: FontData(k, v) for k, v in self.data.get('fonts', {}).items()
         }
 
         # saving
@@ -768,10 +790,10 @@ class Manager:
         '''
         user = self.get_user(user_id)
 
-        if skin in user.skins.skins:
+        if skin in user.skins.items:
             return False
         
-        user.skins.skins.append(skin)
+        user.skins.items.append(skin)
         self.commit()
 
         return True
@@ -783,10 +805,50 @@ class Manager:
         '''
         user = self.get_user(user_id)
 
-        if skin not in user.skins.skins:
+        if skin not in user.skins.items:
             return False
         
-        user.skins.skins.remove(skin)
+        user.skins.items.remove(skin)
+        self.commit()
+
+        return True
+    
+
+    def set_font(self, user_id:int, font:str):
+        '''
+        Sets font for a user.
+        '''
+        user = self.get_user(user_id)
+        user.fonts._selected = font
+
+        self.commit()
+    
+
+    def add_font(self, user_id:int, font:str):
+        '''
+        Adds font to a user.
+        '''
+        user = self.get_user(user_id)
+
+        if font in user.fonts.items:
+            return False
+        
+        user.fonts.items.append(font)
+        self.commit()
+
+        return True
+    
+
+    def remove_font(self, user_id:int, font:str):
+        '''
+        Removes font from a user.
+        '''
+        user = self.get_user(user_id)
+
+        if font not in user.fonts.items:
+            return False
+        
+        user.fonts.items.remove(font)
         self.commit()
 
         return True
@@ -801,6 +863,17 @@ class Manager:
             [i.rarity for i in self.skins.values()]
         )[0]
         return skin
+    
+    
+    def get_random_font(self) -> FontData:
+        '''
+        Returns a random font.
+        '''
+        font = random.choices(
+            list(self.fonts.values()),
+            [i.rarity for i in self.fonts.values()]
+        )[0]
+        return font
     
 
     def set_last_msg_channel(self, user_id:int, channel_id:int):
@@ -852,7 +925,6 @@ class Manager:
 
         # checking xp
         xp = user.vc.xp_mult * 1/60
-        user.vc.xp_to_add += xp
 
         # adding stats
         user.vc.vc_time += 1
@@ -866,6 +938,7 @@ class Manager:
         # not adding xp if alone in vc
         if len(self.in_vc) == 1:
             return
+        user.vc.xp_to_add += xp
 
         # adding xp
         while user.vc.xp_to_add >= 1:
@@ -1006,6 +1079,7 @@ class Manager:
         prev_xp = None
 
         for index, i in enumerate(users):
+            font = i.fonts.selected
             user = guild.get_member(i.id)
             name = 52
 
@@ -1053,7 +1127,7 @@ class Manager:
                 (255,255,255)
             
             r.draw_text(
-                str(place), (17, start+7), 'assets/bolditalic.ttf', 32,
+                str(place), (17, start+7), f'assets/fonts/{font}/bolditalic.ttf', 32,
                 color, opacity=96 if place > 3 else 255
             )
 
@@ -1066,7 +1140,7 @@ class Manager:
             # xp
             xp_size = 20
             xp_size += r.draw_text(
-                string, (402, start+17), 'assets/semibold.ttf', 18,
+                string, (402, start+17), f'assets/fonts/{font}/semibold.ttf', 18,
                 (255,255,255), h=1
             )[0]
 
@@ -1075,19 +1149,19 @@ class Manager:
                 r.surface, role.color.to_rgb(), (402-xp_size, start+28), 12
             )
             r.draw_text(
-                f'{i.xp.level}', (402-xp_size, start+28), 'assets/bold.ttf', 14,
+                f'{i.xp.level}', (402-xp_size, start+28), f'assets/fonts/{font}/bold.ttf', 14,
                 (35,35,35), h=0.5, v=0.5,
             )
 
             # name
             if user:
                 r.draw_text(
-                    user.display_name, (name,start+17), 'assets/regular.ttf',
+                    user.display_name, (name,start+17), f'assets/fonts/{font}/regular.ttf',
                     18, (255,255,255), max_size=280+45-xp_size
                 )
             else:
                 r.draw_text(
-                    str(i.id), (name,start+17), 'assets/regular.ttf',
+                    str(i.id), (name,start+17), f'assets/fonts/{font}/regular.ttf',
                     18, (255,255,255), opacity=128, max_size=280+45-xp_size
                 )
 
@@ -1104,6 +1178,7 @@ class Manager:
         '''
         botuser = self.get_user(user.id)
         skin = botuser.skins.selected
+        font = botuser.fonts.selected
         r = Renderer(image=f'assets/skins/{skin}/xpbg.png')
 
         # avatar 14, 12, 32
@@ -1117,42 +1192,42 @@ class Manager:
 
         # level
         max_pos = r.draw_text(
-            role.name.capitalize(), (398,15), 'assets/medium.ttf', 20, role.color.to_rgb(), h=1
+            role.name.capitalize(), (398,15), f'assets/fonts/{font}/medium.ttf', 20, role.color.to_rgb(), h=1
         )[0]
         
         pg.draw.circle(
             r.surface, role.color.to_rgb(), (378-max_pos, 29), 12
         )
         r.draw_text(
-            f'{botuser.xp.level}', (378-max_pos, 29), 'assets/bold.ttf', 16,
+            f'{botuser.xp.level}', (378-max_pos, 29), f'assets/fonts/{font}/bold.ttf', 16,
             (35,35,35), h=0.5, v=0.5,
         )
 
         # name
         r.draw_text(
-            user.display_name, (start,16), 'assets/bold.ttf', 20,
+            user.display_name, (start,16), f'assets/fonts/{font}/bold.ttf', 20,
             (255,255,255), max_size=300+42+14-start-max_pos
         )
 
         # xp
         r.draw_text(
-            f"{botuser.xp.xp} XP", (16,88), 'assets/bold.ttf', 24, (255,255,255),
+            f"{botuser.xp.xp} XP", (16,88), f'assets/fonts/{font}/bold.ttf', 24, (255,255,255),
         )
         size = r.draw_text(
-            f"{botuser.xp.total_xp} XP", (404,88), 'assets/regular.ttf', 24, (255,255,255),
+            f"{botuser.xp.total_xp} XP", (404,88), f'assets/fonts/{font}/regular.ttf', 24, (255,255,255),
             h=1, opacity=128
         )[0]
         r.draw_text(
-            'всего', (404-size-5, 92), 'assets/regular.ttf', 20, (255,255,255), 
+            'всего', (404-size-5, 92), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255), 
             h=1, opacity=128
         )
 
         # xp limit
         r.draw_text(
-            f"{botuser.xp.level_xp} XP", (16,125), 'assets/regular.ttf', 14, (255,255,255),
+            f"{botuser.xp.level_xp} XP", (16,125), f'assets/fonts/{font}/regular.ttf', 14, (255,255,255),
         )
         r.draw_text(
-            f"{botuser.xp.level_max_xp} XP", (404,125), 'assets/regular.ttf',
+            f"{botuser.xp.level_max_xp} XP", (404,125), f'assets/fonts/{font}/regular.ttf',
             14, (255,255,255), h=1, opacity=128
         )
 
@@ -1169,12 +1244,12 @@ class Manager:
         if rect.right > 30:
             r.draw_text(
                 percentage, (rect.right-5+15, rect.centery+150),
-                'assets/bold.ttf', 14, (35,35,35), h=1, v=0.5
+                f'assets/fonts/{font}/bold.ttf', 14, (35,35,35), h=1, v=0.5
             )
         else:
             r.draw_text(
                 percentage, (rect.right+5+15, rect.centery+150),
-                'assets/medium.ttf', 14, (200,200,200), v=0.5
+                f'assets/fonts/{font}/medium.ttf', 14, (200,200,200), v=0.5
             )
 
         # xp today
@@ -1182,7 +1257,7 @@ class Manager:
 
         if pos == None:
             r.draw_text(
-                f"???", (68,217), 'assets/bolditalic.ttf', 20, (255,255,255),
+                f"???", (68,217), f'assets/fonts/{font}/bolditalic.ttf', 20, (255,255,255),
                 h=0.5, opacity=128
             )
 
@@ -1196,15 +1271,15 @@ class Manager:
                 (192,192,192)
             
             r.draw_text(
-                f"#{pos}", (18,217), 'assets/bolditalic.ttf', 20, color,
+                f"#{pos}", (18,217), f'assets/fonts/{font}/bolditalic.ttf', 20, color,
             )
             r.draw_text(
-                f"сегодня", (137-15, 209), 'assets/regular.ttf',
+                f"сегодня", (137-15, 209), f'assets/fonts/{font}/regular.ttf',
                 14, (255,255,255), h=1, opacity=128
             )
             r.draw_text(
                 f"{self.timed_lb.get_daily_xp(botuser.id)} XP", (137-15, 230),
-                'assets/bold.ttf', 14, (255,255,255), h=1, opacity=128
+                f'assets/fonts/{font}/bold.ttf', 14, (255,255,255), h=1, opacity=128
             )
 
         # xp this week
@@ -1212,7 +1287,7 @@ class Manager:
 
         if pos == None:
             r.draw_text(
-                f"???", (68+142,217), 'assets/bolditalic.ttf', 20, (255,255,255),
+                f"???", (68+142,217), f'assets/fonts/{font}/bolditalic.ttf', 20, (255,255,255),
                 h=0.5, opacity=128
             )
 
@@ -1226,15 +1301,15 @@ class Manager:
                 (192,192,192)
             
             r.draw_text(
-                f"#{pos}", (159,217), 'assets/bolditalic.ttf', 20, color,
+                f"#{pos}", (159,217), f'assets/fonts/{font}/bolditalic.ttf', 20, color,
             )
             r.draw_text(
-                f"неделя", (278-15, 209), 'assets/regular.ttf',
+                f"неделя", (278-15, 209), f'assets/fonts/{font}/regular.ttf',
                 14, (255,255,255), h=1, opacity=128
             )
             r.draw_text(
                 f"{self.timed_lb.get_weekly_xp(botuser.id)} XP", (278-15, 230),
-                'assets/bold.ttf', 14, (255,255,255), h=1, opacity=128
+                f'assets/fonts/{font}/bold.ttf', 14, (255,255,255), h=1, opacity=128
             )
 
         # season placement
@@ -1242,7 +1317,7 @@ class Manager:
 
         if pos == None:
             r.draw_text(
-                f"???", (68+142+142,217), 'assets/bolditalic.ttf', 20, (255,255,255),
+                f"???", (68+142+142,217), f'assets/fonts/{font}/bolditalic.ttf', 20, (255,255,255),
                 h=0.5, opacity=128
             )
 
@@ -1256,10 +1331,10 @@ class Manager:
                 (192,192,192)
             
             r.draw_text(
-                f"#{pos}", (300,217), 'assets/bolditalic.ttf', 20, color,
+                f"#{pos}", (300,217), f'assets/fonts/{font}/bolditalic.ttf', 20, color,
             )
             r.draw_text(
-                f"сезон", (414-15, 221), 'assets/regular.ttf',
+                f"сезон", (414-15, 221), f'assets/fonts/{font}/regular.ttf',
                 14, (255,255,255), h=1, opacity=128
             )
 
@@ -1273,6 +1348,7 @@ class Manager:
         '''
         botuser = self.get_user(user.id)
         skin = botuser.skins.selected
+        font = botuser.fonts.selected
         r = Renderer(image=f'assets/skins/{skin}/vcbg.png')
 
         # time
@@ -1285,16 +1361,16 @@ class Manager:
         
         r.draw_text(
             f'Статистика войсов {user.display_name}', (17,15),
-            'assets/medium.ttf', 16, (255,255,255), opacity=128
+            f'assets/fonts/{font}/medium.ttf', 16, (255,255,255), opacity=128
         )
         r.draw_text(
-            vc_time_str, (17,40), 'assets/bold.ttf', 24, (255,255,255),
+            vc_time_str, (17,40), f'assets/fonts/{font}/bold.ttf', 24, (255,255,255),
         )
         # r.draw_text(
-        #     vc_speak_str, (33,50), 'assets/medium.ttf', 16, (255,255,255), opacity=128
+        #     vc_speak_str, (33,50), f'assets/fonts/{font}/medium.ttf', 16, (255,255,255), opacity=128
         # )
         # r.draw_text(
-        #     vc_stream_str, (420-40,50), 'assets/medium.ttf', 16, (255,255,255),
+        #     vc_stream_str, (420-40,50), f'assets/fonts/{font}/medium.ttf', 16, (255,255,255),
         #     h=1, opacity=128
         # )
 
@@ -1311,7 +1387,7 @@ class Manager:
 
         if pos == None:
             r.draw_text(
-                f"???", (68,217), 'assets/bolditalic.ttf', 20, (255,255,255),
+                f"???", (68,217), f'assets/fonts/{font}/bolditalic.ttf', 20, (255,255,255),
                 h=0.5, opacity=128
             )
 
@@ -1325,10 +1401,10 @@ class Manager:
                 (192,192,192)
             
             r.draw_text(
-                f"#{pos}", (18,119), 'assets/bolditalic.ttf', 20, color,
+                f"#{pos}", (18,119), f'assets/fonts/{font}/bolditalic.ttf', 20, color,
             )
             r.draw_text(
-                f"войс", (137-15, 123), 'assets/regular.ttf',
+                f"войс", (137-15, 123), f'assets/fonts/{font}/regular.ttf',
                 14, (255,255,255), h=1, opacity=128
             )
 
@@ -1337,7 +1413,7 @@ class Manager:
 
         if pos == None:
             r.draw_text(
-                f"???", (68+142,217), 'assets/bolditalic.ttf', 20, (255,255,255),
+                f"???", (68+142,217), f'assets/fonts/{font}/bolditalic.ttf', 20, (255,255,255),
                 h=0.5, opacity=128
             )
 
@@ -1351,14 +1427,14 @@ class Manager:
                 (192,192,192)
             
             r.draw_text(
-                f"#{pos}", (159,119), 'assets/bolditalic.ttf', 20, color,
+                f"#{pos}", (159,119), f'assets/fonts/{font}/bolditalic.ttf', 20, color,
             )
             r.draw_text(
-                f"стрим", (278-15, 113), 'assets/regular.ttf',
+                f"стрим", (278-15, 113), f'assets/fonts/{font}/regular.ttf',
                 14, (255,255,255), h=1, opacity=128
             )
             r.draw_text(
-                vc_stream_str, (278-15, 132), 'assets/bold.ttf',
+                vc_stream_str, (278-15, 132), f'assets/fonts/{font}/bold.ttf',
                 14, (255,255,255), h=1, opacity=128
             )
 
@@ -1367,7 +1443,7 @@ class Manager:
 
         if pos == None:
             r.draw_text(
-                f"???", (68+142+142,217), 'assets/bolditalic.ttf', 20, (255,255,255),
+                f"???", (68+142+142,217), f'assets/fonts/{font}/bolditalic.ttf', 20, (255,255,255),
                 h=0.5, opacity=128
             )
 
@@ -1381,14 +1457,14 @@ class Manager:
                 (192,192,192)
             
             r.draw_text(
-                f"#{pos}", (300,119), 'assets/bolditalic.ttf', 20, color,
+                f"#{pos}", (300,119), f'assets/fonts/{font}/bolditalic.ttf', 20, color,
             )
             r.draw_text(
-                f"с микро", (414-15, 113), 'assets/regular.ttf',
+                f"с микро", (414-15, 113), f'assets/fonts/{font}/regular.ttf',
                 14, (255,255,255), h=1, opacity=128
             )
             r.draw_text(
-                vc_speak_str, (414-15, 132), 'assets/bold.ttf',
+                vc_speak_str, (414-15, 132), f'assets/fonts/{font}/bold.ttf',
                 14, (255,255,255), h=1, opacity=128
             )
 
@@ -1398,6 +1474,7 @@ class Manager:
 
     def render_prom(self, user: User, level: int, role: discord.Role = None) -> str:
         skin = user.skins.selected
+        font = user.fonts.selected
         r = Renderer(
             image=f'assets/skins/{skin}/prombg.png' if role else\
                 f'assets/skins/{skin}/onelinerbg.png'
@@ -1405,29 +1482,29 @@ class Manager:
 
         # title
         r.draw_text(
-            f"Повышение!", (17,14), 'assets/bold.ttf', 24, (255,255,255)
+            f"Повышение!", (17,14), f'assets/fonts/{font}/bold.ttf', 24, (255,255,255)
         )
 
         # levels
         size = 420-18
 
         size -= r.draw_text(
-            f'{level}', (size, 14), 'assets/bold.ttf', 24, (255,255,255), h=1, opacity=128
+            f'{level}', (size, 14), f'assets/fonts/{font}/bold.ttf', 24, (255,255,255), h=1, opacity=128
         )[0]+7
         size -= r.draw_text(
-            f'>', (size, 14), 'assets/regular.ttf', 24, (255,255,255), h=1, opacity=128
+            f'>', (size, 14), f'assets/fonts/{font}/regular.ttf', 24, (255,255,255), h=1, opacity=128
         )[0]+7
         size -= r.draw_text(
-            f'{level-1}', (size, 14), 'assets/bold.ttf', 24, (255,255,255), h=1, opacity=128
+            f'{level-1}', (size, 14), f'assets/fonts/{font}/bold.ttf', 24, (255,255,255), h=1, opacity=128
         )[0]+7
         r.draw_text(
-            f'Уровень', (size, 18), 'assets/regular.ttf', 18, (255,255,255), h=1, opacity=128
+            f'Уровень', (size, 18), f'assets/fonts/{font}/regular.ttf', 18, (255,255,255), h=1, opacity=128
         )
 
         # up indicator
         if role:
             pos = 359*((level-1)/(len(LEVELS)-1))+30
-            size = r.get_text_size(role.name, 'assets/medium.ttf', 16)[0]
+            size = r.get_text_size(role.name, f'assets/fonts/{font}/medium.ttf', 16)[0]
             text_pos = deepcopy(pos)
             if text_pos-size/2 < 20:
                 text_pos = 20+size/2
@@ -1435,7 +1512,7 @@ class Manager:
                 text_pos = 400-size/2
 
             r.draw_text(
-                role.name.capitalize(), (text_pos, 51), 'assets/medium.ttf', 16,
+                role.name.capitalize(), (text_pos, 51), f'assets/fonts/{font}/medium.ttf', 16,
                 role.color.to_rgb(), h=0.5
             )
 
@@ -1451,12 +1528,14 @@ class Manager:
         '''
         Renders image for skin claiming.
         '''
+        botuser = self.get_user(user.id)
+        font = botuser.fonts.selected
         r = Renderer(image=f'assets/skins/{skin}/onelinerbg.png')
         skin: SkinData = self.skins[skin]
         
         # skin name
-        name_size = r.get_text_size('получил скин', 'assets/regular.ttf', 20)[0]+\
-            r.get_text_size(skin.name+'!', 'assets/bold.ttf', 20)[0]+10
+        name_size = r.get_text_size('получил скин', f'assets/fonts/{font}/regular.ttf', 20)[0]+\
+            r.get_text_size(skin.name+'!', f'assets/fonts/{font}/bold.ttf', 20)[0]+10
         
         # name
         pos = 17
@@ -1465,43 +1544,201 @@ class Manager:
         if type(user) != int:
             # username
             pos += r.draw_text(
-                user.display_name, (pos,14), 'assets/regular.ttf', 20, (255,255,255),
+                user.display_name, (pos,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
                 max_size=max_size
             )[0]+5
         else:
             # user id if couldnt fetch the user
             pos += r.draw_text(
-                str(user), (pos,14), 'assets/regular.ttf', 20, (255,255,255),
+                str(user), (pos,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
                 opacity=96, max_size=max_size
             )[0]+5
 
         # text
         pos += r.draw_text(
-            'получил скин', (pos,14), 'assets/regular.ttf', 20, (255,255,255),
+            'получил скин', (pos,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
             opacity=128
         )[0]+5
         r.draw_text(
-            skin.name+'!', (pos,14), 'assets/bold.ttf', 20, (255,255,255)
+            skin.name+'!', (pos,14), f'assets/fonts/{font}/bold.ttf', 20, (255,255,255)
         )
 
         path = r.save('temp', 'png')
         return path
     
 
-    def render_skin_set(self, skin: str) -> str:
+    def render_font_claim(self, user: discord.User, font: str) -> str:
+        '''
+        Renders image for font claiming.
+        '''
+        botuser = self.get_user(user.id)
+        skin = botuser.skins.selected
+        r = Renderer(image=f'assets/skins/{skin}/onelinerbg.png')
+        fontdata: FontData = self.fonts[font]
+        
+        # skin name
+        name_size = r.get_text_size('получил шрифт', f'assets/fonts/{font}/regular.ttf', 20)[0]+\
+            r.get_text_size(fontdata.name+'!', f'assets/fonts/{font}/bold.ttf', 20)[0]+10
+        
+        # name
+        pos = 17
+        max_size = 420-17-17-name_size
+
+        if type(user) != int:
+            # username
+            pos += r.draw_text(
+                user.display_name, (pos,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
+                max_size=max_size
+            )[0]+5
+        else:
+            # user id if couldnt fetch the user
+            pos += r.draw_text(
+                str(user), (pos,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
+                opacity=96, max_size=max_size
+            )[0]+5
+
+        # text
+        pos += r.draw_text(
+            'получил шрифт', (pos,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
+            opacity=128
+        )[0]+5
+        r.draw_text(
+            fontdata.name+'!', (pos,14), f'assets/fonts/{font}/bold.ttf', 20, (255,255,255)
+        )
+
+        path = r.save('temp', 'png')
+        return path
+    
+
+    def render_skin_set(self, user: User, skin: str) -> str:
         '''
         Renders image for skin setting.
         '''
         r = Renderer(image=f'assets/skins/{skin}/onelinerbg.png')
+        font = user.fonts.selected
         skin: SkinData = self.skins[skin]
 
         # text
         pos = r.draw_text(
-            'Вы установили скин', (17,14), 'assets/regular.ttf', 20, (255,255,255),
+            'Вы установили скин', (17,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
             opacity=128
         )[0]+4
         r.draw_text(
-            skin.name+'!', (pos+17,14), 'assets/bold.ttf', 20, (255,255,255)
+            skin.name+'!', (pos+17,14), f'assets/fonts/{font}/bold.ttf', 20, (255,255,255)
+        )
+
+        path = r.save('temp', 'png')
+        return path
+    
+
+    def render_font_set(self, user: User, skin: str) -> str:
+        '''
+        Renders image for font setting.
+        '''
+        r = Renderer(image=f'assets/skins/{skin}/onelinerbg.png')
+        font = user.fonts.selected
+        skin: SkinData = self.skins[skin]
+
+        # text
+        pos = r.draw_text(
+            'Вы установили шрифт', (17,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
+            opacity=128
+        )[0]+4
+        r.draw_text(
+            skin.name+'!', (pos+17,14), f'assets/fonts/{font}/bold.ttf', 20, (255,255,255)
+        )
+
+        path = r.save('temp', 'png')
+        return path
+    
+
+    def render_font_list(self, user: discord.User) -> str:
+        '''
+        Renders a list of fonts this user has.
+        '''
+        botuser = self.get_user(user.id)
+        skin = botuser.skins.selected
+        font = botuser.fonts.selected
+        r = Renderer(image=f'assets/skins/{skin}/skintopbg.png')
+
+        # title
+        r.draw_text(
+            f'Шрифты {user.display_name}', (17,14), f'assets/fonts/{font}/bold.ttf', 20, (255,255,255),
+            max_size=420-17-17
+        )
+        pos = r.draw_text(
+            f'Разблокировано: ', (17,45), f'assets/fonts/{font}/regular.ttf', 16, (255,255,255),
+            opacity=128
+        )[0]
+        r.draw_text(
+            f'{len(botuser.fonts.items)} / {len(self.fonts)}', (pos+17,45),
+            f'assets/fonts/{font}/medium.ttf', 16, (255,255,255)
+        )
+
+        # font list
+        x = 0
+        y = 85
+        r.extend(40)
+
+        for index, i in enumerate(self.fonts.values()):
+            color = (100,230,50) if i.key == botuser.fonts.selected else (255,255,255)
+            opacity = 255 if i.key in botuser.fonts.items or\
+                i.key == botuser.fonts.selected else 192
+            currentfont = f'assets/fonts/{i.key}/medium.ttf'
+
+            # bg
+            if x == 0:
+                r.draw_image(
+                    f'assets/skins/{skin}/fontbg.png', (x, y)
+                )
+
+            # text
+            r.draw_text(
+                i.name, (x+7, y+10), currentfont, 14, color,
+                opacity=opacity, max_size=180, v=0.5
+            )
+
+            # badges
+            if i.key == botuser.fonts.selected:
+                r.draw_image(
+                    f'assets/fontselected.png', (x, y)
+                )
+            elif i.key not in botuser.fonts.items:
+                r.draw_image(
+                    f'assets/fontlocked.png', (x, y)
+                )
+
+            # changing pos
+            x += 212
+
+            if x >= 400 and index < len(self.fonts)-1:
+                x = 0
+                y += 25
+                r.extend(25)
+
+        # end
+        y += 25
+        r.extend(35)
+        r.draw_image(
+            f'assets/skins/{skin}/skinbottombg.png', (0, y)
+        )
+
+        pos = r.draw_text(
+            f'ml!setfont <номер> ', (17,y+12), f'assets/fonts/{font}/medium.ttf', 14,
+            (255,255,255), opacity=128
+        )[0]
+        if botuser.fonts._selected:
+            pos += r.draw_text(
+                f'или ', (pos+17,y+12), f'assets/fonts/{font}/regular.ttf', 14,
+                (255,255,255), opacity=128
+            )[0]
+            pos += r.draw_text(
+                f'ml!removefont ', (pos+17,y+12), f'assets/fonts/{font}/medium.ttf', 14,
+                (255,255,255), opacity=128
+            )[0]
+        r.draw_text(
+            f'для смены', (pos+17,y+12), f'assets/fonts/{font}/regular.ttf', 14,
+            (255,255,255), opacity=128
         )
 
         path = r.save('temp', 'png')
@@ -1513,20 +1750,21 @@ class Manager:
         Renders a list of skins this user has.
         '''
         botuser = self.get_user(user.id)
+        font = botuser.fonts.selected
         r = Renderer(image=f'assets/skins/{botuser.skins.selected}/skintopbg.png')
 
         # title
         r.draw_text(
-            f'Скины {user.display_name}', (17,14), 'assets/bold.ttf', 20, (255,255,255),
+            f'Скины {user.display_name}', (17,14), f'assets/fonts/{font}/bold.ttf', 20, (255,255,255),
             max_size=420-17-17
         )
         pos = r.draw_text(
-            f'Разблокировано: ', (17,45), 'assets/regular.ttf', 16, (255,255,255),
+            f'Разблокировано: ', (17,45), f'assets/fonts/{font}/regular.ttf', 16, (255,255,255),
             opacity=128
         )[0]
         r.draw_text(
-            f'{len(botuser.skins.skins)} / {len(self.skins)}', (pos+17,45),
-            'assets/medium.ttf', 16, (255,255,255)
+            f'{len(botuser.skins.items)} / {len(self.skins)}', (pos+17,45),
+            f'assets/fonts/{font}/medium.ttf', 16, (255,255,255)
         )
 
         # skin list
@@ -1543,16 +1781,16 @@ class Manager:
             if i.key == botuser.skins.selected:
                 r.draw_image(f'assets/selected.png', (x,y))
                 r.draw_text(
-                    f'{index+1}', (x+6,y+2), 'assets/bolditalic.ttf', 14, (132,255,87),
+                    f'{index+1}', (x+6,y+2), f'assets/fonts/{font}/bolditalic.ttf', 14, (132,255,87),
                     opacity=128
                 )
 
-            elif i.key not in botuser.skins.skins:
+            elif i.key not in botuser.skins.items:
                 r.draw_image(f'assets/locked.png', (x,y))
 
             else:
                 r.draw_text(
-                    f'{index+1}', (x+6,y+2), 'assets/bolditalic.ttf', 14, (255,255,255),
+                    f'{index+1}', (x+6,y+2), f'assets/fonts/{font}/bolditalic.ttf', 14, (255,255,255),
                     opacity=128
                 )
 
@@ -1572,20 +1810,20 @@ class Manager:
         )
 
         pos = r.draw_text(
-            f'ml!setskin <номер> ', (17,y+12), 'assets/medium.ttf', 14,
+            f'ml!setskin <номер> ', (17,y+12), f'assets/fonts/{font}/medium.ttf', 14,
             (255,255,255), opacity=128
         )[0]
         if botuser.skins._selected:
             pos += r.draw_text(
-                f'или ', (pos+17,y+12), 'assets/regular.ttf', 14,
+                f'или ', (pos+17,y+12), f'assets/fonts/{font}/regular.ttf', 14,
                 (255,255,255), opacity=128
             )[0]
             pos += r.draw_text(
-                f'ml!removeskin ', (pos+17,y+12), 'assets/medium.ttf', 14,
+                f'ml!removeskin ', (pos+17,y+12), f'assets/fonts/{font}/medium.ttf', 14,
                 (255,255,255), opacity=128
             )[0]
         r.draw_text(
-            f'для смены', (pos+17,y+12), 'assets/regular.ttf', 14,
+            f'для смены', (pos+17,y+12), f'assets/fonts/{font}/regular.ttf', 14,
             (255,255,255), opacity=128
         )
 
@@ -1598,6 +1836,7 @@ class Manager:
         Renders a calendar of user's XP earnings.
         '''
         botuser = self.get_user(user.id)
+        font = botuser.fonts.selected
         r = Renderer(image=f'assets/skins/{botuser.skins.selected}/skintopbg.png')
         
         # date
@@ -1612,16 +1851,16 @@ class Manager:
 
         # title
         r.draw_text(
-            f'Опыт {user.display_name}', (17,14), 'assets/bold.ttf', 20, (255,255,255),
+            f'Опыт {user.display_name}', (17,14), f'assets/fonts/{font}/bold.ttf', 20, (255,255,255),
             max_size=420-17-17
         )
         pos = r.draw_text(
-            f'За ', (17,45), 'assets/regular.ttf', 16, (255,255,255),
+            f'За ', (17,45), f'assets/fonts/{font}/regular.ttf', 16, (255,255,255),
             opacity=128
         )[0]
         r.draw_text(
             f'{utils.month_name((month-1)%12)}, {year}', (pos+17,45),
-            'assets/medium.ttf', 16, (255,255,255), opacity=128
+            f'assets/fonts/{font}/medium.ttf', 16, (255,255,255), opacity=128
         )
 
         # date list
@@ -1642,7 +1881,7 @@ class Manager:
             )
 
             r.draw_text(
-                f'{date.day}', (x+6,y+3), 'assets/bolditalic.ttf', 14, (255,255,255),
+                f'{date.day}', (x+6,y+3), f'assets/fonts/{font}/bolditalic.ttf', 14, (255,255,255),
                 opacity=128
             )
 
@@ -1684,19 +1923,19 @@ class Manager:
                     (192,192,192)
                 
                 r.draw_text(
-                    f"#{place}", (x+54-6, y+3), 'assets/bold.ttf', 14, color, h=1,
+                    f"#{place}", (x+54-6, y+3), f'assets/fonts/{font}/bold.ttf', 14, color, h=1,
                 )
 
             # xp
             if xp > 0:
                 r.draw_text(
                     utils.shorten_number(xp), (x+28, y+25),
-                    'assets/medium.ttf', 16, (255,255,255), h=0.5
+                    f'assets/fonts/{font}/medium.ttf', 16, (255,255,255), h=0.5
                 )
             else:
                 r.draw_text(
                     '0', (x+27, y+25),
-                    'assets/medium.ttf', 16, (255,255,255), h=0.5, opacity=60
+                    f'assets/fonts/{font}/medium.ttf', 16, (255,255,255), h=0.5, opacity=60
                 )
 
             # changing pos
@@ -1717,11 +1956,11 @@ class Manager:
         )
 
         pos = r.draw_text(
-            f'ml!calendar <дата> ', (17,y+12), 'assets/medium.ttf', 14,
+            f'ml!calendar <дата> ', (17,y+12), f'assets/fonts/{font}/medium.ttf', 14,
             (255,255,255), opacity=128
         )[0]
         r.draw_text(
-            f'для смены месяца', (pos+17,y+12), 'assets/regular.ttf', 14,
+            f'для смены месяца', (pos+17,y+12), f'assets/fonts/{font}/regular.ttf', 14,
             (255,255,255), opacity=128
         )
 
@@ -1734,6 +1973,7 @@ class Manager:
         Renders a calendar of the server total's XP earnings.
         '''
         botuser = self.get_user(user.id)
+        font = botuser.fonts.selected
         r = Renderer(image=f'assets/skins/{botuser.skins.selected}/skintopbg.png')
         
         # date
@@ -1748,16 +1988,16 @@ class Manager:
 
         # title
         r.draw_text(
-            f'Серверный опыт', (17,14), 'assets/bold.ttf', 20, (255,255,255),
+            f'Серверный опыт', (17,14), f'assets/fonts/{font}/bold.ttf', 20, (255,255,255),
             max_size=420-17-17
         )
         pos = r.draw_text(
-            f'За ', (17,45), 'assets/regular.ttf', 16, (255,255,255),
+            f'За ', (17,45), f'assets/fonts/{font}/regular.ttf', 16, (255,255,255),
             opacity=128
         )[0]
         r.draw_text(
             f'{utils.month_name((month-1)%12)}, {year}', (pos+17,45),
-            'assets/medium.ttf', 16, (255,255,255), opacity=128
+            f'assets/fonts/{font}/medium.ttf', 16, (255,255,255), opacity=128
         )
 
         # date list
@@ -1791,7 +2031,7 @@ class Manager:
             )
 
             r.draw_text(
-                f'{date.day}', (x+6,y+3), 'assets/bolditalic.ttf', 14, (255,255,255),
+                f'{date.day}', (x+6,y+3), f'assets/fonts/{font}/bolditalic.ttf', 14, (255,255,255),
                 opacity=128
             )
 
@@ -1811,12 +2051,12 @@ class Manager:
             if xp > 0:
                 r.draw_text(
                     utils.shorten_number(xp), (x+28, y+25),
-                    'assets/medium.ttf', 16, (255,255,255), h=0.5
+                    f'assets/fonts/{font}/medium.ttf', 16, (255,255,255), h=0.5
                 )
             else:
                 r.draw_text(
                     '0', (x+27, y+25),
-                    'assets/medium.ttf', 16, (255,255,255), h=0.5, opacity=60
+                    f'assets/fonts/{font}/medium.ttf', 16, (255,255,255), h=0.5, opacity=60
                 )
 
             # changing pos
@@ -1837,11 +2077,11 @@ class Manager:
         )
 
         pos = r.draw_text(
-            f'ml!scal <дата> ', (17,y+12), 'assets/medium.ttf', 14,
+            f'ml!scal <дата> ', (17,y+12), f'assets/fonts/{font}/medium.ttf', 14,
             (255,255,255), opacity=128
         )[0]
         r.draw_text(
-            f'для смены месяца', (pos+17,y+12), 'assets/regular.ttf', 14,
+            f'для смены месяца', (pos+17,y+12), f'assets/fonts/{font}/regular.ttf', 14,
             (255,255,255), opacity=128
         )
 

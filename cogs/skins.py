@@ -146,7 +146,7 @@ async def setup(bot: commands.Bot):
         # checking if user has skin
         user = bot.mg.get_user(ctx.author.id)
 
-        if skin not in user.skins.skins:
+        if skin not in user.skins.items:
             embed = discord.Embed(
                 description='У вас нет этого скина!',
                 color=ERROR_C
@@ -156,7 +156,7 @@ async def setup(bot: commands.Bot):
 
         # selecting
         bot.mg.set_skin(ctx.author.id, skin)
-        path = bot.mg.render_skin_set(skin)
+        path = bot.mg.render_skin_set(user, skin)
         file = discord.File(path, 'image.png')
         await ctx.reply(file=file)
 
@@ -204,6 +204,7 @@ async def setup(bot: commands.Bot):
         Spawns a skin.
         '''
         if ctx.author.id not in ADMINS: return
+        if ctx.message.id in bot.mg.unclaimed: return
         
         skin: api.SkinData = bot.mg.get_random_skin()
         log(f'spawning manual skin {skin.key} in {ctx.channel.id} (msg {ctx.message.id})')
@@ -218,7 +219,7 @@ async def setup(bot: commands.Bot):
         Spawning skin drops
         '''
         if message.channel.id not in CHATTABLE_CHANNELS: return
-        
+        if message.id in bot.mg.unclaimed: return
         if random.random() > SKIN_CHANCE: return
 
         # spawning skin
