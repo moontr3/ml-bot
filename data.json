@@ -347,7 +347,7 @@
         "zenmarugothic": {
             "name": "Zen Maru Gothic",
             "rarity": 2,
-            "alt": ["zen maru", "zenmaru"],
+            "alt": ["zen maru", "zenmaru", "zmg"],
             "emoji": "<:zenmarugothic:1372155232666124348>"
         }
     },

@@ -363,7 +363,7 @@ async def setup(bot: commands.Bot):
         if message.author.bot:
             return
         
-        if not message.author.guild or message.author.guild.id != GUILD_ID:
+        if not message.guild or message.guild.id != GUILD_ID:
             return
         
         bot.mg.set_last_msg_channel(message.author.id, message.channel.id)

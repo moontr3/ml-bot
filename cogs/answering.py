@@ -3,6 +3,7 @@ from discord.ext import commands
 from config import *
 
 async def setup(bot: commands.Bot):
+
     async def switch_answers(message: discord.Message, position: bool):
         user = bot.mg.get_user(message.author.id)
         word = 'включены' if position else 'выключены'
@@ -22,6 +23,7 @@ async def setup(bot: commands.Bot):
         await message.reply(embed=embed)
         return
     
+
     async def query_answers(message: discord.Message):
         answers: dict = bot.mg.data['legacy']
         answer = answers['equals'].get(message.content.lower())
@@ -33,13 +35,19 @@ async def setup(bot: commands.Bot):
                 await message.reply(answer)
                 return
 
+
     @bot.listen()
     async def on_message(message: discord.Message):
+        if message.author.bot:
+            return
+        if message.guild == None:
+            return
+        
         if message.content.lower() in {'-настройки ответки да', 'дабот настройки ответки да'}:
             await switch_answers(message, True)
-            return
-        if message.content.lower() in {'-настройки ответки нет', 'дабот настройки ответки нет'}:
+        
+        elif message.content.lower() in {'-настройки ответки нет', 'дабот настройки ответки нет'}:
             await switch_answers(message, False)
-            return
-        if bot.mg.get_user(message.author.id).marked_by_beast:
+        
+        elif bot.mg.get_user(message.author.id).marked_by_beast:
             await query_answers(message)

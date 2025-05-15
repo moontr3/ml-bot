@@ -71,6 +71,9 @@ UNKNOWN_CHANNEL_EMBED = discord.Embed(
 LOADING_EMBED = discord.Embed(
     title='Загружаем...', color=LOADING_C
 )
+NO_DM_EMBED = discord.Embed(
+    description='Бота можно использовать только на сервере.', color=ERROR_C
+)
 
 UNITTABLE = {
     's': 1,

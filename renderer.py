@@ -180,7 +180,7 @@ class RendererCollection:
         self.mg = mg
 
 
-    def render_captcha(self, text: int) -> str:
+    def captcha(self, text: int) -> str:
         '''
         Renders a captcha for a user.
         '''
@@ -796,9 +796,9 @@ class RendererCollection:
         '''
         Renders image for font setting.
         '''
-        r = Renderer(image=f'assets/skins/{skin}/onelinerbg.png')
-        font = self.mg.fonts[skin]
         skin = user.skins.selected
+        r = Renderer(image=f'assets/skins/{skin}/onelinerbg.png')
+        font = self.mg.fonts[font]
 
         # text
         pos = r.draw_text(
