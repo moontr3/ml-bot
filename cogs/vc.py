@@ -42,7 +42,7 @@ async def setup(bot: commands.Bot):
         aliases=['войс','голос','voice'],
         description='Показывает время пользователя в голосовом канале.'
     )
-    async def slash_vc(ctx:discord.Interaction, member:discord.Member=None):
+    async def slash_vc(ctx:discord.Interaction, member:discord.User=None):
         '''
         Shows user time in VC.
         '''

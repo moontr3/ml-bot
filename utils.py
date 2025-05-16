@@ -96,7 +96,7 @@ def rand_id(k:int=4) -> str:
     return string
 
 
-def get_lb_badge(lb: Literal['alltime','season','week','day','vc','stream','mic'], active:bool) -> str:
+def get_lb_badge(lb: Literal['alltime','season','week','day','vc','stream','mic','q'], active:bool) -> str:
     if active:
         return {
             'alltime': '<:alls1:1356271223797055589><:alls2:1356271234538537151>',
@@ -105,7 +105,8 @@ def get_lb_badge(lb: Literal['alltime','season','week','day','vc','stream','mic'
             'day': '<:days1:1356271265547161622><:days2:1356271276498354307>',
             'vc': '<:vcs1:1358204944313876531><:vcs2:1358204964878553290>',
             'stream': '<:streams1:1358204814428864722><:streams2:1358204834603470868>',
-            'mic': '<:mics1:1358204722489725079><:mics2:1358204738709098576>'
+            'mic': '<:mics1:1358204722489725079><:mics2:1358204738709098576>',
+            'q': '<:qs:1372921547848683530>'
         }[lb]
     else:
         return {
@@ -115,7 +116,8 @@ def get_lb_badge(lb: Literal['alltime','season','week','day','vc','stream','mic'
             'day': '<:dayd1:1356271244537888858><:dayd2:1356271255099146407>',
             'vc': '<:vcd1:1358204910952386791><:vcd2:1358204927402578023>',
             'stream': '<:streamd1:1358204762302185492><:streamd2:1358204798477795528>',
-            'mic': '<:micd1:1358204688851533874><:micd2:1358204705813172376>'
+            'mic': '<:micd1:1358204688851533874><:micd2:1358204705813172376>',
+            'q': '<:qd:1372921533311352923>'
         }[lb]
 
 

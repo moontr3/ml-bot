@@ -27,7 +27,7 @@ async def setup(bot: commands.Bot):
         aliases=['manageskin','manage_skin'],
         description='Изменить скины пользователя.'
     )
-    async def slash_manage_skins(ctx:commands.Context, member:discord.Member, action:Literal['set','add','remove'], skin:str):
+    async def slash_manage_skins(ctx:commands.Context, member:discord.User, action:Literal['set','add','remove'], skin:str):
         '''
         Changes user skins.
         '''
@@ -73,7 +73,7 @@ async def setup(bot: commands.Bot):
         aliases=['скины'],
         description='Показывает список разблокированных скинов пользователя.'
     )
-    async def slash_skins(ctx:discord.Interaction, member:discord.Member=None):
+    async def slash_skins(ctx:discord.Interaction, member:discord.User=None):
         '''
         Shows user skins.
         '''
@@ -272,7 +272,7 @@ async def setup(bot: commands.Bot):
 
         image = bot.mg.renderer.skin_claim(user if user else reaction.user_id, skin)
         file = discord.File(image, filename='skin.png')
-        await message.reply(file=file)
+        await message.reply(f'<@{reaction.user_id}>', file=file)
 
         file.close()
         os.remove(image)

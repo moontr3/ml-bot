@@ -1,13 +1,10 @@
-import os
-import random
-import time
-from discord.ext import commands, tasks
+
+from discord.ext import commands
 import discord
 from log import *
 from typing import *
 from config import *
 import api
-
 import utils
 
 

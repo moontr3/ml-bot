@@ -27,7 +27,7 @@ async def setup(bot: commands.Bot):
         aliases=['managefont','manage_font'],
         description='Изменить шрифты пользователя.'
     )
-    async def slash_manage_fonts(ctx:commands.Context, member:discord.Member, action:Literal['set','add','remove'], font:str):
+    async def slash_manage_fonts(ctx:commands.Context, member:discord.User, action:Literal['set','add','remove'], font:str):
         '''
         Changes user fonts.
         '''
@@ -75,7 +75,7 @@ async def setup(bot: commands.Bot):
         aliases=['шрифты'],
         description='Показывает список разблокированных шрифтов пользователя.'
     )
-    async def slash_fonts(ctx:discord.Interaction, member:discord.Member=None):
+    async def slash_fonts(ctx:discord.Interaction, member:discord.User=None):
         '''
         Shows user fonts.
         '''
@@ -105,7 +105,7 @@ async def setup(bot: commands.Bot):
         aliases=['setfont','set_font','установитьшрифт','установить_шрифт','установить-шрифт'],
         description='Установить шрифт.'
     )
-    async def slash_setfont(ctx:discord.Interaction, font:str):
+    async def slash_setfont(ctx:discord.Interaction, *, font:str):
         '''
         Sets a font.
         '''
@@ -262,7 +262,7 @@ async def setup(bot: commands.Bot):
 
         image = bot.mg.renderer.font_claim(user if user else reaction.user_id, font)
         file = discord.File(image, filename='font.png')
-        await message.reply(file=file)
+        await message.reply(f'<@{reaction.user_id}>', file=file)
 
         file.close()
         os.remove(image)

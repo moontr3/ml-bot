@@ -42,7 +42,7 @@ async def setup(bot: commands.Bot):
         name='manage',
         description='Изменить опыт пользователя.'
     )
-    async def slash_manage_xp(ctx: commands.Context, member:discord.Member, action:Literal['set','add'], amount:int):
+    async def slash_manage_xp(ctx: commands.Context, member:discord.User, action:Literal['set','add'], amount:int):
         '''
         Changes user XP level.
         '''
@@ -77,7 +77,7 @@ async def setup(bot: commands.Bot):
         name='reloadroles',
         description='Изменить опыт пользователя.'
     )
-    async def slash_manage_xp(ctx: commands.Context, member:discord.Member):
+    async def slash_manage_xp(ctx: commands.Context, member:discord.User):
         '''
         Relads user XP roles.
         '''
@@ -196,7 +196,7 @@ async def setup(bot: commands.Bot):
         aliases=['опыт','lvl','rank','level','уровень','ранк','ранг'],
         description='Показывает текущий опыт пользователя.'
     )
-    async def slash_xp(ctx: commands.Context, member:discord.Member=None):
+    async def slash_xp(ctx: commands.Context, member:discord.User=None):
         '''
         Shows user XP level.
         '''
@@ -241,7 +241,7 @@ async def setup(bot: commands.Bot):
         description='Показывает таблицу лидеров по опыту.'
     )
     @discord.app_commands.describe(
-        board='Нужная таблица лидеров - Всё время, День, Неделя, Сезон, Войс, Микро, Стрим.'
+        board='Нужная таблица лидеров - Всё время, День, Неделя, Сезон, Войс, Микро, Стрим, Q.'
     )
     async def slash_leaders(ctx:commands.Context, board:str='day'):
         '''
@@ -322,13 +322,14 @@ async def setup(bot: commands.Bot):
             "гол": "vc",
             "стр": "stream",
             "мик": "mic",
-            "гов": "mic"
+            "гов": "mic",
+            "q": "q"
         }
 
         if board.lower()[:3] not in boards:
             embed = discord.Embed(
                 description='Такой таблицы лидеров нет! Попробуй одно из:\n\n'\
-                    '`День`, `Неделя`, `Сезон`, `Всё время`, `Войс`, `Микро`, `Стрим`',
+                    '`День`, `Неделя`, `Сезон`, `Всё время`, `Войс`, `Микро`, `Стрим`, `Q`',
                 color=ERROR_C
             )
             await ctx.reply(embed=embed, ephemeral=True)
@@ -344,7 +345,7 @@ async def setup(bot: commands.Bot):
 
         badges_text += '\n' + '<:sep:1358207969472286801>'*11 + '\n'
 
-        for i in ['vc', 'stream', 'mic']:
+        for i in ['vc', 'stream', 'mic', 'q']:
             badges_text += f'{utils.get_lb_badge(i, board == i)}<:no:1358207748294316253>'
 
         # image

@@ -225,7 +225,7 @@ class RendererCollection:
     
     async def leaders(self,
         guild: discord.Guild,
-        type: Literal['alltime','season','week','day','vc','stream','mic']='season'
+        type: Literal['alltime','season','week','day','vc','stream','mic','q']='season'
     ) -> str:
         '''
         Renders leaderboard as an image.
@@ -259,9 +259,13 @@ class RendererCollection:
                 xp = i.vc.vc_time_streaming
             elif type == 'mic':
                 xp = i.vc.vc_time_speaking
+            elif type == 'q':
+                xp = i.q
 
             if type in ('vc','stream','mic'):
                 string = f'{xp//60//60}ч {xp//60%60:02}м {xp%60:02}с'
+            elif type == 'q':
+                string = f'{xp:,} Q'.replace(',',' ')
             else:
                 string = f'{xp:,} XP'.replace(',',' ')
 
@@ -288,7 +292,7 @@ class RendererCollection:
                 (255,255,255)
             
             r.draw_text(
-                str(place), (17, start+7), f'assets/fonts/{font}/bolditalic.ttf', 32,
+                str(place), (17, start+7), f'assets/fonts/default/bolditalic.ttf', 32,
                 color, opacity=96 if place > 3 else 255
             )
 
@@ -695,31 +699,31 @@ class RendererCollection:
         skin = self.mg.skins[skin]
         
         # skin name
-        name_size = r.get_text_size('получил скин', f'assets/fonts/{font}/regular.ttf', 20)[0]+\
-            r.get_text_size(skin.name+'!', f'assets/fonts/{font}/bold.ttf', 20)[0]+10
+        # name_size = r.get_text_size('получил скин', f'assets/fonts/{font}/regular.ttf', 20)[0]+\
+        #     r.get_text_size(skin.name+'!', f'assets/fonts/{font}/bold.ttf', 20)[0]+10
         
         # name
         pos = 17
-        max_size = 420-17-17-name_size
+        # max_size = 420-17-17-name_size
 
-        if type(user) != int:
-            # username
-            pos += r.draw_text(
-                user.display_name, (pos,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
-                max_size=max_size
-            )[0]+5
-        else:
-            # user id if couldnt fetch the user
-            pos += r.draw_text(
-                str(user), (pos,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
-                opacity=96, max_size=max_size
-            )[0]+5
+        # if type(user) != int:
+        #     # username
+        #     pos += r.draw_text(
+        #         user.display_name, (pos,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
+        #         max_size=max_size
+        #     )[0]+5
+        # else:
+        #     # user id if couldnt fetch the user
+        #     pos += r.draw_text(
+        #         str(user), (pos,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
+        #         opacity=96, max_size=max_size
+        #     )[0]+5
 
         # text
         pos += r.draw_text(
-            'получил скин', (pos,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
+            'Вы получили скин ', (pos,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
             opacity=128
-        )[0]+5
+        )[0]
         r.draw_text(
             skin.name+'!', (pos,14), f'assets/fonts/{font}/bold.ttf', 20, (255,255,255)
         )
@@ -737,32 +741,32 @@ class RendererCollection:
         r = Renderer(image=f'assets/skins/{skin}/onelinerbg.png')
         fontdata = self.mg.fonts[font]
         
-        # skin name
-        name_size = r.get_text_size('получил шрифт', f'assets/fonts/{font}/regular.ttf', 20)[0]+\
-            r.get_text_size(fontdata.name+'!', f'assets/fonts/{font}/bold.ttf', 20)[0]+10
+        # # skin name
+        # name_size = r.get_text_size('получил шрифт', f'assets/fonts/{font}/regular.ttf', 20)[0]+\
+        #     r.get_text_size(fontdata.name+'!', f'assets/fonts/{font}/bold.ttf', 20)[0]+10
         
-        # name
+        # # name
         pos = 17
-        max_size = 420-17-17-name_size
+        # max_size = 420-17-17-name_size
 
-        if type(user) != int:
-            # username
-            pos += r.draw_text(
-                user.display_name, (pos,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
-                max_size=max_size
-            )[0]+5
-        else:
-            # user id if couldnt fetch the user
-            pos += r.draw_text(
-                str(user), (pos,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
-                opacity=96, max_size=max_size
-            )[0]+5
+        # if type(user) != int:
+        #     # username
+        #     pos += r.draw_text(
+        #         user.display_name, (pos,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
+        #         max_size=max_size
+        #     )[0]+5
+        # else:
+        #     # user id if couldnt fetch the user
+        #     pos += r.draw_text(
+        #         str(user), (pos,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
+        #         opacity=96, max_size=max_size
+        #     )[0]+5
 
         # text
         pos += r.draw_text(
-            'получил шрифт', (pos,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
+            'Вы получили шрифт ', (pos,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
             opacity=128
-        )[0]+5
+        )[0]
         r.draw_text(
             fontdata.name+'!', (pos,14), f'assets/fonts/{font}/bold.ttf', 20, (255,255,255)
         )
@@ -781,11 +785,12 @@ class RendererCollection:
 
         # text
         pos = r.draw_text(
-            'Вы установили скин', (17,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
+            'Вы установили скин ', (17,14), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
             opacity=128
-        )[0]+4
+        )[0]
         r.draw_text(
-            skin.name+'!', (pos+17,14), f'assets/fonts/{font}/bold.ttf', 20, (255,255,255)
+            skin.name+'!', (pos+17,14), f'assets/fonts/{font}/bold.ttf', 20, (255,255,255),
+            max_size=420-35-pos
         )
 
         path = r.save('temp', 'png')
@@ -802,11 +807,102 @@ class RendererCollection:
 
         # text
         pos = r.draw_text(
-            'Вы установили шрифт', (17,14), f'assets/fonts/{font.key}/regular.ttf', 20, (255,255,255),
+            'Вы установили шрифт ', (17,14), f'assets/fonts/{font.key}/regular.ttf', 20, (255,255,255),
             opacity=128
-        )[0]+4
+        )[0]
         r.draw_text(
-            font.name+'!', (pos+17,14), f'assets/fonts/{font.key}/bold.ttf', 20, (255,255,255)
+            font.name+'!', (pos+17,14), f'assets/fonts/{font.key}/bold.ttf', 20, (255,255,255),
+            max_size=420-35-pos
+        )
+
+        path = r.save('temp', 'png')
+        return path
+    
+
+    def q_balance(self, user: discord.User) -> str:
+        '''
+        Renders image for Q balance. OUTDATED
+        '''
+        botuser = self.mg.get_user(user.id)
+        skin = botuser.skins.selected
+        font = botuser.fonts.selected
+        r = Renderer(image=f'assets/skins/{skin}/onelinerbg.png')
+
+        # text
+        bal = f'{botuser.q:,}'.replace(',', ' ')
+        balsize = r.get_text_size(bal, f'assets/fonts/{font}/bold.ttf', 20)[0]
+
+        r.draw_text(
+            user.display_name, (17,15), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
+            opacity=128, max_size=345-balsize
+        )
+        r.draw_text(
+            bal, (420-17-32,15), f'assets/fonts/{font}/bold.ttf', 20, (255,255,255), h=1
+        )
+        r.draw_image(
+            'assets/q.png', (420-20,29), h=1, v=0.5
+        )
+
+        path = r.save('temp', 'png')
+        return path
+    
+
+    def q_level(self, user: discord.User) -> str:
+        '''
+        Renders image for Q level.
+        '''
+        botuser = self.mg.get_user(user.id)
+        skin = botuser.skins.selected
+        font = botuser.fonts.selected
+        r = Renderer(image=f'assets/skins/{skin}/lbtopbg.png')
+        r.extend(45+6)
+        r.draw_image(
+            f'assets/skins/{skin}/skinbottombg.png', (0,62)
+        )
+
+        # text
+        bal = f'всего {botuser.q:,}'.replace(',', ' ')
+        balsize = r.get_text_size(bal, f'assets/fonts/{font}/bold.ttf', 14)[0]
+
+        r.draw_text(
+            f'Q-шкала {user.display_name}', (17,16), f'assets/fonts/{font}/bold.ttf',
+            20, (255,255,255), max_size=420-17-17-balsize-30
+        )
+        r.draw_text(
+            bal, (420-17-25,19), f'assets/fonts/{font}/bold.ttf', 14,
+            (255,255,255), h=1, opacity=128
+        )
+        r.draw_image(
+            'assets/q.png', (420-20,29), (16,16), h=1, v=0.5, opacity=128
+        )
+
+        # bar
+        y = 62+23
+        for i in range(15):
+            x = 26+21*i
+
+            # power bulb
+            if botuser.q_level >= 15:
+                r.draw_image(f'assets/powerlowbulb.png', (x,y), h=0.5, v=0.5)
+                r.draw_image(
+                    f'assets/powerbulb.png', (x,y), h=0.5, v=0.5,
+                    opacity=random.randint(0,255)
+                )
+
+            # normal bulb
+            else:
+                image = 'off' if i >= botuser.q_level else 'on'
+
+                r.draw_image(f'assets/{image}bulb.png', (x,y), h=0.5, v=0.5)
+
+        # counter
+        size = r.draw_text(
+            f' / 15', (420-17,62+15+9), f'assets/fonts/{font}/semibold.ttf', 14,
+            (255,255,255), h=1, v=0.5, opacity=192
+        )[0]+2
+        r.draw_text(
+            f'{botuser.q_level:02}', (420-17-size,62+22), f'assets/fonts/{font}/bold.ttf', 24,
+            (255,255,255), h=1, v=0.5, opacity=192, max_size=420-346-size-5
         )
 
         path = r.save('temp', 'png')
@@ -885,7 +981,7 @@ class RendererCollection:
         )
 
         pos = r.draw_text(
-            f'ml!setfont <номер> ', (17,y+12), f'assets/fonts/{font}/medium.ttf', 14,
+            f'ml!setfont <название> ', (17,y+12), f'assets/fonts/{font}/medium.ttf', 14,
             (255,255,255), opacity=128
         )[0]
         if botuser.fonts._selected:

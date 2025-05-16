@@ -204,6 +204,9 @@ class User:
         self.quarantine: float | None = data.get('quarantine', None)
         self.reminders: List[Reminder] = [Reminder(i) for i in data.get('reminders', [])]
         self.tokens: Dict[int] = data.get('tokens', {})
+        self.q: int = data.get('q', 0)
+        self.q_level: int = data.get('q_level', self.q)
+        self.q_level = min(15, max(0, self.q_level))
 
         self.token_dig_timeout: float = data.get('token_dig_timeout', 0.0)
         self.games_timeout: float = data.get('games_timeout', 0.0)
@@ -233,6 +236,8 @@ class User:
             "quarantine": self.quarantine,
             "reminders": [i.to_dict() for i in self.reminders],
             "tokens": self.tokens,
+            "q": self.q,
+            "q_level": self.q_level,
             "token_dig_timeout": self.token_dig_timeout,
             "games_timeout": self.games_timeout,
             "skins": self.skins.to_dict(),
@@ -389,6 +394,15 @@ class TempVC:
             "name": self.name,
             "created_at": self.created_at
         }
+    
+
+# Q earning
+
+class UnclaimedQ:
+    def __init__(self, message_id: int):
+        self.message_id: int = message_id
+        self.spawned_at: float = time.time()
+        self.claimed: List[int] = []
 
 
 # manager
@@ -401,6 +415,7 @@ class Manager:
         self.users_file: str = users_file
         self.data_file: str = data_file
         self.unclaimed: List[int] = []
+        self.unclaimed_qs: Dict[int, UnclaimedQ] = {}
         self.in_vc: List[int] = []
         self.temp_vcs: Dict[int, TempVC] = {}
         self.renderer = RendererCollection(self)
@@ -547,6 +562,21 @@ class Manager:
         user = self.get_user(user_id)
         user.reminders.pop(index)
         self.commit()
+
+
+    def add_q(self, user_id:int, amount:int) -> "int | None":
+        '''
+        Adds Qs to user and returns the new balance.
+        '''
+        user = self.get_user(user_id)
+        
+        user.q += amount
+        user.q_level += amount
+        if user.q_level > 15:
+            user.q_level = 15
+
+        self.commit()
+        return user.q
 
 
     def add_xp(self, user_id:int, xp:int, store_lvl_up:bool=True) -> "int | None":
@@ -810,7 +840,7 @@ class Manager:
         self.commit()
     
 
-    def get_leaders(self, type: Literal['alltime','season','week','day','vc','stream','mic'], places=9) -> List[User]:
+    def get_leaders(self, type: Literal['alltime','season','week','day','vc','stream','mic','q'], places=9) -> List[User]:
         '''
         Returns a list of users sorted by xp.
         '''
@@ -828,6 +858,8 @@ class Manager:
             users = sorted(self.users.values(), key=lambda x: x.vc.vc_time_streaming, reverse=True)
         elif type == 'mic':
             users = sorted(self.users.values(), key=lambda x: x.vc.vc_time_speaking, reverse=True)
+        elif type == 'q':
+            users = sorted(self.users.values(), key=lambda x: x.q, reverse=True)
         return users[:places]
     
 
