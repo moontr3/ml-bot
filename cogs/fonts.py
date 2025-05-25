@@ -102,7 +102,7 @@ async def setup(bot: commands.Bot):
     )
     @bot.hybrid_command(
         name='set-font',
-        aliases=['setfont','set_font','установитьшрифт','установить_шрифт','установить-шрифт'],
+        aliases=['setfont','set_font','установитьшрифт','установить_шрифт','установить-шрифт','поставить-шрифт','поставитьшрифт','поставить_шрифт'],
         description='Установить шрифт.'
     )
     async def slash_setfont(ctx:discord.Interaction, *, font:str):
@@ -122,16 +122,18 @@ async def setup(bot: commands.Bot):
         if font in bot.mg.fonts:
             pass
         # choosing by name
-        elif font in [i.name.lower() for i in bot.mg.fonts.values()]:
-            font = [i for i in bot.mg.fonts.values() if i.name.lower() == font or font in i.alt][0].key
-        # wrong input
         else:
-            embed = discord.Embed(
-                description='Такого шрифта нет.',
-                color=ERROR_C
-            )
-            await ctx.reply(embed=embed, ephemeral=True)
-            return
+            font = [i for i in bot.mg.fonts.values() if i.name.lower() == font or font in i.alt]
+        
+            if len(font) == 0:
+                embed = discord.Embed(
+                    description='Такого шрифта нет.',
+                    color=ERROR_C
+                )
+                await ctx.reply(embed=embed, ephemeral=True)
+                return
+            
+            font = font[0].key
         
         # checking if user has font
         user = bot.mg.get_user(ctx.author.id)
@@ -189,14 +191,18 @@ async def setup(bot: commands.Bot):
 
 
     @bot.command(name='spawnfont')
-    async def cmd_spawnfont(ctx:commands.Context):
+    async def cmd_spawnfont(ctx:commands.Context, font: str = None):
         '''
         Spawns a font.
         '''
         if ctx.author.id not in ADMINS: return
         if ctx.message.id in bot.mg.unclaimed: return
         
-        font: api.FontData = bot.mg.get_random_font()
+        if font == None:
+            font: api.FontData = bot.mg.get_random_font()
+        else:
+            font: api.FontData = bot.mg.fonts[font]
+
         log(f'spawning manual font {font.key} in {ctx.channel.id} (msg {ctx.message.id})')
 
         await ctx.message.add_reaction(font.emoji)
@@ -262,7 +268,9 @@ async def setup(bot: commands.Bot):
 
         image = bot.mg.renderer.font_claim(user if user else reaction.user_id, font)
         file = discord.File(image, filename='font.png')
-        await message.reply(f'<@{reaction.user_id}>', file=file)
+        mentions = discord.AllowedMentions(replied_user=False)
+        
+        await message.reply(f'<@{reaction.user_id}>', file=file, allowed_mentions=mentions)
 
         file.close()
         os.remove(image)

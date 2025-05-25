@@ -1,6 +1,6 @@
 import discord
 
-PREFIXES = ('tml!', 'ml!', 'odbs!','мл!')
+PREFIXES = ('tml!', 'ml!', 'odbs!','мл!','penis!','пенис!','-')
 TEMP_VC_CREATE_COMMANDS = ['!типа где', '!типо где', '!тип где', '!tipa gde', '!tipo gde']
 ADMINS = [698457845301248010]
 
@@ -74,6 +74,14 @@ LOADING_EMBED = discord.Embed(
 NO_DM_EMBED = discord.Embed(
     description='Бота можно использовать только на сервере.', color=ERROR_C
 )
+
+WARN_IMAGE = 'https://moontr3.ru/assets/warn.png'
+JOIN_IMAGE = 'https://moontr3.ru/assets/wpbot/join.png'
+LEAVE_IMAGE = 'https://moontr3.ru/assets/wpbot/leave.png'
+
+PLACE1 = '<:1p:1373797888831918100>'
+PLACE2 = '<:2p:1373797899921788988>'
+PLACE3 = '<:3p:1373797912164827246>'
 
 UNITTABLE = {
     's': 1,

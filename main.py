@@ -17,6 +17,7 @@ TOKEN = os.getenv('BOT_TOKEN')
 bot = commands.Bot(command_prefix=PREFIXES, intents=discord.Intents.all(), help_command=None)
 bot.mg = Manager(USERS_FILE, DATA_FILE)
 bot.WEBHOOK = os.getenv('LOGGING_WEBHOOK')
+bot.SERVICE_WEBHOOK = os.getenv('SERVICE_WEBHOOK')
 
 
 # functions
@@ -83,8 +84,9 @@ async def synctree(ctx):
     log(f'{ctx.author.id} synced tree with {len(synced)} commands', level=SUCCESS)
     embed = discord.Embed(title=f'✅ {len(synced)} commands synced!', color=DEFAULT_C)
     await msg.edit(embed=embed)
-
+    
 
 ## RUNNING BOT
+
 asyncio.run(load_commands())
 bot.run(TOKEN)

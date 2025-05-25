@@ -18,22 +18,32 @@ async def setup(bot: commands.Bot):
     @bot.event
     async def on_command_error(ctx, error:Exception):
         '''Usually gets called when a user tries to incorrectly invoke a command.'''
+        # not enough args
         if isinstance(error, commands.MissingRequiredArgument):
-            # not enough args
-            log(f'{ctx.author} {ctx.author.id} missing required argument(s): {ctx.message.content}', level=ERROR)
+            log(f'{ctx.author} {ctx.author.id} missing required argument(s', level=ERROR)
             await ctx.reply(embed=ARGS_REQUIRED_EMBED)
 
+        # missing required permissions
         elif isinstance(error, commands.MissingPermissions):
-            # missing required permissions
-            log(f'{ctx.author} {ctx.author.id} missing permissions: {ctx.message.content}', level=ERROR)
+            log(f'{ctx.author} {ctx.author.id} missing permissions', level=ERROR)
             await ctx.reply(embed=MISSING_PERMS_EMBED)
 
+        # user not found
+        elif isinstance(error, commands.UserNotFound) or isinstance(error, commands.MemberNotFound):
+            log(f'{ctx.author} {ctx.author.id} user not found', level=ERROR)
+            await ctx.reply(embed=UNKNOWN_USER_EMBED)
+
+        # channel not found
+        elif isinstance(error, commands.ChannelNotFound):
+            log(f'{ctx.author} {ctx.author.id} channel not found', level=ERROR)
+            await ctx.reply(embed=UNKNOWN_CHANNEL_EMBED)
+
+        # unknown command
         elif isinstance(error, commands.CommandNotFound):
-            # unknown command
             log(f'{ctx.author} {ctx.author.id} entered an unknown command: {ctx.message.content}', level=ERROR)
 
+        # everything else basically
         else:
-            # everything else basically
             log(f'{ctx.author} {ctx.author.id} issued a command error: {error}', level=ERROR)
             await ctx.reply(embed=UNKNOWN_ERROR_EMBED)
             log('\n'.join(traceback.format_tb(error.__traceback__)), level=ERROR)

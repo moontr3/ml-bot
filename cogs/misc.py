@@ -54,6 +54,41 @@ async def setup(bot: commands.Bot):
 
 
     @bot.hybrid_command(
+        name='stats',
+        aliases=['стат','стата','статистика','stat','statistics'],
+        description='Показывает вашу статистику на сервере.'
+    )
+    async def slash_about(ctx: commands.Context, user: discord.User=None):
+        '''
+        Shows bot info.
+        '''
+        log(f'{ctx.author.id} requested bot info')
+
+        if user == None:
+            user = ctx.author
+
+        if user.bot:
+            embed = discord.Embed(
+                color=ERROR_C, description='❌ Это бот да. незя атата'
+            )
+            await ctx.reply(embed=embed)
+            return
+
+        botuser = bot.mg.get_user(user.id)
+        finishes = bot.mg.get_lb_finishes(user.id)
+        
+        embed = discord.Embed(
+            color=DEFAULT_C, title=f'ℹ️ Статистика {user.display_name}',
+            description=\
+                f'### {PLACE1} **{finishes[1]}** ・ {PLACE2} **{finishes[2]}** ・ {PLACE3} **{finishes[3]}**\n'\
+                f'Поставлено напоминаний: **{len(botuser.reminders)}**\n'\
+                f'Режим Зверя: {"✅" if botuser.marked_by_beast else "❌"}'
+        )
+
+        await ctx.reply(embed=embed)
+
+
+    @bot.hybrid_command(
         name='about',
         aliases=['info','оботе','инфо','информация'],
         description='Показывает информацию о боте.'
@@ -63,16 +98,23 @@ async def setup(bot: commands.Bot):
         Shows bot info.
         '''
         log(f'{ctx.author.id} requested bot info')
+
+        stats = bot.mg.get_all_info()
+        verified_count = len(ctx.guild.get_role(VERIFY_ROLE).members)
         
         embed = discord.Embed(
             color=DEFAULT_C, title='ℹ️ О боте',
             description='Создатель: `moontr3` (obviously)\n'\
                 f'Контрибьюторы: `n0n1m`, `mbutsk`\n'\
                 f'Написан на **Python** и **discord.py**\n'\
-                f'Рендеринг картинок через **pygame-ce**\n\n'\
+                f'-# Рендеринг картинок через **pygame-ce**\n\n'\
                 f'Пользователей зарегистрировано: **{len(bot.mg.users)}**\n'\
                 f'Участников на сервере: **{ctx.guild.member_count}**\n'\
-                f'Всего заработано опыта: **{bot.mg.get_all_xp()} XP**\n'\
+                f'Верифицировано: **{verified_count}**\n'\
+                f'Всего заработано опыта: **{stats["xp"]} XP**\n'\
+                f'Всего получено скинов: **{stats["skins"]}**\n'\
+                f'Всего получено шрифтов: **{stats["fonts"]}**\n'\
+                f'Всего собрано Q: **{stats["q"]} Q**\n'\
         )
 
         await ctx.reply(embed=embed)

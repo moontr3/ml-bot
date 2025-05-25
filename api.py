@@ -419,6 +419,7 @@ class Manager:
         self.in_vc: List[int] = []
         self.temp_vcs: Dict[int, TempVC] = {}
         self.renderer = RendererCollection(self)
+        self.sk_last_spawn: float = 0
         self.reload()
 
 
@@ -462,6 +463,7 @@ class Manager:
         self.users = {int(id): User(int(id), data) for id, data in data['users'].items()}
         self.temp_vcs = {int(id): TempVC(int(id), data) for id, data in data.get('temp_vcs', {}).items()}
         self.timed_lb = TimedLeaderboard(data.get('timed_lb', {}))
+        self.sk_last_spawn: float = data.get('sk_last_spawn', 0)
 
         # data
         try:
@@ -503,6 +505,7 @@ class Manager:
 
         data['timed_lb'] = self.timed_lb.to_dict()
         data['temp_vcs'] = {id: i.to_dict() for id, i in self.temp_vcs.items()}
+        data['sk_last_spawn'] = self.sk_last_spawn
 
         # saving
         try:
@@ -636,14 +639,35 @@ class Manager:
         return False
 
 
-    def get_all_xp(self) -> int:
+    def get_all_info(self) -> Dict[str, int]:
         '''
-        Returns sum of each members's xp
+        Returns total stats
         '''
-        total_xp = 0
+        data = {
+            "xp": 0,
+            "skins": 0,
+            "fonts": 0,
+            "q": 0
+        }
         for i in self.users.values():
-            total_xp += i.xp.xp
-        return total_xp
+            data['xp'] += i.xp.xp
+            data['skins'] += len(i.skins.items)
+            data['fonts'] += len(i.fonts.items)
+            data['q'] += i.q
+
+        return data
+    
+
+    def get_lb_finishes(self, user_id:int) -> List[int]:
+        finishes: Dict[int,int] = {1:0, 2:0, 3:0}
+
+        for i in self.timed_lb.daily.values():
+            if user_id in i:
+                place = sorted(i.items(), key=lambda x: x[1], reverse=True).index((user_id, i[user_id]))+1
+                if place in finishes:
+                    finishes[place] += 1
+
+        return finishes
     
 
     def set_skin(self, user_id:int, skin:str):

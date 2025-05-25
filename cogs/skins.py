@@ -100,7 +100,7 @@ async def setup(bot: commands.Bot):
     )
     @bot.hybrid_command(
         name='set-skin',
-        aliases=['setskin','set_skin','установитьскин','установить_скин','установить-скин'],
+        aliases=['setskin','set_skin','установитьскин','установить_скин','установить-скин','поставить-скин','поставить_скин','поставитьскин'],
         description='Установить скин.'
     )
     async def slash_setskin(ctx:discord.Interaction, skin:str):
@@ -272,7 +272,9 @@ async def setup(bot: commands.Bot):
 
         image = bot.mg.renderer.skin_claim(user if user else reaction.user_id, skin)
         file = discord.File(image, filename='skin.png')
-        await message.reply(f'<@{reaction.user_id}>', file=file)
+        mentions = discord.AllowedMentions(replied_user=False)
+
+        await message.reply(f'<@{reaction.user_id}>', file=file, allowed_mentions=mentions)
 
         file.close()
         os.remove(image)

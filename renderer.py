@@ -725,7 +725,8 @@ class RendererCollection:
             opacity=128
         )[0]
         r.draw_text(
-            skin.name+'!', (pos,14), f'assets/fonts/{font}/bold.ttf', 20, (255,255,255)
+            skin.name+'!', (pos,14), f'assets/fonts/{font}/bold.ttf', 20, (255,255,255),
+            max_size=420-17-pos
         )
 
         path = r.save('temp', 'png')
@@ -768,7 +769,8 @@ class RendererCollection:
             opacity=128
         )[0]
         r.draw_text(
-            fontdata.name+'!', (pos,14), f'assets/fonts/{font}/bold.ttf', 20, (255,255,255)
+            fontdata.name+'!', (pos,14), f'assets/fonts/{font}/bold.ttf', 20, (255,255,255),
+            max_size=420-17-pos
         )
 
         path = r.save('temp', 'png')

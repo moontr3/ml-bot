@@ -1,5 +1,6 @@
 import os
 import random
+import aiohttp
 from discord.ext import commands, tasks
 import discord
 from log import *
@@ -73,6 +74,28 @@ async def setup(bot: commands.Bot):
         '''
         if member.bot: return
         bot.mg.update_vc_state(member.id, after)
+
+        # leaving/joining vc messages
+        if before.channel == None or after.channel == None:
+            session = aiohttp.ClientSession()
+            webhook = discord.Webhook.from_url(bot.SERVICE_WEBHOOK, session=session)
+            mentions = discord.AllowedMentions(users=False)
+
+            if before.channel == None and after.channel != None:
+                await webhook.send(
+                    f'<@{member.id}>  →  <#{after.channel.id}>',
+                    avatar_url=JOIN_IMAGE, username='Вход в голосовой канал',
+                    allowed_mentions=mentions
+                )
+            
+            elif before.channel != None and after.channel == None:
+                await webhook.send(
+                    f'<@{member.id}>  ←  <#{before.channel.id}>',
+                    avatar_url=LEAVE_IMAGE, username='Выход из голосового канала',
+                    allowed_mentions=mentions
+                )
+
+            await session.close()
 
 
     @tasks.loop(seconds=60)
