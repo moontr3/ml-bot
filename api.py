@@ -922,15 +922,10 @@ class Manager:
 
     def add_quarantine(self, user_id: int, t: int):
         self.check_user(user_id)
-
         self.quarantines.update({user_id: t})
-
-
         self.commit()
     
     def remove_quarantine(self, user_id: int):
         self.check_user(user_id)
-
         self.quarantines.pop(user_id)
-
         self.commit()
