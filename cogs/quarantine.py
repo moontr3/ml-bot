@@ -22,7 +22,7 @@ async def setup(bot: commands.Bot):
         member:discord.Member, length:str
     ):
         '''
-        Sends the specified user to carantine.
+        Sends the specified user to quarantine.
         '''
         # checking permissions
         if not ctx.permissions.moderate_members and ctx.author.id not in ADMINS:
@@ -63,7 +63,7 @@ async def setup(bot: commands.Bot):
             log(f'Error while {ctx.author.id} was sending to quarantine {member.id} for {length}: {e}', level=ERROR)
             embed = discord.Embed(
                 title='🦠 Карантин', color=ERROR_C,
-                description=f'Не удалось отправить участника на карантин.'
+                description=f'Не удалось сделать участника **гречка мартини**.'
             )
             return await ctx.reply(embed=embed, ephemeral=True)
         
@@ -110,7 +110,7 @@ async def setup(bot: commands.Bot):
             log(f'Error while {ctx.author.id} was removimg from quarantine {member.id}: {e}', level=ERROR)
             embed = discord.Embed(
                 title='🦠 Карантин', color=ERROR_C,
-                description=f'Не удалось снять участника с карантина.'
+                description=f'Не удалось сделать участника **гречка мартини**.'
             )
             return await ctx.reply(embed=embed, ephemeral=True)
 

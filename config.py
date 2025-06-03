@@ -1,8 +1,8 @@
 import discord
 
-PREFIXES = ('mbl!')
+PREFIXES = ('tml!', 'ml!', 'odbs!','мл!','penis!','пенис!','-')
 TEMP_VC_CREATE_COMMANDS = ['!типа где', '!типо где', '!тип где', '!tipa gde', '!tipo gde']
-ADMINS = [558214919405830151]
+ADMINS = [698457845301248010]
 
 LEVELS = [
     976773904968343572,

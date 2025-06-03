@@ -507,7 +507,7 @@ class Manager:
 
         data['timed_lb'] = self.timed_lb.to_dict()
         data['temp_vcs'] = {id: i.to_dict() for id, i in self.temp_vcs.items()}
-        data['quarantines'] = {id: t for id, t in self.quarantines.items()}
+        data['quarantines'] = self.quarantines.items()
         data['sk_last_spawn'] = self.sk_last_spawn
 
         # saving
@@ -924,6 +924,7 @@ class Manager:
         self.check_user(user_id)
 
         self.quarantines.update({user_id: t})
+
 
         self.commit()
     
