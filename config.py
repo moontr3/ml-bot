@@ -1,8 +1,8 @@
 import discord
 
-PREFIXES = ('tml!', 'ml!', 'odbs!','мл!','penis!','пенис!','-')
+PREFIXES = ('mbl!')
 TEMP_VC_CREATE_COMMANDS = ['!типа где', '!типо где', '!тип где', '!tipa gde', '!tipo gde']
-ADMINS = [698457845301248010]
+ADMINS = [558214919405830151]
 
 LEVELS = [
     976773904968343572,
@@ -149,3 +149,5 @@ TEMP_VC_INACTIVITY_TIME = 60*5
 TEMP_VC_CREATION_TIMEOUT = 60*10
 DEAFEN_MUTE_LEVEL_REQ = 5
 MAX_QS = 15
+
+QUARANTINE_ROLE = 1003696913138323496
