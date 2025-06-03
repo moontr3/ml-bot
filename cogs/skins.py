@@ -103,7 +103,7 @@ async def setup(bot: commands.Bot):
         aliases=['setskin','set_skin','установитьскин','установить_скин','установить-скин','поставить-скин','поставить_скин','поставитьскин'],
         description='Установить скин.'
     )
-    async def slash_setskin(ctx:discord.Interaction, skin:str):
+    async def slash_setskin(ctx:discord.Interaction, *, skin:str):
         '''
         Sets a skin.
         '''

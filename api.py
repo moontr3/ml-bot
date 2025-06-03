@@ -208,6 +208,10 @@ class User:
         self.q_level: int = data.get('q_level', self.q)
         self.q_level = min(15, max(0, self.q_level))
 
+        self.rep: int = data.get('rep', 0)
+        self.plus_reps: int = data.get('plus_reps', 0)
+        self.minus_reps: int = abs(data.get('minus_reps', 0))
+
         self.token_dig_timeout: float = data.get('token_dig_timeout', 0.0)
         self.games_timeout: float = data.get('games_timeout', 0.0)
 
@@ -238,6 +242,9 @@ class User:
             "tokens": self.tokens,
             "q": self.q,
             "q_level": self.q_level,
+            "rep": self.rep,
+            "plus_reps": self.plus_reps,
+            "minus_reps": self.minus_reps,
             "token_dig_timeout": self.token_dig_timeout,
             "games_timeout": self.games_timeout,
             "skins": self.skins.to_dict(),
@@ -514,7 +521,7 @@ class Manager:
             log(f'Unable to save user data: {e}', 'api', WARNING)    
             return
 
-        with open(self.users_file, 'w', encoding='utf-8') as f:
+        with open(self.users_file, 'w') as f:
             f.write(json_data)
 
 
@@ -779,7 +786,30 @@ class Manager:
         user = self.get_user(user_id)
         user.last_msg_channel = channel_id
         self.commit()
-    
+
+
+    def add_rep(self, id: int, amount: int):
+        '''
+        Changes user's rep count.
+        '''
+        user = self.get_user(id)
+        user.rep += amount
+
+        if amount > 0:
+            user.plus_reps += amount
+        else:
+            user.minus_reps -= amount
+
+        self.commit()
+
+
+    def get_rep_limits(self) -> Tuple[int,int]:
+        '''
+        Returns a tuple with 1st value being the lower limit and 2nd value being the upper limit of reputation.
+        '''
+        rep = [i.rep for i in self.users.values()]
+        return min(rep), max(rep)
+
 
     def update_vc_state(self, id: int, state: discord.VoiceState) -> str:
         '''
@@ -864,9 +894,9 @@ class Manager:
         self.commit()
     
 
-    def get_leaders(self, type: Literal['alltime','season','week','day','vc','stream','mic','q'], places=9) -> List[User]:
+    def get_leaders(self, type: Literal['alltime','season','week','day','vc','stream','mic','q','rep'], places=9) -> List[User]:
         '''
-        Returns a list of users sorted by xp.
+        Returns a list of users sorted by type.
         '''
         if type == 'alltime':
             users = sorted(self.users.values(), key=lambda x: x.xp.total_xp, reverse=True)
@@ -884,10 +914,12 @@ class Manager:
             users = sorted(self.users.values(), key=lambda x: x.vc.vc_time_speaking, reverse=True)
         elif type == 'q':
             users = sorted(self.users.values(), key=lambda x: x.q, reverse=True)
+        elif type == 'rep':
+            users = sorted([i for i in self.users.values() if i.plus_reps != 0 or i.minus_reps != 0], key=lambda x: x.rep, reverse=True)
         return users[:places]
     
 
-    def get_place(self, user_id:int, type: Literal['alltime','season','week','day','vc','stream','mic']) -> int:
+    def get_place(self, user_id:int, type: Literal['alltime','season','week','day','vc','stream','mic','q','rep']) -> int:
         users = self.get_leaders(type, places=99999)
 
         place = 0
@@ -907,7 +939,14 @@ class Manager:
             elif type == 'stream':
                 xp = i.vc.vc_time_streaming
             elif type == 'mic':
-                xp = i.vc.vc_time_speaking
+                xp = i.vc.vc_time_speaking,
+            elif type == 'q':
+                xp = i.q
+            elif type == 'rep':
+                xp = i.rep
+                if i.plus_reps == 0 and i.minus_reps == 0:
+                    prev_xp = xp
+                    continue
 
             if prev_xp != xp:
                 place += 1

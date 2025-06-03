@@ -21,6 +21,7 @@ bot.SERVICE_WEBHOOK = os.getenv('SERVICE_WEBHOOK')
 
 
 # functions
+
 def to_extension_name(string:str) -> str:
     '''
     Converts relative path to filename without .py extension

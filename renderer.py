@@ -232,7 +232,7 @@ class RendererCollection:
         '''
         users = self.mg.get_leaders(type)
 
-        r = Renderer((420, 544))
+        r = Renderer((420, 61))
 
         # 61, 17, 12
         start = 0
@@ -261,11 +261,15 @@ class RendererCollection:
                 xp = i.vc.vc_time_speaking
             elif type == 'q':
                 xp = i.q
+            elif type == 'rep':
+                xp = i.rep
 
             if type in ('vc','stream','mic'):
                 string = f'{xp//60//60}ч {xp//60%60:02}м {xp%60:02}с'
             elif type == 'q':
                 string = f'{xp:,} Q'.replace(',',' ')
+            elif type == 'rep':
+                string = ('+' if xp > 0 else '') + f'{xp:,}'
             else:
                 string = f'{xp:,} XP'.replace(',',' ')
 
@@ -281,8 +285,16 @@ class RendererCollection:
 
             # glow
             if place <= 3:
+                place_str = str(place)
+
+                if index >= len(users)-1 and index != 0:
+                    place_str = f'{place}end'
+
+                if place == 1 and index != 0:
+                    place_str = '1alt'
+
                 r.draw_image(
-                    f'assets/place{place}.png', (0,start),
+                    f'assets/place{place_str}.png', (0,start),
                 )
 
             # pos
@@ -331,6 +343,8 @@ class RendererCollection:
                 )
 
             start += 61
+            if index < len(users)-1:
+                r.extend(61)
 
         # saving
         path = r.save('temp', 'png')
@@ -905,6 +919,99 @@ class RendererCollection:
         r.draw_text(
             f'{botuser.q_level:02}', (420-17-size,62+22), f'assets/fonts/{font}/bold.ttf', 24,
             (255,255,255), h=1, v=0.5, opacity=192, max_size=420-346-size-5
+        )
+
+        path = r.save('temp', 'png')
+        return path
+    
+
+    def rep(self, user: discord.User) -> str:
+        '''
+        Renders image for rep.
+        '''
+        botuser = self.mg.get_user(user.id)
+        skin = botuser.skins.selected
+        font = botuser.fonts.selected
+        r = Renderer(image=f'assets/skins/{skin}/lbtopbg.png')
+        r.extend(45+6)
+        r.draw_image(
+            f'assets/skins/{skin}/skinbottombg.png', (0,62)
+        )
+
+        # place
+        place_num = self.mg.get_place(user.id, 'rep')
+
+        if place_num != None:
+            place_num = self.mg.get_place(user.id, 'rep')
+            place_color = (251,172,24) if place_num == 1 else\
+                (140,140,140) if place_num == 2 else\
+                (148,66,31) if place_num == 3 else\
+                (255,255,255)
+            place = f'#{place_num}'
+            placesize = r.get_text_size(place, f'assets/fonts/{font}/bolditalic.ttf', 14)[0]
+
+            # place bg
+            if place_num <= 3:
+                r.draw_image(
+                    f'assets/rep{place_num}.png', (420,0), h=1
+                )
+
+        else: 
+            placesize = 0
+
+        # text
+        r.draw_text(
+            f'Репутация {user.display_name}', (17,16), f'assets/fonts/{font}/bold.ttf',
+            20, (255,255,255), max_size=420-17-17-placesize-30
+        )
+        if place_num != None:
+            r.draw_text(
+                place, (420-18,19), f'assets/fonts/{font}/bolditalic.ttf', 18,
+                place_color, h=1, opacity=128
+            )
+
+        # sides
+        x = 17
+        x += r.draw_text(
+            f'+{botuser.plus_reps}', (x,62+22), f'assets/fonts/{font}/semibold.ttf', 14,
+            (150,255,170), v=0.5, opacity=128
+        )[0]+8
+        x += r.draw_text(
+            f'-{botuser.minus_reps}', (x,62+22), f'assets/fonts/{font}/semibold.ttf', 14,
+            (255,140,140), v=0.5, opacity=128
+        )[0]+18
+        
+
+        # counter
+        count = r.draw_text(
+            ('+' if botuser.rep >= 0 else '')+f'{botuser.rep}', (420-20,62+21), f'assets/fonts/{font}/bold.ttf',
+            24, (255,255,255), h=1, v=0.5, opacity=192
+        )[0]
+
+        # limit bar
+        left_pos = x
+        right_pos = 420-20-18-count
+
+        r.draw_image(
+            'assets/barleft.png', (left_pos-6, 62+21), v=0.5
+        )
+        r.draw_image(
+            'assets/barright.png', (right_pos-6, 62+21), v=0.5
+        )
+        r.draw_image(
+            'assets/barcenter.png', (left_pos+6, 62+21), (right_pos-left_pos-12, 12), v=0.5
+        )
+
+        # dot
+        min_rep, max_rep = self.mg.get_rep_limits()
+        percentage = (botuser.rep-min_rep) / (max_rep-min_rep)
+        offset = (right_pos-left_pos)*percentage
+        color = 'green' if botuser.rep > 0 else\
+            'red' if botuser.rep < 0 else\
+            'grey'
+
+        r.draw_image(
+            f'assets/{color}bulb.png', (left_pos+offset, 62+21), h=0.5, v=0.5
         )
 
         path = r.save('temp', 'png')

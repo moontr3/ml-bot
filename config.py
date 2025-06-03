@@ -1,6 +1,6 @@
 import discord
 
-PREFIXES = ('tml!', 'ml!', 'odbs!','мл!','penis!','пенис!','-')
+PREFIXES = ('tml!', 'ml!', 'odbs!','мл!','penis!','пенис!')
 TEMP_VC_CREATE_COMMANDS = ['!типа где', '!типо где', '!тип где', '!tipa gde', '!tipo gde']
 ADMINS = [698457845301248010]
 
@@ -149,3 +149,23 @@ TEMP_VC_INACTIVITY_TIME = 60*5
 TEMP_VC_CREATION_TIMEOUT = 60*10
 DEAFEN_MUTE_LEVEL_REQ = 5
 MAX_QS = 15
+
+REP_COMMANDS = {
+    '+rep': 1,
+    '+реп': 1,
+    '-rep': -1,
+    '-реп': -1,
+    'сигма': 1,
+    'не сигма': -1,
+    'плюс реп': 1,
+    'минус реп': -1,
+    '+ реп': 1,
+    '- реп': -1,
+    '+ rep': 1,
+    '- rep': -1
+}
+
+REP_EMOJIS = {
+    1: '<:prep:1379489051991740548>',
+    -1: '<:mrep:1379489118752604171>'
+}

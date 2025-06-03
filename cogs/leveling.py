@@ -241,7 +241,7 @@ async def setup(bot: commands.Bot):
         description='Показывает таблицу лидеров по опыту.'
     )
     @discord.app_commands.describe(
-        board='Нужная таблица лидеров - Всё время, День, Неделя, Сезон, Войс, Микро, Стрим, Q.'
+        board='Нужная таблица лидеров - Всё время, День, Неделя, Сезон, Войс, Микро, Стрим, Q, Реп.'
     )
     async def slash_leaders(ctx:commands.Context, board:str='day'):
         '''
@@ -323,13 +323,15 @@ async def setup(bot: commands.Bot):
             "стр": "stream",
             "мик": "mic",
             "гов": "mic",
-            "q": "q"
+            "q": "q",
+            "реп": "rep",
+            "rep": "rep"
         }
 
         if board.lower()[:3] not in boards:
             embed = discord.Embed(
                 description='Такой таблицы лидеров нет! Попробуй одно из:\n\n'\
-                    '`День`, `Неделя`, `Сезон`, `Всё время`, `Войс`, `Микро`, `Стрим`, `Q`',
+                    '`День`, `Неделя`, `Сезон`, `Всё время`, `Войс`, `Микро`, `Стрим`, `Q`, `Реп`',
                 color=ERROR_C
             )
             await ctx.reply(embed=embed, ephemeral=True)
@@ -345,7 +347,12 @@ async def setup(bot: commands.Bot):
 
         badges_text += '\n' + '<:sep:1358207969472286801>'*11 + '\n'
 
-        for i in ['vc', 'stream', 'mic', 'q']:
+        for i in ['vc', 'stream', 'mic']:
+            badges_text += f'{utils.get_lb_badge(i, board == i)}<:no:1358207748294316253>'
+
+        badges_text += '\n' + '<:sep:1358207969472286801>'*8 + '\n'
+
+        for i in ['rep', 'q']:
             badges_text += f'{utils.get_lb_badge(i, board == i)}<:no:1358207748294316253>'
 
         # image
