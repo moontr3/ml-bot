@@ -18,26 +18,50 @@ async def setup(bot: commands.Bot):
     async def rep_earning(message: discord.Message):
         # filtering messages
         if message.author.bot: return
-        if message.reference == None: return
-
-        try:
-            reference = await message.channel.fetch_message(message.reference.message_id)
-        except:
-            return
-        
-        if reference.author == message.author: return
-        if reference.author.bot: return
 
         # checking for rep command
         for command, amount in REP_COMMANDS.items():
-            if message.content.lower().startswith(command.lower()):
-                # rep adding / removing
-                if amount not in REP_EMOJIS: return
-                emoji = REP_EMOJIS[amount]
+            if not message.content.lower().startswith(command.lower()):
+                continue
+            
+            # checking message answer
+            if message.reference == None:
+                embed = discord.Embed(
+                    description='Надо __ответить на сообщение__,', color=ERROR_C
+                )
+                return await message.reply(embed=embed)
 
-                log(f'{reference.author.id} got {amount} rep from {message.author.id}')
-                bot.mg.add_rep(reference.author.id, amount)
-                await message.add_reaction(emoji)
+            try:
+                reference = await message.channel.fetch_message(message.reference.message_id)
+            except:
+                return
+            
+            if reference.author == message.author:
+                embed = discord.Embed(
+                    description='Нельзя репать свои сообщения!', color=ERROR_C
+                )
+                return await message.reply(embed=embed)
+
+            if reference.author.bot: 
+                embed = discord.Embed(
+                    description='У ботов нет репутации!', color=ERROR_C
+                )
+                return await message.reply(embed=embed)
+
+            # rep adding / removing
+            if amount not in REP_EMOJIS: return
+            emoji = REP_EMOJIS[amount]
+
+            log(f'{reference.author.id} got {amount} rep from {message.author.id}')
+            bot.mg.add_rep(reference.author.id, amount)
+
+            await message.delete()
+            try:
+                await reference.add_reaction(emoji)
+            except:
+                pass
+
+            return
     
 
     @bot.hybrid_command(
