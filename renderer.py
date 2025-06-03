@@ -984,7 +984,7 @@ class RendererCollection:
 
         # counter
         count = r.draw_text(
-            ('+' if botuser.rep >= 0 else '')+f'{botuser.rep}', (420-20,62+21), f'assets/fonts/{font}/bold.ttf',
+            ('+' if botuser.rep > 0 else '')+f'{botuser.rep}', (420-20,62+21), f'assets/fonts/{font}/bold.ttf',
             24, (255,255,255), h=1, v=0.5, opacity=192
         )[0]
 
@@ -1004,7 +1004,8 @@ class RendererCollection:
 
         # dot
         min_rep, max_rep = self.mg.get_rep_limits()
-        percentage = (botuser.rep-min_rep) / (max_rep-min_rep)
+        percentage = (botuser.rep-min_rep) / (max_rep-min_rep)\
+            if max_rep-min_rep != 0 else 0.5
         offset = (right_pos-left_pos)*percentage
         color = 'green' if botuser.rep > 0 else\
             'red' if botuser.rep < 0 else\

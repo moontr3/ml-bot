@@ -52,8 +52,15 @@ async def setup(bot: commands.Bot):
             if amount not in REP_EMOJIS: return
             emoji = REP_EMOJIS[amount]
 
+            out = bot.mg.add_rep(reference.author.id, amount, message.author.id)
+
+            if out != None:
+                embed = discord.Embed(
+                    description=f'**Кулдаун**! Попробуй снова <t:{int(out)}:R>', color=ERROR_C
+                )
+                return await message.reply(embed=embed)
+
             log(f'{reference.author.id} got {amount} rep from {message.author.id}')
-            bot.mg.add_rep(reference.author.id, amount)
 
             await message.delete()
             try:
