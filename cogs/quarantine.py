@@ -77,7 +77,7 @@ async def setup(bot: commands.Bot):
     @bot.hybrid_command(
         name='unquarantine',
         aliases=['разкарантин', 'негречкамартини', 'unquar'],
-        description='Забирает пользователя с карантина'
+        description='Снимает пользователя с карантина'
     )
     @discord.app_commands.describe(
         member='Участник, которого нужно снять с карантина',
