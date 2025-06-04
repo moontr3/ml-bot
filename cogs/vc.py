@@ -35,13 +35,14 @@ async def setup(bot: commands.Bot):
         log(f'Edited {member.id} with rank {level}')
 
 
-    @discord.app_commands.describe(
-        member='Участник сервера, у которого нужно узнать время.'
-    )
     @bot.hybrid_command(
         name='vc',
         aliases=['войс','голос','voice'],
         description='Показывает время пользователя в голосовом канале.'
+    )
+    @discord.app_commands.guild_only()
+    @discord.app_commands.describe(
+        member='Участник сервера, у которого нужно узнать время.'
     )
     async def slash_vc(ctx:discord.Interaction, member:discord.User=None):
         '''

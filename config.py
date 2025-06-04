@@ -1,6 +1,6 @@
 import discord
 
-PREFIXES = ('tml!', 'ml!', 'odbs!','мл!','penis!','пенис!','-')
+PREFIXES = ('tml!', 'ml!', 'odbs!','мл!','penis!','пенис!')
 TEMP_VC_CREATE_COMMANDS = ['!типа где', '!типо где', '!тип где', '!tipa gde', '!tipo gde']
 ADMINS = [698457845301248010]
 
@@ -151,3 +151,33 @@ DEAFEN_MUTE_LEVEL_REQ = 5
 MAX_QS = 15
 
 QUARANTINE_ROLE = 1003696913138323496
+
+REP_COMMANDS = {
+    '+rep': 1,
+    '+реп': 1,
+    '-rep': -1,
+    '-реп': -1,
+    'плюс реп': 1,
+    'минус реп': -1,
+    'plus rep': 1,
+    'minus rep': -1,
+    '+ реп': 1,
+    '- реп': -1,
+    '\\- реп': -1,
+    '+ rep': 1,
+    '- rep': -1,
+    '\\- rep': -1,
+}
+
+REP_EMOJIS = {
+    1: '<:rep:1379781056689078403>',
+    -1: '<:minusrep:1379781112464932894>'
+}
+REP_EMOJI_IDS = {
+    1379781056689078403: 1,
+    1379781112464932894: -1
+}
+
+PLUS_REP_EVERY = 30
+MINUS_REP_EVERY = 120
+MINUS_REP_COUNTER_TIMEOUT = 300

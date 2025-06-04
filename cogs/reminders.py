@@ -70,12 +70,13 @@ async def setup(bot: commands.Bot):
         if not check_reminders.is_running():
             check_reminders.start()
 
-    # set reminder
+
     @bot.hybrid_command(
         name='reminder',
         description='Ставит напоминание.',
         aliases=['remindme','напомни','напоминание','remind']
     )
+    @discord.app_commands.guild_only()
     async def slash_reminder(
         ctx: commands.Context,
         duration: str, *,

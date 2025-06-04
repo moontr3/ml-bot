@@ -9,6 +9,7 @@ async def setup(bot: commands.Bot):
         aliases=['чаво',"гайд",'guide','help','хелп','помощь'],
         description='Показывает часто задаваемые вопросы.'
     )
+    @discord.app_commands.guild_only()
     @discord.app_commands.describe(
         page="Имя или сокращение желаемой страницы / вопроса."
     )

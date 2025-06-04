@@ -16,6 +16,7 @@ async def setup(bot: commands.Bot):
         aliases=['пинг'],
         description='Показывает пинг бота.'
     )
+    @discord.app_commands.guild_only()
     async def slash_ping(ctx: commands.Context):
         '''
         Shows bot ping.
@@ -34,6 +35,7 @@ async def setup(bot: commands.Bot):
         aliases=['invite','инвайты','инвайтов','инвайт'],
         description='Показывает количество использовний ссылки-приглашения.'
     )
+    @discord.app_commands.guild_only()
     async def slash_invite(ctx: commands.Context):
         '''
         Shows invite count.
@@ -58,6 +60,7 @@ async def setup(bot: commands.Bot):
         aliases=['стат','стата','статистика','stat','statistics'],
         description='Показывает вашу статистику на сервере.'
     )
+    @discord.app_commands.guild_only()
     async def slash_about(ctx: commands.Context, user: discord.User=None):
         '''
         Shows bot info.
@@ -93,6 +96,7 @@ async def setup(bot: commands.Bot):
         aliases=['info','оботе','инфо','информация'],
         description='Показывает информацию о боте.'
     )
+    @discord.app_commands.guild_only()
     async def slash_about(ctx: commands.Context):
         '''
         Shows bot info.
@@ -121,15 +125,16 @@ async def setup(bot: commands.Bot):
 
 
     # purge command
-    @discord.app_commands.describe(
-        amount='Количество сообщений для очистки',
-        member='Фильтр для удаления сообщений только указанного участника',
-        keywords='Фильтр для удаления сообщений только с нужным текстом'
-    )
     @bot.hybrid_command(
         name='purge',
         aliases=['очистить'],
         description='Удаляет определенное количество сообщений в канале.'
+    )
+    @discord.app_commands.guild_only()
+    @discord.app_commands.describe(
+        amount='Количество сообщений для очистки',
+        member='Фильтр для удаления сообщений только указанного участника',
+        keywords='Фильтр для удаления сообщений только с нужным текстом'
     )
     async def slash_purge(
         ctx: commands.Context, amount:int,
@@ -194,15 +199,23 @@ async def setup(bot: commands.Bot):
 
 
     # mute command
+
     @discord.app_commands.describe(
         member='Участник, которого нужно замутить',
         length='Длина мута в формате "10h", "3д" и так далее',
         reason='Причина мута'
     )
+
     @bot.hybrid_command(
         name='mute',
         aliases=['мут','timeout','таймаут'],
         description='Мутит определенного участника на сервере.'
+    )
+    @discord.app_commands.guild_only()
+    @discord.app_commands.describe(
+        member='Участник, которого нужно замутить',
+        time='Длина мута в формате "10h", "3д" и так далее',
+        reason='Причина мута'
     )
     async def slash_mute(
         ctx: commands.Context, member:discord.Member,
@@ -264,13 +277,14 @@ async def setup(bot: commands.Bot):
 
 
     # unmute command
-    @discord.app_commands.describe(
-        member='Участник, которого нужно размутить'
-    )
     @bot.hybrid_command(
         name='unmute',
         aliases=['размут','анмут'],
         description='Размучивает определенного участника на сервере.'
+    )
+    @discord.app_commands.guild_only()
+    @discord.app_commands.describe(
+        member='Участник, которого нужно размутить'
     )
     async def slash_unmute(
         ctx: commands.Context, member:discord.Member

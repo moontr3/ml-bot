@@ -67,13 +67,14 @@ async def setup(bot: commands.Bot):
         await ctx.reply(embed=embed)
 
 
-    @discord.app_commands.describe(
-        member='Участник сервера, у которого нужно узнать список шрифтов.'
-    )
     @bot.hybrid_command(
         name='fonts',
         aliases=['шрифты'],
         description='Показывает список разблокированных шрифтов пользователя.'
+    )
+    @discord.app_commands.guild_only()
+    @discord.app_commands.describe(
+        member='Участник сервера, у которого нужно узнать список шрифтов.'
     )
     async def slash_fonts(ctx:discord.Interaction, member:discord.User=None):
         '''
@@ -97,13 +98,14 @@ async def setup(bot: commands.Bot):
         os.remove(path)
 
 
-    @discord.app_commands.describe(
-        font='Название шрифта.'
-    )
     @bot.hybrid_command(
         name='set-font',
         aliases=['setfont','set_font','установитьшрифт','установить_шрифт','установить-шрифт','поставить-шрифт','поставитьшрифт','поставить_шрифт'],
         description='Установить шрифт.'
+    )
+    @discord.app_commands.guild_only()
+    @discord.app_commands.describe(
+        font='Название шрифта.'
     )
     async def slash_setfont(ctx:discord.Interaction, *, font:str):
         '''
@@ -161,6 +163,7 @@ async def setup(bot: commands.Bot):
         aliases=['removefont','remove_font','убратьшрифт','убрать_шрифт','убрать-шрифт'],
         description='Убрать шрифт.'
     )
+    @discord.app_commands.guild_only()
     async def slash_removefont(ctx:discord.Interaction):
         '''
         Removes a font.

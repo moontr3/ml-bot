@@ -19,6 +19,7 @@ async def setup(bot: commands.Bot):
         description='Посмотреть количество пойманных Q.',
         aliases=['balance','b','баланс','бал','б']
     )
+    @discord.app_commands.guild_only()
     @discord.app_commands.describe(
         user='Пользователь, Q которого вы хотите узнать.'
     )
