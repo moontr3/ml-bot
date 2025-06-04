@@ -436,6 +436,7 @@ class Manager:
         self.unclaimed_qs: Dict[int, UnclaimedQ] = {}
         self.in_vc: List[int] = []
         self.temp_vcs: Dict[int, TempVC] = {}
+        self.quarantines: Dict[int, int] = {}
         self.renderer = RendererCollection(self)
         self.sk_last_spawn: float = 0
         self.reload()
@@ -480,6 +481,7 @@ class Manager:
 
         self.users = {int(id): User(int(id), data) for id, data in data['users'].items()}
         self.temp_vcs = {int(id): TempVC(int(id), data) for id, data in data.get('temp_vcs', {}).items()}
+        self.quarantines = {int(id): t for id, t in data.get('quarantines', {}).items()}
         self.timed_lb = TimedLeaderboard(data.get('timed_lb', {}))
         self.sk_last_spawn: float = data.get('sk_last_spawn', 0)
 
@@ -523,6 +525,7 @@ class Manager:
 
         data['timed_lb'] = self.timed_lb.to_dict()
         data['temp_vcs'] = {id: i.to_dict() for id, i in self.temp_vcs.items()}
+        data['quarantines'] = self.quarantines
         data['sk_last_spawn'] = self.sk_last_spawn
 
         # saving
@@ -994,3 +997,20 @@ class Manager:
 
             if i.id == user_id:
                 return place
+    
+
+    def add_quarantine(self, user_id: int, t: int):
+        '''
+        Sends someone to quarantine
+        '''
+        self.check_user(user_id)
+        self.quarantines.update({user_id: t})
+        self.commit()
+    
+    def remove_quarantine(self, user_id: int):
+        '''
+        Removes someone from quarantine
+        '''
+        self.check_user(user_id)
+        self.quarantines.pop(user_id)
+        self.commit()

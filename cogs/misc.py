@@ -199,6 +199,13 @@ async def setup(bot: commands.Bot):
 
 
     # mute command
+
+    @discord.app_commands.describe(
+        member='Участник, которого нужно замутить',
+        length='Длина мута в формате "10h", "3д" и так далее',
+        reason='Причина мута'
+    )
+
     @bot.hybrid_command(
         name='mute',
         aliases=['мут','timeout','таймаут'],
@@ -212,7 +219,7 @@ async def setup(bot: commands.Bot):
     )
     async def slash_mute(
         ctx: commands.Context, member:discord.Member,
-        time:str, *, reason:str=None
+        length:str, *, reason:str=None
     ):
         '''
         Mutes the specified user.
@@ -223,7 +230,7 @@ async def setup(bot: commands.Bot):
             return
 
         # muting user
-        data = utils.seconds_from_string(time)
+        data = utils.seconds_from_string(length)
         # checking input validity
         if data == None:
             embed = discord.Embed(
@@ -243,10 +250,10 @@ async def setup(bot: commands.Bot):
         # timeouting user
         try:
             await member.timeout(length, reason=reason)
-            log(f'{ctx.author.id} timeouted user {member.id} for {time}')
+            log(f'{ctx.author.id} timeouted user {member.id} for {length}')
         
         except Exception as e:
-            log(f'Error while {ctx.author.id} was timeouting {member.id} for {time}: {e}', level=ERROR)
+            log(f'Error while {ctx.author.id} was timeouting {member.id} for {length}: {e}', level=ERROR)
             embed = discord.Embed(
                 title='🤐 Таймаут', color=ERROR_C,
                 description=f'Не удалось замутить участника.'
