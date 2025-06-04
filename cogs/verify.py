@@ -17,6 +17,7 @@ async def setup(bot: commands.Bot):
         aliases=['вериф', 'верифицировать', 'верифнуть'],
         description='Верифцироваться!'
     )
+    @discord.app_commands.guild_only()
     async def slash_verify(ctx: commands.Context):
         '''
         Verify yourself.

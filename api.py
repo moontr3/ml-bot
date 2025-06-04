@@ -208,11 +208,12 @@ class User:
         self.q_level: int = data.get('q_level', self.q)
         self.q_level = min(15, max(0, self.q_level))
 
-        self.rep: int = data.get('rep', 0)
         self.plus_reps: int = data.get('plus_reps', 0)
         self.minus_reps: int = abs(data.get('minus_reps', 0))
         self.plus_rep_timeout: float = data.get('plus_rep_timeout', 0.0)
         self.minus_rep_timeout: float = data.get('minus_rep_timeout', 0.0)
+        self.minus_repped: Dict[int, float] = {int(k): v for k, v in data.get('minus_repped', {}).items()}
+        self.rep_block_until: float = data.get('rep_block_until', 0.0)
 
         self.token_dig_timeout: float = data.get('token_dig_timeout', 0.0)
         self.games_timeout: float = data.get('games_timeout', 0.0)
@@ -232,6 +233,11 @@ class User:
 
         self.minute_stats = MinuteStats()
 
+
+    @property
+    def rep(self) -> int:
+        return self.plus_reps - self.minus_reps
+
     
     def to_dict(self) -> dict:
         '''
@@ -244,11 +250,12 @@ class User:
             "tokens": self.tokens,
             "q": self.q,
             "q_level": self.q_level,
-            "rep": self.rep,
             "plus_reps": self.plus_reps,
             "minus_reps": self.minus_reps,
+            "minus_repped": self.minus_repped,
             "plus_rep_timeout": self.plus_rep_timeout,
             "minus_rep_timeout": self.minus_rep_timeout,
+            "rep_block_until": self.rep_block_until,
             "token_dig_timeout": self.token_dig_timeout,
             "games_timeout": self.games_timeout,
             "skins": self.skins.to_dict(),
@@ -792,6 +799,15 @@ class Manager:
         self.commit()
 
 
+    def repblock(self, id: int, length: int):
+        '''
+        Repblocks the user
+        '''
+        user = self.get_user(id)
+        user.rep_block_until = time.time()+length
+        self.commit()
+
+
     def add_rep(self, id: int, amount: int, placer: int = None) -> "float | None":
         '''
         Changes user's rep count.
@@ -799,7 +815,6 @@ class Manager:
         Returns a float that indicates when to try again if action is timeouted
         '''
         user = self.get_user(id)
-        user.rep += amount
 
         if placer != None:
             placer: User = self.get_user(placer)
@@ -810,9 +825,15 @@ class Manager:
                 placer.plus_rep_timeout = time.time()+PLUS_REP_EVERY
 
             elif amount < 0:
+                if placer.id in user.minus_repped:
+                    if user.minus_repped[placer.id] > time.time():
+                        return user.minus_repped[placer.id]
+                
                 if placer.minus_rep_timeout > time.time():
                     return placer.minus_rep_timeout
+                
                 placer.minus_rep_timeout = time.time()+MINUS_REP_EVERY
+                user.minus_repped[placer.id] = time.time()+MINUS_REP_COUNTER_TIMEOUT
 
         if amount > 0:
             user.plus_reps += amount

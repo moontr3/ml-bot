@@ -65,13 +65,14 @@ async def setup(bot: commands.Bot):
         await ctx.reply(embed=embed)
 
 
-    @discord.app_commands.describe(
-        member='Участник сервера, у которого нужно узнать список скинов.'
-    )
     @bot.hybrid_command(
         name='skins',
         aliases=['скины'],
         description='Показывает список разблокированных скинов пользователя.'
+    )
+    @discord.app_commands.guild_only()
+    @discord.app_commands.describe(
+        member='Участник сервера, у которого нужно узнать список скинов.'
     )
     async def slash_skins(ctx:discord.Interaction, member:discord.User=None):
         '''
@@ -95,13 +96,14 @@ async def setup(bot: commands.Bot):
         os.remove(path)
 
 
-    @discord.app_commands.describe(
-        skin='Номер скина или его название.'
-    )
     @bot.hybrid_command(
         name='set-skin',
         aliases=['setskin','set_skin','установитьскин','установить_скин','установить-скин','поставить-скин','поставить_скин','поставитьскин'],
         description='Установить скин.'
+    )
+    @discord.app_commands.guild_only()
+    @discord.app_commands.describe(
+        skin='Номер скина или его название.'
     )
     async def slash_setskin(ctx:discord.Interaction, *, skin:str):
         '''
@@ -169,6 +171,7 @@ async def setup(bot: commands.Bot):
         aliases=['removeskin','remove_skin','убратьскин','убрать_скин','убрать-скин'],
         description='Убрать скин.'
     )
+    @discord.app_commands.guild_only()
     async def slash_removeskin(ctx:discord.Interaction):
         '''
         Removes a skin.
