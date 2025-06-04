@@ -78,6 +78,7 @@ NO_DM_EMBED = discord.Embed(
 WARN_IMAGE = 'https://moontr3.ru/assets/warn.png'
 JOIN_IMAGE = 'https://moontr3.ru/assets/wpbot/join.png'
 LEAVE_IMAGE = 'https://moontr3.ru/assets/wpbot/leave.png'
+TIMEOUT_IMAGE = 'https://moontr3.ru/assets/timeout.png'
 
 PLACE1 = '<:1p:1373797888831918100>'
 PLACE2 = '<:2p:1373797899921788988>'

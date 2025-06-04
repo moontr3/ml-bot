@@ -1,3 +1,4 @@
+import aiohttp
 from discord.ext import commands, tasks
 import discord
 from log import *
@@ -11,12 +12,13 @@ async def setup(bot: commands.Bot):
 
     @bot.hybrid_command(
         name='quarantine',
-        aliases=['карантин', 'гречкамартини', 'quar'],
-        description='Отправляет пользователя на карантин'
+        aliases=['карантин', 'гречкамартини', 'quar', 'кар'],
+        description='Отправляет пользователя в карантин.'
     )
+    @discord.app_commands.guild_only()
     @discord.app_commands.describe(
-        member='Участник, которого нужно отправить на карантин',
-        length='Длина карантина в формате "10h", "3д" и так далее',
+        member='Участник, которого нужно отправить в карантин.',
+        length='Длина карантина в формате "10h", "3д" и так далее.',
     )
     async def quarantine(ctx: commands.Context,
         member:discord.Member, length:str
@@ -43,44 +45,48 @@ async def setup(bot: commands.Bot):
         unit_name = time_data[1]
         unit_length = time_data[2]
 
-        role = ctx.guild.get_role(QUARANTINE_ROLE)
+        # checking if quarantined
+        if member.id in bot.mg.quarantines:
+            release_at = bot.mg.quarantines[member.id]
 
-        if role in member.roles:
             embed = discord.Embed(
                 title='🦠 Карантин', color=ERROR_C,
-                description=f'{member.mention} уже **гречка мартини**.'
+                description=f'{member.mention} и так в карантине.\n\n-# Выпуск <t:{int(release_at)}:R>'
             )
-
             return await ctx.reply(embed=embed)
 
-
+        # adding quarantine role
         try:
+            role = ctx.guild.get_role(QUARANTINE_ROLE)
             await member.add_roles(role)
-            bot.mg.add_quarantine(member.id, epoch_time)
-            log(f'{ctx.author.id} sent to quarantine user {member.id} for {length}')
-        
+
         except Exception as e:
-            log(f'Error while {ctx.author.id} was sending to quarantine {member.id} for {length}: {e}', level=ERROR)
+            log(f'Error while {ctx.author.id} was adding quarantine role to {member.id}: {e}', level=ERROR)
             embed = discord.Embed(
                 title='🦠 Карантин', color=ERROR_C,
-                description=f'Не удалось сделать участника **гречка мартини**.'
+                description=f'Не удалось выдать участнику роль карантина.'
             )
             return await ctx.reply(embed=embed, ephemeral=True)
         
+        # adding quarantine
+        bot.mg.add_quarantine(member.id, epoch_time)
+        log(f'{ctx.author.id} sent user {member.id} to quarantine for {length}')
+        
         embed = discord.Embed(
-                title='🦠 Карантин', color=DEFAULT_C,
-                description=f'{member.mention} успешно стал **гречка мартини** на **{unit_length} {unit_name}**.'
-            )
-
+            title='🦠 Карантин', color=DEFAULT_C,
+            description=f'{member.mention} успешно помещен в карантин на **{unit_length} {unit_name}**.'
+        )
         await ctx.reply(embed=embed)
+
     
     @bot.hybrid_command(
-        name='unquarantine',
-        aliases=['разкарантин', 'негречкамартини', 'unquar'],
-        description='Снимает пользователя с карантина'
+        name='release',
+        aliases=['разкарантин', 'негречкамартини', 'unquar', 'разкар', 'выпустить', 'unquarantine'],
+        description='Выпускает пользователя с карантина.'
     )
+    @discord.app_commands.guild_only()
     @discord.app_commands.describe(
-        member='Участник, которого нужно снять с карантина',
+        member='Участник, которого нужно выпустить с карантина',
     )
     async def unquarantine(ctx: commands.Context,
         member:discord.Member
@@ -88,56 +94,73 @@ async def setup(bot: commands.Bot):
         '''
         Removes quarantine from specified user.
         '''
-
         # checking permissions
         if not ctx.permissions.moderate_members and ctx.author.id not in ADMINS:
             await ctx.reply(embed=MISSING_PERMS_EMBED)
             return
         
-        role = ctx.guild.get_role(QUARANTINE_ROLE)
-        if role not in member.roles:
+        if member.id not in bot.mg.quarantines:
             embed = discord.Embed(
                 title='🦠 Карантин', color=ERROR_C,
-                description=f'{member.mention} не **гречка мартини**.'
+                description=f'{member.mention} и так не в карантине.'
             )
             return await ctx.reply(embed=embed)
         
-        try:
-            await member.remove_roles(role)
-            bot.mg.remove_quarantine(member.id)
-            log(f'{ctx.author.id} remove from quarantine user {member.id}')
-        except Exception as e:
-            log(f'Error while {ctx.author.id} was removimg from quarantine {member.id}: {e}', level=ERROR)
-            embed = discord.Embed(
-                title='🦠 Карантин', color=ERROR_C,
-                description=f'Не удалось сделать участника не **гречка мартини**.'
-            )
-            return await ctx.reply(embed=embed, ephemeral=True)
+        # removing from quarantine
+        log(f'{ctx.author.id} released user {member.id} from quarantine')
+        bot.mg.remove_quarantine(member.id)
 
         embed = discord.Embed(
+            title='🦠 Карантин', color=DEFAULT_C,
+            description=f'{member.mention} выпущен с карантина.'
+        )
+
+        try:
+            role = ctx.guild.get_role(QUARANTINE_ROLE)
+            await member.remove_roles(role)
+            
+        except Exception as e:
+            log(f'Unable to remove quarantine role from user {member.id}: {e}', level=ERROR)
+            embed = discord.Embed(
                 title='🦠 Карантин', color=DEFAULT_C,
-                description=f'{member.mention} больше не **гречка мартини**.'
+                description=f'{member.mention} выпущен с карантина.\n-# ⚠ Не удалось снять роль карантина с участинка!'
             )
 
         await ctx.reply(embed=embed)
     
-    # task loop
-    @tasks.loop(seconds=10)
-    async def loop():
-        cur_time = time.time()
+    
+    @tasks.loop(seconds=5)
+    async def quarantine_end_loop():
         guild = bot.get_guild(GUILD_ID)
         role = guild.get_role(QUARANTINE_ROLE)
 
         quars = copy.deepcopy(list(bot.mg.quarantines.items()))
 
         for user_id, end_time in quars:
-            if cur_time >= end_time:
-                member = guild.get_member(user_id)
+            if time.time() < end_time:
+                return
+            
+            try:
+                member = await guild.fetch_member(user_id)
                 await member.remove_roles(role)
-                bot.mg.remove_quarantine(user_id)
-                log(f'Quarantine is removed from user{user_id}')
+            except Exception as e:
+                log(f'Unable to remove quarantine role from {user_id}: {e}', level=ERROR)
+
+            bot.mg.remove_quarantine(user_id)
+            log(f'Quarantine ended for user {user_id}')
+
+            # sending quarantine end message
+            session = aiohttp.ClientSession()
+            webhook = discord.Webhook.from_url(bot.SERVICE_WEBHOOK, session=session)
+
+            await webhook.send(
+                f'<@{user_id}> пережил свое наказание...',
+                avatar_url=TIMEOUT_IMAGE, username='Выход из карантина',
+            )
+            await session.close()
+
     
     @bot.listen()
     async def on_ready():
-        if not loop.is_running():
-            loop.start()
+        if not quarantine_end_loop.is_running():
+            quarantine_end_loop.start()

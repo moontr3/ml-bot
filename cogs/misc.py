@@ -200,12 +200,6 @@ async def setup(bot: commands.Bot):
 
     # mute command
 
-    @discord.app_commands.describe(
-        member='Участник, которого нужно замутить',
-        length='Длина мута в формате "10h", "3д" и так далее',
-        reason='Причина мута'
-    )
-
     @bot.hybrid_command(
         name='mute',
         aliases=['мут','timeout','таймаут'],
@@ -214,7 +208,7 @@ async def setup(bot: commands.Bot):
     @discord.app_commands.guild_only()
     @discord.app_commands.describe(
         member='Участник, которого нужно замутить',
-        time='Длина мута в формате "10h", "3д" и так далее',
+        length='Длина мута в формате "10h", "3д" и так далее',
         reason='Причина мута'
     )
     async def slash_mute(

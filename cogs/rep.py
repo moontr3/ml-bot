@@ -146,7 +146,7 @@ async def setup(bot: commands.Bot):
 
         if user.bot:
             embed = discord.Embed(
-                description='Боты не имеют репутацию.', color=ERROR_C
+                description='хахахаха боты сосите', color=ERROR_C
             )
             return await ctx.reply(embed=embed)
 
