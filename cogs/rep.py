@@ -21,7 +21,7 @@ async def setup(bot: commands.Bot):
 
         # checking for rep command
         for command, amount in REP_COMMANDS.items():
-            if not message.content.lower().startswith(command.lower()):
+            if message.content.lower() != command.lower():
                 continue
             
             # checking message answer
@@ -71,7 +71,6 @@ async def setup(bot: commands.Bot):
 
             log(f'{reference.author.id} got {amount} rep from {message.author.id}')
 
-            await message.delete()
             try:
                 await reference.add_reaction(emoji)
             except:
