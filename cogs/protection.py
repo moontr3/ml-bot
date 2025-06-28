@@ -31,7 +31,7 @@ async def setup(bot: commands.Bot):
                     else:
                         length = datetime.timedelta(days=1)
 
-                    await user.timeout(length=length, reason=f'Using {message.author.name}')
+                    await user.timeout(until=length, reason=f'Using {message.author.name}')
                     log(f'Timed out user {user.id} for using {message.author.name} ({length.seconds//60} mins)')
 
                 except Exception as e:
