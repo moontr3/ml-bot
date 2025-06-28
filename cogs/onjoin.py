@@ -40,6 +40,12 @@ async def setup(bot: commands.Bot):
         await update_rank(member)
         log(f'Done updating rank for {member.id}', level=INFO)
 
+        if member.bot:
+            log(f'Bot {member.id} joined', level=INFO)
+            role = member.guild.get_role(BOT_ROLE_ID)
+            await member.add_roles(role)
+            return
+
         # sending verify hint
         channel = bot.get_channel(VERIFY_ID)
 

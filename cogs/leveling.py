@@ -426,7 +426,7 @@ async def setup(bot: commands.Bot):
                 additional += random.randint(30,50)
 
         # message itself
-        if message.channel.id in CHATTABLE_CHANNELS:
+        if message.channel.id in CHATTABLE_CHANNELS and len(message.content) >= MIN_LENGTH_XP:
             to_add = int(len(message.content)/100)+\
                 len(message.attachments)*2 +\
                 len(message.embeds) +\

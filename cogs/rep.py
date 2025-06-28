@@ -1,6 +1,7 @@
 import os
 import random
 import time
+import aiohttp
 from discord.ext import commands
 import discord
 import api
@@ -14,6 +15,22 @@ import datetime
 # setup
 async def setup(bot: commands.Bot):
     
+    async def send_to_logs(receiver: discord.User, amount: int, sender: discord.User):
+        try:
+            session = aiohttp.ClientSession()
+            webhook = discord.Webhook.from_url(bot.WEBHOOK, session=session)
+
+            embed = discord.Embed(title='Отправлен реп', color=3092790)
+
+            embed.add_field(name='Отправитель', value=sender.mention, inline=True)
+            embed.add_field(name='Кол-во', value=REP_EMOJIS[amount], inline=True)
+            embed.add_field(name='Получатель', value=receiver.mention, inline=True)
+
+            await webhook.send(embed=embed)
+            await session.close()
+        except Exception as e:
+            log('Error sending rep to logs: ' + str(e), level=ERROR)
+    
     @bot.listen('on_message')
     async def rep_earning(message: discord.Message):
         # filtering messages
@@ -26,10 +43,11 @@ async def setup(bot: commands.Bot):
             
             # checking message answer
             if message.reference == None:
-                embed = discord.Embed(
-                    description='Надо __ответить на сообщение__,', color=ERROR_C
-                )
-                return await message.reply(embed=embed)
+                # embed = discord.Embed(
+                #     description='Надо __ответить на сообщение__,', color=ERROR_C
+                # )
+                # return await message.reply(embed=embed)
+                return
 
             try:
                 reference = await message.channel.fetch_message(message.reference.message_id)
@@ -37,16 +55,18 @@ async def setup(bot: commands.Bot):
                 return
             
             if reference.author == message.author:
-                embed = discord.Embed(
-                    description='Нельзя репать свои сообщения!', color=ERROR_C
-                )
-                return await message.reply(embed=embed)
+                # embed = discord.Embed(
+                #     description='Нельзя репать свои сообщения!', color=ERROR_C
+                # )
+                # return await message.reply(embed=embed)
+                return
 
             if reference.author.bot: 
-                embed = discord.Embed(
-                    description='У ботов нет репутации!', color=ERROR_C
-                )
-                return await message.reply(embed=embed)
+                # embed = discord.Embed(
+                #     description='У ботов нет репутации!', color=ERROR_C
+                # )
+                # return await message.reply(embed=embed)
+                return
 
             # repblock
             botuser = bot.mg.get_user(message.author.id)
@@ -70,6 +90,7 @@ async def setup(bot: commands.Bot):
                 return await message.reply(embed=embed)
 
             log(f'{reference.author.id} got {amount} rep from {message.author.id}')
+            await send_to_logs(reference.author, amount, message.author)
 
             try:
                 await reference.add_reaction(emoji)
@@ -113,7 +134,7 @@ async def setup(bot: commands.Bot):
             return
     
         # adding rep
-        out = bot.mg.add_rep(message.author.id, REP_EMOJI_IDS[reaction.emoji.id], message.author.id)
+        out = bot.mg.add_rep(message.author.id, REP_EMOJI_IDS[reaction.emoji.id], reaction.member.id)
 
         if out != None:
             embed = discord.Embed(
@@ -123,7 +144,8 @@ async def setup(bot: commands.Bot):
             await message.reply(f'<@{reaction.user_id}>', embed=embed, allowed_mentions=mentions)
             return
 
-        log(f'{message.author.id} got {REP_EMOJI_IDS[reaction.emoji.id]} rep from {message.author.id} (reaction)')
+        await send_to_logs(message.author, REP_EMOJI_IDS[reaction.emoji.id], reaction.member)
+        log(f'{message.author.id} got {REP_EMOJI_IDS[reaction.emoji.id]} rep from {reaction.member.id} (reaction)')
     
 
     @bot.hybrid_command(
