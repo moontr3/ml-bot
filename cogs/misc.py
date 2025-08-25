@@ -1,5 +1,6 @@
 from discord.ext import commands
 import discord
+import api
 from log import *
 from typing import *
 from config import *
@@ -77,7 +78,7 @@ async def setup(bot: commands.Bot):
             await ctx.reply(embed=embed)
             return
 
-        botuser = bot.mg.get_user(user.id)
+        botuser: api.User = bot.mg.get_user(user.id)
         finishes = bot.mg.get_lb_finishes(user.id)
         
         embed = discord.Embed(
@@ -85,7 +86,8 @@ async def setup(bot: commands.Bot):
             description=\
                 f'### {PLACE1} **{finishes[1]}** ・ {PLACE2} **{finishes[2]}** ・ {PLACE3} **{finishes[3]}**\n'\
                 f'Поставлено напоминаний: **{len(botuser.reminders)}**\n'\
-                f'Режим Зверя: {"✅" if botuser.marked_by_beast else "❌"}'
+                f'Режим Зверя: {"✅" if botuser.marked_by_beast else "❌"}'\
+                f'Likee Bot: {"✅" if botuser.likee else "❌"}'
         )
 
         await ctx.reply(embed=embed)

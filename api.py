@@ -215,8 +215,8 @@ class User:
         self.minus_repped: Dict[int, float] = {int(k): v for k, v in data.get('minus_repped', {}).items()}
         self.rep_block_until: float = data.get('rep_block_until', 0.0)
 
-        self.token_dig_timeout: float = data.get('token_dig_timeout', 0.0)
-        self.games_timeout: float = data.get('games_timeout', 0.0)
+        self.mfr_timeout: float = data.get('mfr_timeout', 0.0)
+        self.mfr_stats: Dict[str, int] = data.get('mfr_stats', {})
 
         self.last_sent_zero: float = 0
         self.verifying: bool = False
@@ -257,8 +257,8 @@ class User:
             "plus_rep_timeout": self.plus_rep_timeout,
             "minus_rep_timeout": self.minus_rep_timeout,
             "rep_block_until": self.rep_block_until,
-            "token_dig_timeout": self.token_dig_timeout,
-            "games_timeout": self.games_timeout,
+            "mfr_timeout": self.mfr_timeout,
+            "mfr_stats": self.mfr_stats,
             "skins": self.skins.to_dict(),
             "fonts": self.fonts.to_dict(),
             "vc": self.vc.to_dict(),
@@ -425,6 +425,18 @@ class UnclaimedQ:
         self.claimed: List[int] = []
 
 
+# mishkfrede
+
+
+class MfrCard:
+    def __init__(self, key: str, name: str, xp: int, image: str, color: str):
+        self.key: str = key
+        self.name: str = name
+        self.xp: int = xp
+        self.image: str = image
+        self.color: str = color
+
+
 # manager
 
 class Manager:
@@ -575,6 +587,20 @@ class Manager:
         self.check_user(id)
         return self.users[id]
     
+
+    def get_random_mfr(self) -> MfrCard:
+        '''
+        Return a random mishkfrede card
+        '''
+        rarity = random.choices(
+            list(self.data['mfr'].items()),
+            [i['chance'] for i in self.data['mfr'].values()]
+        )[0]
+
+        url = random.choice(rarity[1]['images'])
+        xp = random.randint(*rarity[1]['xp'])
+        return MfrCard(rarity[0], rarity[1]['name'], xp, url, rarity[1]['color'])
+    
     
     def add_reminder(self,
         user_id:int,
@@ -622,6 +648,21 @@ class Manager:
         return user.q
 
 
+    def add_mfr_stat(self, user_id:int, card:str):
+        '''
+        Adds Mishkfrede stat to user.
+        '''
+        user = self.get_user(user_id)
+
+        user.mfr_timeout = time.time()+MFR_TIMEOUT
+
+        if card not in user.mfr_stats:
+            user.mfr_stats[card] = 0
+        user.mfr_stats[card] += 1
+
+        self.commit()
+
+
     def add_xp(self, user_id:int, xp:int, store_lvl_up:bool=True) -> "int | None":
         '''
         Adds XP to user.
@@ -635,6 +676,7 @@ class Manager:
         user.xp.reload_levels()
 
         self.timed_lb.add_xp(user_id, xp)
+        self.commit()
 
         if old_level != user.xp.level:
             if store_lvl_up:
@@ -642,8 +684,6 @@ class Manager:
                 
             return user.xp.level
         
-        self.commit()
-
 
     def set_xp(self, user_id:int, xp:int) -> "int | None":
         '''
