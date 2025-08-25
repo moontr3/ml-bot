@@ -176,3 +176,42 @@ def to_cool_numbers(string: str) -> str:
         out += COOL_NUMBERS.get(i, i)
     
     return out
+
+
+def get_word(exclude:List[str]):
+    '''
+    Returns a random word.
+    '''
+    word = random.choice(LIKEE_WORDS)
+    while word in exclude:
+        word = random.choice(LIKEE_WORDS)
+    return word
+
+def get_likee():
+    '''
+    Returns a message string with emojis.
+    '''
+    # words
+    words_amount = 1
+    # the increasing will go slower the more there are words
+    while words_amount < WORD_MAX_AMOUNT\
+    and random.random() < WORD_ADDING_THRESHOLD:
+        words_amount += 1
+
+    words = []
+    for i in range(words_amount):
+        words.append(get_word(words))
+
+    words = ' '.join(words)
+
+    # emojis
+    emojis_amount = 1
+    # the increasing will go slower the more there are words
+    while emojis_amount < EMOJIS_MAX_AMOUNT\
+    and random.random() < EMOJIS_ADDING_THRESHOLD:
+        emojis_amount += 1
+
+    emojis = random.choice(LIKEE_EMOJI)*emojis_amount
+
+    # returning the result
+    return words+emojis

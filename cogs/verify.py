@@ -14,7 +14,7 @@ async def setup(bot: commands.Bot):
 
     @bot.hybrid_command(
         name='verify',
-        aliases=['вериф', 'верифицировать', 'верифнуть'],
+        aliases=['вериф', 'верифицировать', 'верифнуть', 'iqтест','iqtest','iq-test','iq_test','iq_тест','iq-тест'],
         description='Верифцироваться!'
     )
     @discord.app_commands.guild_only()
@@ -41,7 +41,7 @@ async def setup(bot: commands.Bot):
         user = bot.mg.get_user(ctx.author.id)
         if user.verifying:
             embed = discord.Embed(
-                description='Ты уже верифицируешься!\n\nТебе надо ввести код с картинки в чат.',
+                description='Ты уже проходишь IQ-тест!\n\nТебе надо ввести код с картинки в чат.',
                 color=ERROR_C
             )
             await ctx.reply(embed=embed)
@@ -59,7 +59,7 @@ async def setup(bot: commands.Bot):
         file = discord.File(image, filename='captcha.png')
 
         embed = discord.Embed(
-            title='Верификация',
+            title='IQ-тест',
             description='Введите **в чат** цифры с картинки.\n**На размышление даётся 60 секунд.**',
             color=DEFAULT_C
         )
@@ -80,7 +80,7 @@ async def setup(bot: commands.Bot):
 
         except:
             embed = discord.Embed(
-                title='Верификация',
+                title='IQ-тест',
                 description='Прошло больше 60 секунд.',
                 color=ERROR_C
             )
@@ -100,8 +100,9 @@ async def setup(bot: commands.Bot):
                 
                 # sending success message
                 embed = discord.Embed(
-                    title='Верификация',
-                    description='Верификация прошла успешно!',
+                    title='IQ-тест',
+                    description='Вы прошли IQ-тест!\n'\
+                        F'Ваш IQ: **мало, но для мунленда хватает**\n\nПрошу пройти в <#{CHAT_CHANNEL}>.',
                     color=DEFAULT_C
                 )
                 await msg.edit(embed=embed)
@@ -123,8 +124,8 @@ async def setup(bot: commands.Bot):
                 return
 
             embed = discord.Embed(
-                title='Верификация',
-                description='Верификация не пройдена.\n\nВы написали: '\
+                title='IQ-тест',
+                description='IQ-тест не пройден.\n\nВы написали: '\
                     f'`{message.content}`\nНужно было написать: `{text}`\n\n'\
                     'Попробуйте ввести команду ещё раз.',
                 color=ERROR_C

@@ -20,16 +20,18 @@ async def setup(bot: commands.Bot):
             session = aiohttp.ClientSession()
             webhook = discord.Webhook.from_url(bot.WEBHOOK, session=session)
 
-            embed = discord.Embed(title='Отправлен реп', color=3092790)
+            embed = discord.Embed(color=3092790)
 
             embed.add_field(name='Отправитель', value=sender.mention, inline=True)
             embed.add_field(name='Кол-во', value=REP_EMOJIS[amount], inline=True)
             embed.add_field(name='Получатель', value=receiver.mention, inline=True)
 
-            await webhook.send(embed=embed)
+            await webhook.send(embed=embed, username='Отправлен реп', avatar_url=JOIN_IMAGE)
             await session.close()
+
         except Exception as e:
             log('Error sending rep to logs: ' + str(e), level=ERROR)
+
     
     @bot.listen('on_message')
     async def rep_earning(message: discord.Message):

@@ -28,6 +28,46 @@ CHAT_CHANNEL = 975809940444819467
 TEMP_VC_CATEGORY = 975809940444819466
 BOT_ROLE_ID = 975814330987712643
 
+THRESHOLD = 0.1
+WORD_MAX_AMOUNT = 3
+WORD_ADDING_THRESHOLD = 0.2
+EMOJIS_MAX_AMOUNT = 4
+EMOJIS_ADDING_THRESHOLD = 0.5
+
+LIKEE_WORDS = [
+    'Вау!',
+    'Красотка!',
+    'Как ты это делаешь?',
+    'Ого!',
+    'Ничего себе!',
+    'Вот это да!',
+    'Покажи ещё!',
+    'Научи меня!',
+    'Класс!',
+    'Это просто класс!',
+    'Не прекращай это делать!',
+    'Не прекращай!',
+    'Продолжай это делать!',
+    'Продолжай!',
+    'Привет!'
+]
+LIKEE_EMOJI = [
+    '💐',
+    '😊',
+    '😻',
+    '😍',
+    '😋',
+    '💞',
+    '😘',
+    ':heart:',
+    '💘',
+    '💟',
+    '🥰',
+    '🔥',
+    '✨',
+    '🤩'
+]
+
 CHATTABLE_CHANNELS = [
     975809940444819467,
     1301244013243928729,
@@ -76,10 +116,15 @@ NO_DM_EMBED = discord.Embed(
     description='Бота можно использовать только на сервере.', color=ERROR_C
 )
 
-WARN_IMAGE = 'https://moontr3.ru/assets/warn.png'
+WARN_IMAGE = 'https://moontr3.ru/assets/wpbot/warn.png'
 JOIN_IMAGE = 'https://moontr3.ru/assets/wpbot/join.png'
 LEAVE_IMAGE = 'https://moontr3.ru/assets/wpbot/leave.png'
-TIMEOUT_IMAGE = 'https://moontr3.ru/assets/timeout.png'
+TIMEOUT_IMAGE = 'https://moontr3.ru/assets/wpbot/timeout.png'
+DELETE_IMAGE = 'https://moontr3.ru/assets/wpbot/delete.png'
+EDIT_IMAGE = 'https://moontr3.ru/assets/wpbot/edit.png'
+MOVE_IMAGE = 'https://moontr3.ru/assets/wpbot/move.png'
+LIVE_IMAGE = 'https://moontr3.ru/assets/wpbot/live.png'
+LIVESTOP_IMAGE = 'https://moontr3.ru/assets/wpbot/livestop.png'
 
 PLACE1 = '<:1p:1373797888831918100>'
 PLACE2 = '<:2p:1373797899921788988>'
@@ -153,7 +198,7 @@ DEAFEN_MUTE_LEVEL_REQ = 5
 MAX_QS = 15
 MIN_LENGTH_XP = 7
 
-PIDORAS_ID = [1380792995242180749]
+PIDORAS_ID = [1380792995242180749, 1408431830503391232, 1398177733699305574, 1404712625790783569, 1407265359010074644, 1403277400829198456]
 IMBA_ROLE = 1118918623466110976
 QUARANTINE_ROLE = 1003696913138323496
 

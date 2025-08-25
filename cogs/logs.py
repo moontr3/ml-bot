@@ -11,21 +11,18 @@ from config import *
 async def setup(bot: commands.Bot):
 
     @bot.listen()
-    async def on_message_delete(message):
+    async def on_message_delete(message: discord.Message):
         session = aiohttp.ClientSession()
         webhook = Webhook.from_url(bot.WEBHOOK, session=session)
-        embed = discord.Embed(title='Сообщение удалено', color=3092790)
+        embed = discord.Embed(
+            color=3092790,
+            description=f'{message.channel.mention} ・ {message.channel.id}'
+        )
 
-        if len(message.content) > 1000:
-            with open('temp/message.txt', 'w', encoding='utf-8') as f:
-                f.write(message.content)
-            file = [discord.File('temp/message.txt')]
-        else:
-            file = []
-            embed.add_field(name='Сообщение', value=f'{message.content}', inline=False)
-
-        embed.add_field(name='Участник', value=f'{message.author.mention} _({message.author} / {message.author.id})_', inline=True)
-        embed.add_field(name='Канал', value=f'{message.channel.mention} _({message.channel.name} / {message.channel.id})_', inline=True)
+        embed.set_footer(
+            text=f'{message.author.name} ・ {message.author.id}',
+            icon_url=message.author.avatar.url if message.author.avatar is not None else None
+        )
 
         if message.attachments != []:
             embed.add_field(name='Вложения', value='\n'.join([i.url for i in message.attachments]), inline=False)
@@ -33,34 +30,30 @@ async def setup(bot: commands.Bot):
         elif message.content == '':
             return
 
-        await webhook.send(embed=embed, files=file)
+        await webhook.send(content=message.content, embed=embed, username='Сообщение удалено', avatar_url=DELETE_IMAGE)
         await session.close()
 
 
     @bot.listen()
-    async def on_bulk_message_delete(messages):
+    async def on_bulk_message_delete(messages: List[discord.Message]):
         session = aiohttp.ClientSession()
         webhook = Webhook.from_url(bot.WEBHOOK, session=session)
-        embed = discord.Embed(title='Сообщения удалены', color=3092790)
 
-        x = 0
         text = ''
-        for i in range(len(messages)):
-            msg = messages[x]
-            text += f'{msg.author} ({msg.author.id}) >> {msg.channel} ({msg.channel.id}) / {msg.created_at}: {msg.content}\n'
-            x += 1
+        for msg in messages:
+            text += f'[{msg.created_at}] {msg.author} ({msg.author.id}) >> {msg.channel} ({msg.channel.id}): {msg.content}\n'
 
         with open('temp/messages.txt', 'w', encoding='utf-8') as f:
             f.write(text)
         file = discord.File('temp/messages.txt')
 
-        await webhook.send(embed=embed, file=file)
+        await webhook.send(file=file, username=f'({len(messages)}) Сообщения удалены', avatar_url=DELETE_IMAGE)
         await session.close()
         
 
     # editing
     @bot.listen()
-    async def on_message_edit(before, after):
+    async def on_message_edit(before: discord.Message, after: discord.Message):
         if before.content == after.content:
             return
         
@@ -69,60 +62,53 @@ async def setup(bot: commands.Bot):
         
         session = aiohttp.ClientSession()
         webhook = Webhook.from_url(bot.WEBHOOK, session=session)
-        embed = discord.Embed(title='Сообщение изменено', color=3092790)
+        
+        # embed
+        embed = discord.Embed(
+            color=3092790,
+            description=f'{after.channel.mention} ・ {after.channel.id}\n{after.jump_url} ・ {after.id}'
+        )
+        embed.set_footer(
+            text=f'{after.author.name} ・ {after.author.id}',
+            icon_url=after.author.avatar.url if after.author.avatar is not None else None
+        )
 
-        files = []
-        if len(before.content) > 1000:
-            with open('temp/before.txt', 'w', encoding='utf-8') as f:
-                f.write(before.content)
-            files.append(discord.File('temp/before.txt'))
-        else:
-            embed.add_field(name='Сообщение до изменений', value=f'{before.content}', inline=False)
-
-        if len(after.content) > 1000:
-            with open('temp/after.txt', 'w', encoding='utf-8') as f:
-                f.write(after.content)
-            files.append(discord.File('temp/after.txt'))
-        else:
-            embed.add_field(name='Сообщение после изменений', value=f'{after.content}', inline=False)
-
-        embed.add_field(name='Участник', value=f'{before.author.mention} _({before.author} / {before.author.id})_', inline=True)
-        embed.add_field(name='Канал', value=f'{before.channel.mention} _({before.channel.name} / {before.channel.id})_', inline=True)
-        embed.add_field(name='Ссылка', value=f'{before.jump_url}', inline=False)
+        # embeds before and after
+        before_embed = discord.Embed(title='До изменений', color=3092790, description=before.content)
+        after_embed = discord.Embed(title='После изменений', color=3092790, description=after.content)
 
         if before.attachments != []:
-            embed.add_field(name='Вложения до', value='\n'.join([i.url for i in before.attachments]), inline=False)
+            before_embed.add_field(name='Вложения', value='\n'.join([i.url for i in before.attachments]), inline=False)
         if after.attachments != []:
-            embed.add_field(name='Вложения после', value='\n'.join([i.url for i in after.attachments]), inline=False)
+            after_embed.add_field(name='Вложения', value='\n'.join([i.url for i in after.attachments]), inline=False)
 
-        await webhook.send(embed=embed, files=files)
+        embeds = [before_embed, after_embed, embed]
+
+        await webhook.send(embeds=embeds, username='Сообщение изменено', avatar_url=EDIT_IMAGE)
         await session.close()
 
 
     # member joining
     @bot.listen()
-    async def on_member_join(member):
+    async def on_member_join(member: discord.Member):
         session = aiohttp.ClientSession()
         webhook = Webhook.from_url(bot.WEBHOOK, session=session)
 
-        embed = discord.Embed(title='Участник присоединился к серверу', color=member.color)
+        embed = discord.Embed(title=member.name, color=3092790, description=f'{member.mention} ・ {member.id}')
+        embed.set_thumbnail(url=member.avatar.url if member.avatar is not None else None)
 
-        embed.add_field(name='Участник', value=f'{member.mention} _({member} / {member.id})_', inline=False)
-        embed.set_thumbnail(url=member.avatar.url)
-
-        await webhook.send(embed=embed)
+        await webhook.send(embed=embed, username='Участник зашел на сервер', avatar_url=JOIN_IMAGE)
         await session.close()
 
 
     # member leaving
     @bot.listen()
-    async def on_member_remove(member):
+    async def on_member_remove(member: discord.Member):
         session = aiohttp.ClientSession()
         webhook = Webhook.from_url(bot.WEBHOOK, session=session)
-        embed = discord.Embed(title='Участник вышел из сервера', color=member.color)
 
-        embed.add_field(name='Участник', value=f'{member.mention} _({member} / {member.id})_', inline=False)
-        embed.set_thumbnail(url=member.avatar.url)
+        embed = discord.Embed(title=member.name, color=3092790, description=f'{member.mention} ・ {member.id}')
+        embed.set_thumbnail(url=member.avatar.url if member.avatar is not None else None)
 
-        await webhook.send(embed=embed)
+        await webhook.send(embed=embed, username='Участник вышел из сервера', avatar_url=LEAVE_IMAGE)
         await session.close()

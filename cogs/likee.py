@@ -1,39 +1,34 @@
+import random
 import discord
 from discord.ext import commands
 from config import *
+import utils
 
 async def setup(bot: commands.Bot):
 
     async def switch_answers(message: discord.Message, position: bool):
         user = bot.mg.get_user(message.author.id)
-        word = 'включены' if position else 'выключены'
-        if user.marked_by_beast == position:
+        word = 'Включил' if position else 'Выключил'
+        if user.likee == position:
             embed = discord.Embed(color=ERROR_C,
                                   title='❌ ой всё',
-                                  description=f'У вас уже **{word}** ответки!')
+                                  description=f'У тебя уже')
             embed.set_footer(text=message.author.name, icon_url=message.author.avatar.url if message.author.avatar is not None else None)
             await message.reply(embed=embed)
             return
-        user.marked_by_beast = position
+        user.likee = position
         bot.mg.commit()
         embed = discord.Embed(color=DEFAULT_C,
                               title='✅ бум',
-                              description=f'Ответки теперь **{word}** для вас!')
+                              description=word)
         embed.set_footer(text=message.author.name, icon_url=message.author.avatar.url if message.author.avatar is not None else None)
         await message.reply(embed=embed)
         return
     
 
     async def query_answers(message: discord.Message):
-        answers: dict = bot.mg.data['legacy']
-        answer = answers['equals'].get(message.content.lower())
-        if answer is not None:
-            await message.reply(answer)
-            return
-        for q, answer in answers['startswith'].items():
-            if message.content.lower().startswith(q):
-                await message.reply(answer)
-                return
+        if random.random() < THRESHOLD:
+            await message.reply(utils.get_likee())
 
 
     @bot.listen()
@@ -45,11 +40,11 @@ async def setup(bot: commands.Bot):
         if message.channel.id not in CHATTABLE_CHANNELS:
             return
         
-        if message.content.lower() in {'-настройки ответки да', 'дабот настройки ответки да'}:
+        if message.content.lower() in {'-настройки лайки да', 'дабот настройки лайки да'}:
             await switch_answers(message, True)
         
-        elif message.content.lower() in {'-настройки ответки нет', 'дабот настройки ответки нет'}:
+        elif message.content.lower() in {'-настройки лайки нет', 'дабот настройки лайки нет'}:
             await switch_answers(message, False)
         
-        elif bot.mg.get_user(message.author.id).marked_by_beast:
+        elif bot.mg.get_user(message.author.id).likee:
             await query_answers(message)

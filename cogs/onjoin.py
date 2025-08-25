@@ -50,8 +50,10 @@ async def setup(bot: commands.Bot):
         channel = bot.get_channel(VERIFY_ID)
 
         embed = discord.Embed(
+            title='👋 Добро пожаловать на мунленд!',
+            description='Для получения доступа к серверу введи команду `ml!verify` в этот чат.',
             color=DEFAULT_C
         )
-        embed.set_image(url='https://moontr3.ru/assets/mlverify.png')
+        embed.set_thumbnail(url='https://moontr3.ru/assets/mlverify.png')
 
         await channel.send(f'<@{member.id}>', embed=embed)

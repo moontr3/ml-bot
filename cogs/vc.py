@@ -77,26 +77,63 @@ async def setup(bot: commands.Bot):
         bot.mg.update_vc_state(member.id, after)
 
         # leaving/joining vc messages
-        if before.channel == None or after.channel == None:
-            session = aiohttp.ClientSession()
-            webhook = discord.Webhook.from_url(bot.SERVICE_WEBHOOK, session=session)
-            mentions = discord.AllowedMentions(users=False)
-
-            if before.channel == None and after.channel != None:
-                await webhook.send(
-                    f'<@{member.id}>  →  <#{after.channel.id}>',
-                    avatar_url=JOIN_IMAGE, username='Вход в голосовой канал',
-                    allowed_mentions=mentions
-                )
+        session = aiohttp.ClientSession()
+        webhook = discord.Webhook.from_url(bot.SERVICE_WEBHOOK, session=session)
+        mentions = discord.AllowedMentions(users=False)
+    
+        if before.channel == None and after.channel != None:
+            if after.channel.type == discord.ChannelType.stage_voice:
+                await session.close()
+                return
             
-            elif before.channel != None and after.channel == None:
-                await webhook.send(
-                    f'<@{member.id}>  ←  <#{before.channel.id}>',
-                    avatar_url=LEAVE_IMAGE, username='Выход из голосового канала',
-                    allowed_mentions=mentions
-                )
+            await webhook.send(
+                f'<@{member.id}>  →  <#{after.channel.id}>',
+                avatar_url=JOIN_IMAGE, username='Вход в голосовой канал',
+                allowed_mentions=mentions
+            )
+        
+        elif before.channel != None and after.channel == None:
+            if before.channel.type == discord.ChannelType.stage_voice:
+                await session.close()
+                return
+            
+            await webhook.send(
+                f'<@{member.id}>  ←  <#{before.channel.id}>',
+                avatar_url=LEAVE_IMAGE, username='Выход из голосового канала',
+                allowed_mentions=mentions
+            )
 
-            await session.close()
+        elif before.channel != after.channel and (before.channel != None and after.channel != None):
+            await webhook.send(
+                f'<#{before.channel.id}>  →  <@{member.id}>  →  <#{after.channel.id}>',
+                avatar_url=MOVE_IMAGE, username='Переход в голосовой канал',
+                allowed_mentions=mentions
+            )
+
+        # live messages
+        elif not before.self_stream and after.self_stream:
+            if after.channel.type == discord.ChannelType.stage_voice:
+                await session.close()
+                return
+            
+            await webhook.send(
+                f'<@{member.id}> ・ <#{after.channel.id}>',
+                avatar_url=LIVE_IMAGE, username='Включение трансляции экрана',
+                allowed_mentions=mentions
+            )
+            
+        elif before.self_stream and not after.self_stream:
+            if after.channel.type == discord.ChannelType.stage_voice:
+                await session.close()
+                return
+            
+            await webhook.send(
+                f'<@{member.id}> ・ <#{after.channel.id}>',
+                avatar_url=LIVESTOP_IMAGE, username='Выключение трансляции экрана',
+                allowed_mentions=mentions
+            )
+
+        await session.close()
 
 
     @tasks.loop(seconds=60)

@@ -13,7 +13,7 @@ async def setup(bot: commands.Bot):
     @discord.app_commands.describe(
         page="Имя или сокращение желаемой страницы / вопроса."
     )
-    async def faq(ctx: commands.Context, page: str = None):
+    async def faq(ctx: commands.Context, *, page: str = None):
         # page detected
         if page:
             for i in bot.mg.data.get('faq', []):

@@ -230,6 +230,7 @@ class User:
         self.last_msg_channel: int = data.get('last_msg_channel', deepcopy(CHAT_CHANNEL)) 
         self.to_send_lvl_up_msg: bool = False
         self.marked_by_beast: bool = data.get('marked_by_beast', False)
+        self.likee: bool = data.get('likee', False)
 
         self.minute_stats = MinuteStats()
 
@@ -263,7 +264,8 @@ class User:
             "vc": self.vc.to_dict(),
             "temp_vc_timeout": self.temp_vc_timeout,
             "last_msg_channel": self.last_msg_channel,
-            "marked_by_beast": self.marked_by_beast
+            "marked_by_beast": self.marked_by_beast,
+            "likee": self.likee
         }
     
 
@@ -439,6 +441,7 @@ class Manager:
         self.quarantines: Dict[int, int] = {}
         self.renderer = RendererCollection(self)
         self.sk_last_spawn: float = 0
+        self.last_commit = 0
         self.reload()
 
 
@@ -503,18 +506,27 @@ class Manager:
         self.commit()
 
 
-    def commit(self):
-        '''
-        Это костыль или гениальное решение?
-        Anti Ctrl+C Device
-        '''
-        threading.Thread(target=self._commit).start()
+    # def commit(self):
+    #     '''
+    #     Это костыль или гениальное решение?
+    #     Anti Ctrl+C Device
+    #     '''
+    #     if self.committing:
+    #         return
         
+    #     self.committing = True
+    #     threading.Thread(target=self._commit).start()
+    #     self.committing = False
 
-    def _commit(self):
+
+    def commit(self):
         '''
         Saves user data to the file.
         '''
+        if time.time()-self.last_commit < 2:
+            return
+        self.last_commit = time.time()
+        
         data = {
             'users': {}
         }
@@ -532,11 +544,18 @@ class Manager:
         try:
             json_data = json.dumps(data, indent=4)
         except Exception as e:
-            log(f'Unable to save user data: {e}', 'api', WARNING)    
+            log(f'Unable to save user data: {e}', 'api', WARNING)
             return
 
-        with open(self.users_file, 'w') as f:
-            f.write(json_data)
+        try:
+            with open(self.users_file+'.temp', 'w') as f:
+                f.write(json_data)
+                f.flush()
+                os.fsync(f.fileno())
+
+            os.replace(self.users_file+'.temp', self.users_file)
+        except Exception as e:
+            log(f'Unable to save user data to file: {e}', 'api', ERROR)
 
 
     def check_user(self, id:int):
