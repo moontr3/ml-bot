@@ -499,6 +499,8 @@ class Manager:
         self.quarantines = {int(id): t for id, t in data.get('quarantines', {}).items()}
         self.timed_lb = TimedLeaderboard(data.get('timed_lb', {}))
         self.sk_last_spawn: float = data.get('sk_last_spawn', 0)
+        self.bump_ping_at: float = data.get('bump_ping_at', time.time()+BUMP_PING_EVERY)
+        self.last_bump: float = data.get('last_bump', 0)
 
         # data
         try:
@@ -551,6 +553,8 @@ class Manager:
         data['temp_vcs'] = {id: i.to_dict() for id, i in self.temp_vcs.items()}
         data['quarantines'] = self.quarantines
         data['sk_last_spawn'] = self.sk_last_spawn
+        data['bump_ping_at'] = self.bump_ping_at
+        data['last_bump'] = self.last_bump
 
         # saving
         try:
@@ -600,6 +604,24 @@ class Manager:
         url = random.choice(rarity[1]['images'])
         xp = random.randint(*rarity[1]['xp'])
         return MfrCard(rarity[0], rarity[1]['name'], xp, url, rarity[1]['color'])
+    
+
+    def bump(self, user_id: int) -> int:
+        '''
+        Saves a bump and returns gained XP.
+        '''
+        xp = random.randint(*BUMP_XP)
+        self.add_xp(user_id, xp)
+        self.bump_ping_at = time.time() + BUMP_TIMEOUT
+        self.last_bump = time.time()
+
+        self.commit()
+        return xp
+    
+
+    def bump_timeout(self) -> int:
+        self.bump_ping_at = time.time() + BUMP_PING_EVERY
+        self.commit()
     
     
     def add_reminder(self,

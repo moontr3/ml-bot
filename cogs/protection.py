@@ -15,7 +15,7 @@ async def setup(bot: commands.Bot):
 
     @bot.listen()
     async def on_message(message: discord.Message):
-        if message.guild.id != GUILD_ID:
+        if not  message.guild or message.guild.id != GUILD_ID:
             return
         
         # resolving interation author
