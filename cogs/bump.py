@@ -60,7 +60,7 @@ async def setup(bot: commands.Bot):
             log(f'Channel {BUMP_CHANNEL} for bumping not found', level=ERROR)
             return
         
-        await channel.send(f'<@&{BUMP_PING_ROLE}> ・ **/bump**')
+        await channel.send(f'<@&{BUMP_PING_ROLE}> ・ </bump:1135998835311775768>')
 
 
     @bot.listen()

@@ -1,3 +1,4 @@
+import aiohttp
 from discord.ext import commands
 import discord
 import api
@@ -91,6 +92,41 @@ async def setup(bot: commands.Bot):
         )
 
         await ctx.reply(embed=embed)
+
+
+    @bot.tree.command(
+        name='anon',
+        description='Отправляет анонимное сообщение в #чат.'
+    )
+    @discord.app_commands.guild_only()
+    @discord.app_commands.describe(text='Текст сообщения')
+    async def slash_anon(ctx: discord.Interaction, text: str):
+        '''
+        Sends anonymous message.
+        '''
+        if ctx.channel.id != CHAT_CHANNEL:
+            embed = discord.Embed(
+                color=ERROR_C, description=f'Эта команда доступна только в канале <#{CHAT_CHANNEL}>.'
+            )
+            await ctx.response.send_message(embed=embed, ephemeral=True)
+            return
+        
+        await ctx.response.defer(ephemeral=True)
+
+        # sending
+        session = aiohttp.ClientSession()
+        webhook = discord.Webhook.from_url(bot.SERVICE_WEBHOOK, session=session)
+
+        mentions = discord.AllowedMentions(everyone=False, users=True, roles=False, replied_user=False)
+
+        await webhook.send(content=text, username='Анонимное сообщение ・ /anon', avatar_url=MESSAGE_IMAGE, allowed_mentions=mentions)
+        await session.close()
+
+        log(f'{ctx.author.id} sent an anonymous message: {text}')
+
+        # success
+        embed = discord.Embed(color=DEFAULT_C, description='Сообщение отправлено!')
+        await ctx.followup.send(embed=embed)
 
 
     @bot.hybrid_command(

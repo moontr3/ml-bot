@@ -1,3 +1,4 @@
+import asyncio
 import os
 import random
 import time
@@ -42,10 +43,18 @@ async def setup(bot: commands.Bot):
         else:
             text = f'Вы получили **{card.xp} XP** за находку!'
 
-        embed = discord.Embed(title=card.name, description=text, color=color)
+        embed = discord.Embed(
+            title=card.name, color=color,
+            description=text+f'\n-# 🔴 Кулдаун закончится <t:{int(botuser.mfr_timeout)+1}:R>...'
+        )
         embed.set_image(url=card.image)
 
-        await ctx.reply(embed=embed, ephemeral=ephemeral)
+        message = await ctx.reply(embed=embed, ephemeral=ephemeral)
+        await asyncio.sleep(max(0, botuser.mfr_timeout-time.time()))
+
+        embed = discord.Embed(title=card.name, color=color, description=text+f'\n-# 🟢 Можно вводить снова')
+        embed.set_image(url=card.image)
+        await message.edit(embed=embed)
     
 
     @bot.hybrid_command(
