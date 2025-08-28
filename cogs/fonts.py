@@ -32,11 +32,7 @@ async def setup(bot: commands.Bot):
         Changes user fonts.
         '''
         if ctx.author.id not in ADMINS:
-            embed = discord.Embed(
-                description='Вы не администратор бота!',
-                color=ERROR_C
-            )
-            await ctx.reply(embed=embed, ephemeral=True)
+            await ctx.reply(view=c_to_view(NOT_ADMIN_EMBED), ephemeral=True)
             return
 
         log(f'{ctx.author.id} {action}s fonts of {member.id}: {font}')
@@ -61,10 +57,8 @@ async def setup(bot: commands.Bot):
             else:
                 desc = f'АТАТА!!! ❌❌❌ у {member.mention} не было этого шрифта.'
 
-        embed = discord.Embed(
-            description=desc, color=DEFAULT_C
-        )
-        await ctx.reply(embed=embed)
+        view = to_view(desc, ERROR_C)
+        await ctx.reply(view=view)
 
 
     @bot.hybrid_command(
@@ -128,11 +122,8 @@ async def setup(bot: commands.Bot):
             font = [i for i in bot.mg.fonts.values() if i.name.lower() == font or font in i.alt]
         
             if len(font) == 0:
-                embed = discord.Embed(
-                    description='Такого шрифта нет.',
-                    color=ERROR_C
-                )
-                await ctx.reply(embed=embed, ephemeral=True)
+                view = to_view('Такого шрифта нет.', ERROR_C)
+                await ctx.reply(view=view, ephemeral=True)
                 return
             
             font = font[0].key
@@ -141,11 +132,8 @@ async def setup(bot: commands.Bot):
         user = bot.mg.get_user(ctx.author.id)
 
         if font not in user.fonts.items:
-            embed = discord.Embed(
-                description='У вас нет этого шрифта!',
-                color=ERROR_C
-            )
-            await ctx.reply(embed=embed, ephemeral=True)
+            view = to_view('У вас нет этого шрифта!', ERROR_C)
+            await ctx.reply(view=view, ephemeral=True)
             return
 
         # selecting
@@ -174,11 +162,8 @@ async def setup(bot: commands.Bot):
         user = bot.mg.get_user(ctx.author.id)
 
         if not user.fonts._selected:
-            embed = discord.Embed(
-                description='У вас не установлен шрифт!',
-                color=ERROR_C
-            )
-            await ctx.reply(embed=embed, ephemeral=True)
+            view = to_view('У вас не установлен шрифт!', ERROR_C)
+            await ctx.reply(view=view, ephemeral=True)
             return
 
         # removing
@@ -186,11 +171,8 @@ async def setup(bot: commands.Bot):
         font = bot.mg.fonts[font]
         bot.mg.set_font(ctx.author.id, None)
         
-        embed = discord.Embed(
-            description=f'Вы убрали свой шрифт - **{font.name}**.',
-            color=DEFAULT_C
-        )
-        await ctx.reply(embed=embed)
+        view = to_view(f'Вы убрали шрифт **{font.name}**.', DEFAULT_C)
+        await ctx.reply(view=view)
 
 
     @bot.command(name='spawnfont')

@@ -215,3 +215,17 @@ def get_likee():
 
     # returning the result
     return words+emojis
+
+
+def get_faq_view_items(i: dict) -> list:
+    items = []
+    items.append(f'### {i["emoji"]} {i["name"]}')
+
+    for element in i['contents'].split('\n\n'):
+        if element == '[SEP]':
+            items.append(SEP())
+            continue
+
+        items.append(element)
+
+    return items

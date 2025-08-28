@@ -25,26 +25,22 @@ async def setup(bot: commands.Bot):
         log(f'{ctx.author.id} requested verification')
 
         if ctx.author.get_role(config.VERIFY_ROLE):
-            embed = discord.Embed(
-                description='Долбоеб! Ты уже.', color=ERROR_C
-            )
-            await ctx.reply(embed=embed, ephemeral=True)
+            view = to_view('Долбоеб! Ты уже.', ERROR_C)
+            await ctx.reply(view=view, ephemeral=True)
             return
 
         if ctx.channel.id != config.VERIFY_ID:
-            embed = discord.Embed(
-                description='Не тот канал!', color=ERROR_C
-            )
-            await ctx.reply(embed=embed, ephemeral=True)
+            view = to_view('Не тот канал!', ERROR_C)
+            await ctx.reply(view=view, ephemeral=True)
             return
             
         user = bot.mg.get_user(ctx.author.id)
         if user.verifying:
-            embed = discord.Embed(
-                description='Ты уже проходишь IQ-тест!\n\nТебе надо ввести код с картинки в чат.',
-                color=ERROR_C
-            )
-            await ctx.reply(embed=embed)
+            view = to_view([
+                '### Ты уже проходишь IQ-тест!', SEP(),
+                'Тебе надо ввести код с картинки в чат.'
+            ], ERROR_C)
+            await ctx.reply(view=view)
             return
 
         if ctx.interaction:
@@ -58,14 +54,13 @@ async def setup(bot: commands.Bot):
         image = bot.mg.renderer.captcha(text)
         file = discord.File(image, filename='captcha.png')
 
-        embed = discord.Embed(
-            title='IQ-тест',
-            description='Введите **в чат** цифры с картинки.\n**На размышление даётся 60 секунд.**',
-            color=DEFAULT_C
-        )
-        embed.set_image(url='attachment://captcha.png')
+        view = to_view([
+            '### 🧠 IQ-тест', SEP(),
+            'Введи **в чат** цифры с картинки.', 'На размышление даётся 60 секунд.',
+            ui.MediaGallery(discord.MediaGalleryItem('attachment://captcha.png'))
+        ])
 
-        msg = await ctx.reply(file=file, embed=embed)
+        msg = await ctx.reply(file=file, view=view)
         file.close()
         os.remove(image)
 
@@ -79,13 +74,12 @@ async def setup(bot: commands.Bot):
             )
 
         except:
-            embed = discord.Embed(
-                title='IQ-тест',
-                description='Прошло больше 60 секунд.',
-                color=ERROR_C
-            )
+            view = to_view([
+                '### 🧠 IQ-тест', SEP(),
+                'Прошло больше 60 секунд.',
+            ], ERROR_C)
             await msg.remove_attachments()
-            await msg.edit(embed=embed)
+            await msg.edit(view=view)
             user.verifying = False
             return
         
@@ -97,37 +91,55 @@ async def setup(bot: commands.Bot):
             if text.lower() == message.content.lower():
                 # verified
                 log(f'verified {ctx.author.id}')
-                
-                # sending success message
-                embed = discord.Embed(
-                    title='IQ-тест',
-                    description='Вы прошли IQ-тест!\n'\
-                        F'Ваш IQ: **мало, но для мунленда хватает**\n\nПрошу пройти в <#{CHAT_CHANNEL}>.',
-                    color=DEFAULT_C
-                )
-                await msg.edit(embed=embed)
 
                 # adding role
                 await message.author.add_roles(
                     ctx.guild.get_role(config.VERIFY_ROLE)
                 )
+                
+                # sending success message
+                view = to_view([
+                    '### 🧠 IQ-тест', SEP(),
+                    'Вы прошли IQ-тест!',
+                    'Ваш IQ: **мало, но для мунленда хватает**', SEP(),
+                    f'Прошу пройти в <#{CHAT_CHANNEL}>.'
+                ], DEFAULT_C)
+                await msg.edit(view=view)
 
                 # sending message in chat
-                embed = discord.Embed(
-                    title=f'Добро пожаловать, {ctx.author.name}!',
-                    description=f'Не забудь прочитать <#1364721575282217074>!\n\n'\
-                        f'Начинай общаться и зарабатывать опыт - `ml!xp`.\n'\
-                        f'Также советую взглянуть в `ml!help`!'
-                )
-                channel = ctx.guild.get_channel(CHAT_CHANNEL)
-                await channel.send(f'<@{ctx.author.id}>', embed=embed)
-                return
+                options = []
 
-            embed = discord.Embed(
-                title='IQ-тест',
-                description='IQ-тест не пройден.\n\nВы написали: '\
-                    f'`{message.content}`\nНужно было написать: `{text}`\n\n'\
-                    'Попробуйте ввести команду ещё раз.',
-                color=ERROR_C
-            )
-            await msg.edit(embed=embed)
+                for c, i in enumerate(bot.mg.data.get('faq', [])):
+                    options.append(discord.SelectOption(
+                        label=i['name'], value=str(c), emoji=i['emoji']
+                    ))
+
+                c = to_container([
+                    f'### 👋 Добро пожаловать, {ctx.author.name}!', SEP(),
+                    'Первым делом советуем узнать больше о сервере, выбрав любой из пунктов FAQ ниже:',
+                    ui.ActionRow(discord.ui.Select(
+                        custom_id='faq',
+                        options=options,
+                        placeholder='Выбери страничку...'
+                    )),
+                    'Посмотреть их снова в любой момент можно по команде `ml!faq`.',
+                    'Также можешь повыбирать себе ролей в <id:customize>.',
+                    '-# И не забудь прочитать <#1364721575282217074>!'
+                ])
+                view = ui.LayoutView()
+                view.add_item(ui.TextDisplay(f'<@{ctx.author.id}>'))
+                view.add_item(c)
+
+                channel = ctx.guild.get_channel(CHAT_CHANNEL)
+                await channel.send(view=view)
+                return
+            
+            view = to_view([
+                '### 🧠 IQ-тест', SEP(),
+                'IQ-тест не пройден.', SEP(visible=False),
+                f'Вы написали: `{message.content}`',
+                f'Нужно было написать: `{text}`',
+                SEP(),
+                'Попробуйте ввести команду ещё раз.'
+            ], ERROR_C)
+            await msg.edit(view=view)

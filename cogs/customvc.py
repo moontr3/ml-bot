@@ -67,10 +67,8 @@ async def setup(bot: commands.Bot):
         user.temp_vc_timeout = 0
         bot.mg.commit()
         
-        embed = discord.Embed(
-            color=DEFAULT_C, description='Yuh-uh.'
-        )
-        await ctx.reply(embed=embed)
+        view = to_view('Yuh-uh.', DEFAULT_C)
+        await ctx.reply(view=view)
 
 
     @bot.hybrid_command(
@@ -87,27 +85,26 @@ async def setup(bot: commands.Bot):
 
         # no channel
         if channel == None:
-            embed = discord.Embed(
-                description='Вы не создавали временных войсов!\n\n'\
-                    'Для создания введите `!типо где <название войса>`.',
-                color=ERROR_C
-            )
-            return await ctx.reply(embed=embed, ephemeral=True)
+            view = to_view([
+                '### Вы не создавали временных войсов!', SEP(),
+                'Для создания введите `!типо где <название войса>`.'
+            ], ERROR_C)
+            return await ctx.reply(view=view, ephemeral=True)
         
         # showing info
         # user: api.User = bot.mg.get_user(ctx.author.id)
-        desc = f'### <#{channel.id}>\n'\
-            f'Канал создал <@{channel.owner_id}> <t:{int(channel.created_at)}:R>\n'
+        desc = None
 
         if channel.has_people == False:
-            desc += f'\n-# Канал удалится <t:{int(channel.last_activity+TEMP_VC_INACTIVITY_TIME)}:R>'
+            desc = f'-# Канал удалится <t:{int(channel.last_activity+TEMP_VC_INACTIVITY_TIME)}:R>'
 
-        desc += f'\n-# Удалить или переименовать канал можно через настройки Discord.'
-
-        embed = discord.Embed(
-            title=f'🔊 {channel.name}', color=DEFAULT_C, description=desc
-        )
-        await ctx.reply(embed=embed)
+        view = to_view([
+            f'### 🔊 {channel.name}', SEP(),
+            f'### <#{channel.id}>',
+            f'Канал создал <@{channel.owner_id}> <t:{int(channel.created_at)}:R>',
+            desc, '-# Удалить или переименовать канал можно через настройки Discord.'
+        ])
+        await ctx.reply(view=view)
 
 
     @bot.listen()
@@ -124,12 +121,12 @@ async def setup(bot: commands.Bot):
         for i in TEMP_VC_CREATE_COMMANDS:
             # telling user how to use the command
             if message.content.lower() == i.lower():
-                embed = discord.Embed(
-                    title="🔊 Временные войсы", color=DEFAULT_C,
-                    description=f'Используйте `{i} <название>` для создания временного голосового канала.'\
-                        '\n\nБольше информации можно узнать в `ml!faq tvc`.'
-                )
-                await message.reply(embed=embed)
+                view = to_view([
+                    '### 🔊 Временные войсы', SEP(),
+                    f'Используйте `{i} <название>` для создания временного голосового канала.',
+                    'Больше информации можно узнать в `ml!faq tvc`.'
+                ])
+                await message.reply(view=view)
                 return
 
             # using command
@@ -143,41 +140,64 @@ async def setup(bot: commands.Bot):
         channel = bot.mg.get_temp_vc(message.author.id)
 
         if channel:
-            embed = discord.Embed(
-                color=ERROR_C, description=f'Вы уже создали временный канал - <#{channel.id}>!\n\n`ml!tvc` для настроек.'
-            )
-            return await message.reply(embed=embed)
+            view = to_view([
+                f'Вы уже создали временный канал - <#{channel.id}>!',
+                '`ml!tvc` для настроек.'
+            ], ERROR_C)
+            return await message.reply(view=view)
         
         # user is timeouted
         user: api.User = bot.mg.get_user(message.author.id)
         if user.temp_vc_timeout > time.time():
-            embed = discord.Embed(
-                color=ERROR_C, description=f'Вы сможете создать временный канал <t:{int(user.temp_vc_timeout)}:R>!'
+            view = to_view(
+                f'Вы сможете создать временный канал <t:{int(user.temp_vc_timeout)}:R>!', ERROR_C
             )
-            return await message.reply(embed=embed)
+            return await message.reply(view=view)
 
         # name is too long
         if len(name) > 100:
-            embed = discord.Embed(
-                color=ERROR_C, description=f'Максимальная длина имени - **100**!'
+            view = to_view(
+                'Максимальная длина названия канала - **100 символов**!', ERROR_C
             )
-            return await message.reply(embed=embed)
+            return await message.reply(view=view)
 
         # creating temp channel
         category = message.guild.get_channel(TEMP_VC_CATEGORY)
         overwrite = discord.PermissionOverwrite()
         overwrite.manage_channels = True
+
+        role = message.guild.get_role(VERIFY_ROLE)
+        role_overwrite = discord.PermissionOverwrite()
+        role_overwrite.view_channel = True
+
+        everyone_overwrite = discord.PermissionOverwrite()
+        everyone_overwrite.view_channel = False
+
+        quarantine_role = message.guild.get_role(QUARANTINE_ROLE)
+        quarantine_overwrite = discord.PermissionOverwrite()
+        quarantine_overwrite.view_channel = False
         
         channel = await message.guild.create_voice_channel(
-            name, category=category, overwrites={message.author: overwrite}
+            name, category=category, overwrites={
+                message.author: overwrite,
+                role: role_overwrite,
+                message.guild.default_role: everyone_overwrite,
+                quarantine_role: quarantine_overwrite
+            }
         )
         log(f"Creating new temp VC {channel.id} - {channel.name} (owner - {user.id})")
         bot.mg.new_temp_vc(channel.name, channel.id, user)
 
-        embed = discord.Embed(
-            title='🔊 Временные войсы', color=DEFAULT_C,
-            description='Вы создали временный голосовой канал!\n'\
-                f'## <#{channel.id}>\nИспользуйте `ml!tvc` для просмотра.\n'\
-                f'-# Если никто не зайдёт, канал удалится <t:{int(time.time()+TEMP_VC_INACTIVITY_TIME)}:R>.'
-        )
-        await message.reply(embed=embed)
+        c = to_container([
+            '### 🔊 Временные войсы',
+            'Вы создали временный голосовой канал!',
+            SEP(),
+            f'## <#{channel.id}>',
+            SEP(),
+            'Используйте `ml!tvc` для просмотра.',
+            f'-# Если никто не зайдёт, канал удалится <t:{int(time.time()+TEMP_VC_INACTIVITY_TIME)}:R>.'
+        ], DEFAULT_C)
+        view = ui.LayoutView()
+        view.add_item(ui.TextDisplay(f'<@&{VC_PING_ROLE}>'))
+        view.add_item(c)
+        await message.reply(view=view)

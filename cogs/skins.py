@@ -32,11 +32,7 @@ async def setup(bot: commands.Bot):
         Changes user skins.
         '''
         if ctx.author.id not in ADMINS:
-            embed = discord.Embed(
-                description='Вы не администратор бота!',
-                color=ERROR_C
-            )
-            await ctx.reply(embed=embed, ephemeral=True)
+            await ctx.reply(view=c_to_view(NOT_ADMIN_EMBED), ephemeral=True)
             return
 
         log(f'{ctx.author.id} {action}s skins of {member.id}: {skin}')
@@ -59,10 +55,8 @@ async def setup(bot: commands.Bot):
             else:
                 desc = f'АТАТА!!! ❌❌❌ у {member.mention} не было этого скина.'
 
-        embed = discord.Embed(
-            description=desc, color=DEFAULT_C
-        )
-        await ctx.reply(embed=embed)
+        view = to_view(desc)
+        await ctx.reply(view=view)
 
 
     @bot.hybrid_command(
@@ -128,32 +122,23 @@ async def setup(bot: commands.Bot):
         elif skin.isdigit():
             skin = int(skin)
             if skin > len(bot.mg.skins) or skin < 1:
-                embed = discord.Embed(
-                    description='Такого скина нет.',
-                    color=ERROR_C
-                )
-                await ctx.reply(embed=embed, ephemeral=True)
+                view = to_view('Такого скина нет.', ERROR_C)
+                await ctx.reply(view=view, ephemeral=True)
                 return
             
             skin = list(bot.mg.skins.values())[int(skin)-1].key
         # wrong input
         else:
-            embed = discord.Embed(
-                description='Такого скина нет.',
-                color=ERROR_C
-            )
-            await ctx.reply(embed=embed, ephemeral=True)
+            view = to_view('Такого скина нет.', ERROR_C)
+            await ctx.reply(view=view, ephemeral=True)
             return
         
         # checking if user has skin
         user = bot.mg.get_user(ctx.author.id)
 
         if skin not in user.skins.items:
-            embed = discord.Embed(
-                description='У вас нет этого скина!',
-                color=ERROR_C
-            )
-            await ctx.reply(embed=embed, ephemeral=True)
+            view = to_view('У вас нет этого скина!', ERROR_C)
+            await ctx.reply(view=view, ephemeral=True)
             return
 
         # selecting
@@ -182,11 +167,8 @@ async def setup(bot: commands.Bot):
         user = bot.mg.get_user(ctx.author.id)
 
         if not user.skins._selected:
-            embed = discord.Embed(
-                description='У вас не установлен скин!',
-                color=ERROR_C
-            )
-            await ctx.reply(embed=embed, ephemeral=True)
+            view = to_view('У вас не установлен скин!', ERROR_C)
+            await ctx.reply(view=view, ephemeral=True)
             return
 
         # removing
@@ -194,11 +176,8 @@ async def setup(bot: commands.Bot):
         skin = bot.mg.skins[skin]
         bot.mg.set_skin(ctx.author.id, None)
         
-        embed = discord.Embed(
-            description=f'Вы убрали свой скин - **{skin.name}**.',
-            color=DEFAULT_C
-        )
-        await ctx.reply(embed=embed)
+        view = to_view(f'Вы убрали скин **{skin.name}**.', DEFAULT_C)
+        await ctx.reply(view=view)
 
 
     @bot.command(name='spawnskin')

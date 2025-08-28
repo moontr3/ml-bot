@@ -24,11 +24,8 @@ async def setup(bot: commands.Bot):
     async def mishkfrede(ctx: commands.Context):
         botuser: api.User = bot.mg.get_user(ctx.author.id)
         if botuser.mfr_timeout > time.time():
-            embed = discord.Embed(
-                color=ERROR_C,
-                description=f'Использовать команду снова можно будет **<t:{int(botuser.mfr_timeout)}:R>**.'
-            )
-            await ctx.reply(embed=embed)
+            view = to_view(f'Использовать команду снова можно будет **<t:{int(botuser.mfr_timeout)}:R>**.', ERROR_C)
+            await ctx.reply(view=view)
             return
         
         card: api.MfrCard = bot.mg.get_random_mfr()
@@ -39,28 +36,32 @@ async def setup(bot: commands.Bot):
 
         color = discord.Color.from_str(card.color)
         if ephemeral:
-            text = f'⚠ Если хотите получать опыт за получение карточек, вводите эту команду в <#{MFR_CHANNEL}>.'
+            text = f':warning: Если хотите получать опыт за получение карточек, вводите эту команду в <#{MFR_CHANNEL}>.'
         else:
             text = f'Вы получили **{card.xp} XP** за находку!'
 
-        embed = discord.Embed(
-            title=card.name, color=color,
-            description=text+f'\n-# 🔴 Кулдаун закончится <t:{int(botuser.mfr_timeout)+1}:R>...'
-        )
-        embed.set_image(url=card.image)
+        elements = [
+            f'### {card.name}', text,
+            ui.MediaGallery(discord.MediaGalleryItem(card.image)),
+            SEP()
+        ]
+        view = to_view(elements+['-# 🔴 Команда на кулдауне...'], color)
 
-        message = await ctx.reply(embed=embed, ephemeral=ephemeral)
+        message = await ctx.reply(view=view, ephemeral=ephemeral)
         await asyncio.sleep(max(0, botuser.mfr_timeout-time.time()))
 
-        embed = discord.Embed(title=card.name, color=color, description=text+f'\n-# 🟢 Можно вводить снова')
-        embed.set_image(url=card.image)
-        await message.edit(embed=embed)
+        view = to_view(elements+['-# 🟢 Можно отправлять снова'], color)
+        await message.edit(view=view)
     
 
     @bot.hybrid_command(
         name='mishkfredestat',
         description='Посмотреть количество полученных карточек мишкфреде.',
-        aliases=['мишкфредестат','мфстат','mfstat','mfrstat','мишкафредестат','мшкфредистат','мшкфредестат','мишкфредистат','мишкафредистат']
+        aliases=[
+            'мишкфредестат','мфстат','mfstat','mfrstat','мфрстат',
+            'мишкфредестатс','мфстатс','mfstats','mfrstats','мфрстатс','mishkfredestats',
+            'мишкфредестата','мфстата','мфрстата','мишкфредестаты','мфстаты','мфрстаты',
+         ]
     )
     @discord.app_commands.guild_only()
     @discord.app_commands.describe(
@@ -72,14 +73,14 @@ async def setup(bot: commands.Bot):
             
         botuser: api.User = bot.mg.get_user(user.id)
 
-        text = ''
+        elements = [f'### 📊 Статистика мишкфреде {user.name}', SEP()]
+
         for k, v in bot.mg.data['mfr'].items():
             if k in botuser.mfr_stats:
-                text += f'`{botuser.mfr_stats[k]}` ・ **{v["name"]}**\n'
+                elements.append(f'`{botuser.mfr_stats[k]}` ・ **{v["name"]}**')
             
             elif not v.get('hidden'):
-                text += f'`0` ・ ???\n'
+                elements.append('`0` ・ ???')
 
-        embed = discord.Embed(title=f'Статистика мишкфреде {user.name}', description=text, color=DEFAULT_C)
-
-        await ctx.reply(embed=embed)
+        view = to_view(elements)
+        await ctx.reply(view=view)

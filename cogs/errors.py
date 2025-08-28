@@ -20,23 +20,23 @@ async def setup(bot: commands.Bot):
         '''Usually gets called when a user tries to incorrectly invoke a command.'''
         # not enough args
         if isinstance(error, commands.MissingRequiredArgument):
-            log(f'{ctx.author} {ctx.author.id} missing required argument(s', level=ERROR)
-            await ctx.reply(embed=ARGS_REQUIRED_EMBED)
+            log(f'{ctx.author} {ctx.author.id} missing required arguments', level=ERROR)
+            await ctx.reply(view=c_to_view(ARGS_REQUIRED_EMBED))
 
         # missing required permissions
         elif isinstance(error, commands.MissingPermissions):
             log(f'{ctx.author} {ctx.author.id} missing permissions', level=ERROR)
-            await ctx.reply(embed=MISSING_PERMS_EMBED)
+            await ctx.reply(view=c_to_view(MISSING_PERMS_EMBED))
 
         # user not found
         elif isinstance(error, commands.UserNotFound) or isinstance(error, commands.MemberNotFound):
             log(f'{ctx.author} {ctx.author.id} user not found', level=ERROR)
-            await ctx.reply(embed=UNKNOWN_USER_EMBED)
+            await ctx.reply(view=c_to_view(UNKNOWN_USER_EMBED))
 
         # channel not found
         elif isinstance(error, commands.ChannelNotFound):
             log(f'{ctx.author} {ctx.author.id} channel not found', level=ERROR)
-            await ctx.reply(embed=UNKNOWN_CHANNEL_EMBED)
+            await ctx.reply(view=c_to_view(UNKNOWN_CHANNEL_EMBED))
 
         # unknown command
         elif isinstance(error, commands.CommandNotFound):
@@ -45,5 +45,5 @@ async def setup(bot: commands.Bot):
         # everything else basically
         else:
             log(f'{ctx.author} {ctx.author.id} issued a command error: {error}', level=ERROR)
-            await ctx.reply(embed=UNKNOWN_ERROR_EMBED)
+            await ctx.reply(view=c_to_view(UNKNOWN_ERROR_EMBED))
             log('\n'.join(traceback.format_tb(error.__traceback__)), level=ERROR)

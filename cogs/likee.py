@@ -10,17 +10,19 @@ async def setup(bot: commands.Bot):
         user = bot.mg.get_user(message.author.id)
         word = 'Включил' if position else 'Выключил'
         if user.likee == position:
-            embed = discord.Embed(color=ERROR_C,
-                                  title='❌ ой всё',
-                                  description=f'У тебя уже')
+            embed = discord.Embed(
+                color=ERROR_C,
+                title='❌ ой всё',
+                description=f'У тебя уже')
             embed.set_footer(text=message.author.name, icon_url=message.author.avatar.url if message.author.avatar is not None else None)
             await message.reply(embed=embed)
             return
         user.likee = position
         bot.mg.commit()
-        embed = discord.Embed(color=DEFAULT_C,
-                              title='✅ бум',
-                              description=word)
+        embed = discord.Embed(
+            color=DEFAULT_C,
+            title='✅ бум',
+            description=word)
         embed.set_footer(text=message.author.name, icon_url=message.author.avatar.url if message.author.avatar is not None else None)
         await message.reply(embed=embed)
         return

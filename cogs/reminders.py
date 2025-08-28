@@ -31,29 +31,27 @@ async def setup(bot: commands.Bot):
                     )
                     try:
                         channel = await bot.fetch_channel(reminder.channel_id)
-                        text = reminder.text if reminder.text != None else ''
 
-                        embed = discord.Embed(
-                            title='🔔 Напоминание',
-                            description=text if reminder.jump_url == None else None,
-                            color=DEFAULT_C
-                        )
-                        if reminder.jump_url != None:
-                            embed.add_field(
-                                name=reminder.jump_url,
-                                value=text
-                            )
+                        elements = ['### 🔔 Напоминание', SEP()]
+
+                        if reminder.jump_url:
+                            elements.append(reminder.jump_url)
+                        if reminder.text:
+                            elements.append(reminder.text)
+
+                        c = to_container(elements)
+                        view = ui.LayoutView()
+                        view.add_item(ui.TextDisplay(f'<@{user.id}>'))
+                        view.add_item(c)
 
                         # sending
                         try:
                             assert reminder.message_id != None
                             message = await channel.fetch_message(reminder.message_id)
-                        
                         except:
-                            await channel.send(f'<@{user.id}>', embed=embed)
-                        
+                            await channel.send(view=view)
                         else:
-                            await message.reply(f'<@{user.id}>', embed=embed)
+                            await message.reply(view=view)
 
                     except Exception as e:
                         log(f'Unable to remove reminder: {e}', level=ERROR)
@@ -91,11 +89,7 @@ async def setup(bot: commands.Bot):
         data = utils.seconds_from_string(duration)
 
         if data == None:
-            embed = discord.Embed(
-                title='🔔 Напоминание', color=ERROR_C,
-                description=f'Указана некорректная длина.'
-            )
-            await ctx.reply(embed=embed, ephemeral=True)
+            await ctx.reply(view=c_to_view(INCORRECT_LENGTH_EMBED), ephemeral=True)
             return
         
         else:
@@ -116,9 +110,8 @@ async def setup(bot: commands.Bot):
         _time = int(datetime.datetime.fromtimestamp(time.time()+length).timestamp())
         text = f' с текстом **{utils.remove_md(text)}**' if text else ''
 
-        embed = discord.Embed(
-            title='🔔 Напоминание', color=DEFAULT_C,
-            description=f'Успешно поставлено напоминание на **'\
-                f'{unit_length} {unit_name}** (<t:{_time}>)' + text + '.'
-        )
-        await ctx.reply(embed=embed, ephemeral=True)
+        view = to_view([
+            '### 🔔 Напоминание', SEP(),
+            f'Успешно поставлено напоминание на **{unit_length} {unit_name}** (<t:{_time}>)' + text + '.'
+        ], DEFAULT_C)
+        await ctx.reply(view=view, ephemeral=True)

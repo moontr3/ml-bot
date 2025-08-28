@@ -8,17 +8,21 @@ async def setup(bot: commands.Bot):
         user = bot.mg.get_user(message.author.id)
         word = 'включены' if position else 'выключены'
         if user.marked_by_beast == position:
-            embed = discord.Embed(color=ERROR_C,
-                                  title='❌ ой всё',
-                                  description=f'У вас уже **{word}** ответки!')
+            embed = discord.Embed(
+                color=ERROR_C,
+                title='❌ ой всё',
+                description=f'У вас уже **{word}** ответки!'
+            )
             embed.set_footer(text=message.author.name, icon_url=message.author.avatar.url if message.author.avatar is not None else None)
             await message.reply(embed=embed)
             return
         user.marked_by_beast = position
         bot.mg.commit()
-        embed = discord.Embed(color=DEFAULT_C,
-                              title='✅ бум',
-                              description=f'Ответки теперь **{word}** для вас!')
+        embed = discord.Embed(
+            color=DEFAULT_C,
+            title='✅ бум',
+            description=f'Ответки теперь **{word}** для вас!'
+        )
         embed.set_footer(text=message.author.name, icon_url=message.author.avatar.url if message.author.avatar is not None else None)
         await message.reply(embed=embed)
         return

@@ -47,11 +47,7 @@ async def setup(bot: commands.Bot):
         Changes user XP level.
         '''
         if ctx.author.id not in ADMINS:
-            embed = discord.Embed(
-                description='Вы не администратор бота!',
-                color=ERROR_C
-            )
-            await ctx.reply(embed=embed, ephemeral=True)
+            await ctx.reply(view=c_to_view(NOT_ADMIN_EMBED), ephemeral=True)
             return
 
         log(f'{ctx.author.id} {action}s xp of {member.id} by {amount}')
@@ -67,10 +63,8 @@ async def setup(bot: commands.Bot):
             desc += f'\n\nНовый уровень: **{new_lvl}**'
             await update_rank(member)
 
-        embed = discord.Embed(
-            description=desc, color=DEFAULT_C
-        )
-        await ctx.reply(embed=embed)
+        view = to_view(desc, DEFAULT_C)
+        await ctx.reply(view=view)
 
 
     @bot.command(
@@ -82,20 +76,14 @@ async def setup(bot: commands.Bot):
         Relads user XP roles.
         '''
         if ctx.author.id not in ADMINS:
-            embed = discord.Embed(
-                description='Вы не администратор бота!',
-                color=ERROR_C
-            )
-            await ctx.reply(embed=embed, ephemeral=True)
+            await ctx.reply(view=c_to_view(NOT_ADMIN_EMBED), ephemeral=True)
             return
 
         log(f'{ctx.author.id} reloads roles of {member.id}')
         await update_rank(member)
 
-        embed = discord.Embed(
-            description='Yuh-uh.', color=DEFAULT_C
-        )
-        await ctx.reply(embed=embed)
+        view = to_view('Yuh-uh.', DEFAULT_C)
+        await ctx.reply(view=view)
 
 
     @bot.hybrid_command(
@@ -130,11 +118,11 @@ async def setup(bot: commands.Bot):
             day = utils.get_datetime(date)
 
             if day == None:
-                embed = discord.Embed(
-                    color=ERROR_C, description='Некорректный формат даты!\n\n'\
-                        f'Вводить нужно название месяца или дату в формате `ММ.ГГГГ`, `ГГГГ.ММ` или `ММ`.'
-                )
-                await ctx.reply(embed=embed, ephemeral=True)
+                view = to_view([
+                    '### Некорректный формат даты!', SEP(),
+                    'Вводить нужно название месяца или дату в формате `ММ.ГГГГ`, `ГГГГ.ММ` или `ММ`.',
+                ], ERROR_C)
+                await ctx.reply(view=view, ephemeral=True)
                 return
 
         # sending image
@@ -174,11 +162,11 @@ async def setup(bot: commands.Bot):
             day = utils.get_datetime(date)
 
             if day == None:
-                embed = discord.Embed(
-                    color=ERROR_C, description='Некорректный формат даты!\n\n'\
-                        f'Вводить нужно название месяца или дату в формате `ММ.ГГГГ`, `ГГГГ.ММ` или `ММ`.'
-                )
-                await ctx.reply(embed=embed, ephemeral=True)
+                view = to_view([
+                    '### Некорректный формат даты!', SEP(),
+                    'Вводить нужно название месяца или дату в формате `ММ.ГГГГ`, `ГГГГ.ММ` или `ММ`.',
+                ], ERROR_C)
+                await ctx.reply(view=view, ephemeral=True)
                 return
 
         # sending image
@@ -215,21 +203,6 @@ async def setup(bot: commands.Bot):
         else:
             await ctx.channel.typing()
 
-        # desc = f'### {role.name.title()} ・ Уровень {acc.xp.level} ・ {acc.xp.xp} XP'\
-        #     f'\n**{acc.xp.level_xp}** / **{acc.xp.level_max_xp}** (**{int(acc.xp.level_percentage*100)}%**)'
-
-        # embed = discord.Embed(
-        #     description=desc, color=role.color
-        # )
-        # embed.set_author(name=f'✨ Опыт {member.display_name}')
-        # embed.set_image(url='attachment://image.png')
-
-        # if ctx.channel.id not in CHATTABLE_CHANNELS:
-        #     embed.set_footer(text='⚠ В этом канале нельзя получать опыт!')
-
-        # bar = regen_bar(member.id, acc.xp.level_xp/acc.xp.level_max_xp)
-        # file = discord.File(f'temp/{member.id}.png', 'image.png')
-
         path = await bot.mg.renderer.user_xp(member, role)
         file = discord.File(path, 'image.png')
         await ctx.reply(file=file)
@@ -257,46 +230,6 @@ async def setup(bot: commands.Bot):
             await ctx.interaction.response.defer()
         else:
             await ctx.channel.typing()
-
-        # ppl = {k: v.xp for k, v in bot.mg.users.items()}
-        # ppl = sorted(ppl.items(), key=lambda x: x[1].xp, reverse=True)
-
-        # index = 0
-        # counted = 0
-        # place = 0
-        # prev_xp = -1
-
-        # embed = discord.Embed(
-        #     description='🎖 Таблица лидеров', color=DEFAULT_C
-        # )
-
-        # while counted < 10:
-        #     id = ppl[index][0]
-        #     xp = ppl[index][1]
-
-        #     if prev_xp != xp.xp:
-        #         place += 1
-        #         prev_xp = xp.xp
-            
-        #     level = xp.level
-        #     member = ctx.guild.get_member(id)
-        #     if member == None:
-        #         index += 1
-        #         continue
-
-        #     rank_role = ctx.guild.get_role(LEVELS[min(len(LEVELS)-1, level-1)])
-
-        #     embed.add_field(
-        #         name=f'`#{place}` › {member.name}', inline=False,
-        #         value=f'**{rank_role.name.capitalize()}** ・ Уровень **{level}** (**{int(xp.level_xp/xp.level_max_xp*100)}%**)'
-        #     )
-        #     index += 1
-        #     counted += 1
-
-        # sum = bot.mg.get_all_xp()
-        # embed.set_footer(
-        #     text=f'У всех участников суммарно {sum} XP'
-        # )
 
         # board
         boards = {
@@ -333,12 +266,12 @@ async def setup(bot: commands.Bot):
         }
 
         if board.lower()[:3] not in boards:
-            embed = discord.Embed(
-                description='Такой таблицы лидеров нет! Попробуй одно из:\n\n'\
-                    '`День`, `Неделя`, `Сезон`, `Всё время`, `Войс`, `Микро`, `Стрим`, `Q`, `Реп`',
-                color=ERROR_C
-            )
-            await ctx.reply(embed=embed, ephemeral=True)
+            view = to_view([
+                '### Такой таблицы лидеров нет!', SEP(),
+                'Попробуй одно из:',
+                '`День`, `Неделя`, `Сезон`, `Всё время`, `Войс`, `Микро`, `Стрим`, `Q`, `Реп`',
+            ], ERROR_C)
+            await ctx.reply(view=view, ephemeral=True)
             return
         
         board = boards[board.lower()[:3]]

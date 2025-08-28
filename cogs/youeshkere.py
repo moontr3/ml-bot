@@ -25,11 +25,10 @@ async def setup(bot: commands.Bot):
             except:
                 return
 
-            embed = discord.Embed(
-                title='🤐 Таймаут', color=DEFAULT_C,
-                description=f'{message.author.mention} успешно замьючен на **365 дн**'\
-                    f' с причиной **10.0 обман**.'
-            )
+            view = to_view([
+                '### 🤐 Таймаут', SEP(),
+                f'{message.author.name} успешно замьючен на **365 дн** по причине **10.0 обман**.'
+            ], DEFAULT_C)
 
-            await message.reply(embed=embed)
+            await message.reply(view=view)
             

@@ -28,17 +28,13 @@ async def setup(bot: commands.Bot):
         '''
         # checking permissions
         if not ctx.permissions.moderate_members and ctx.author.id not in ADMINS:
-            await ctx.reply(embed=MISSING_PERMS_EMBED)
+            await ctx.reply(view=c_to_view(MISSING_PERMS_EMBED))
             return
         
         time_data = utils.seconds_from_string(length)
 
         if not time_data:
-            embed = discord.Embed(
-                title='🦠 Карантин', color=ERROR_C,
-                description=f'Указана некорректная длина.'
-            )
-            await ctx.reply(embed=embed, ephemeral=True)
+            await ctx.reply(view=c_to_view(INCORRECT_LENGTH_EMBED), ephemeral=True)
             return
 
         epoch_time = time.time() + time_data[0]
@@ -49,34 +45,33 @@ async def setup(bot: commands.Bot):
         if member.id in bot.mg.quarantines:
             release_at = bot.mg.quarantines[member.id]
 
-            embed = discord.Embed(
-                title='🦠 Карантин', color=ERROR_C,
-                description=f'{member.mention} и так в карантине.\n\n-# Выпуск <t:{int(release_at)}:R>'
-            )
-            return await ctx.reply(embed=embed)
+            view = to_view([
+                f'{member.name} и так в карантине.',
+                f'-# Выпуск <t:{int(release_at)}:R>'
+            ], ERROR_C)
+            return await ctx.reply(view=view)
 
         # adding quarantine role
         try:
             role = ctx.guild.get_role(QUARANTINE_ROLE)
+            verify_role = ctx.guild.get_role(VERIFY_ROLE)
             await member.add_roles(role)
+            await member.remove_roles(verify_role)
 
         except Exception as e:
             log(f'Error while {ctx.author.id} was adding quarantine role to {member.id}: {e}', level=ERROR)
-            embed = discord.Embed(
-                title='🦠 Карантин', color=ERROR_C,
-                description=f'Не удалось выдать участнику роль карантина.'
-            )
-            return await ctx.reply(embed=embed, ephemeral=True)
+            view = to_view('Не удалось выдать участнику роль карантина.', ERROR_C)
+            return await ctx.reply(view=view, ephemeral=True)
         
         # adding quarantine
         bot.mg.add_quarantine(member.id, epoch_time)
         log(f'{ctx.author.id} sent user {member.id} to quarantine for {length}')
         
-        embed = discord.Embed(
-            title='🦠 Карантин', color=DEFAULT_C,
-            description=f'{member.mention} успешно помещен в карантин на **{unit_length} {unit_name}**.'
-        )
-        await ctx.reply(embed=embed)
+        view = to_view([
+            '### 🦠 Карантин', SEP(),
+            f'{member.name} успешно помещен в карантин на **{unit_length} {unit_name}**.'
+        ])
+        await ctx.reply(view=view)
 
     
     @bot.hybrid_command(
@@ -96,43 +91,44 @@ async def setup(bot: commands.Bot):
         '''
         # checking permissions
         if not ctx.permissions.moderate_members and ctx.author.id not in ADMINS:
-            await ctx.reply(embed=MISSING_PERMS_EMBED)
+            await ctx.reply(view=c_to_view(MISSING_PERMS_EMBED))
             return
         
         if member.id not in bot.mg.quarantines:
-            embed = discord.Embed(
-                title='🦠 Карантин', color=ERROR_C,
-                description=f'{member.mention} и так не в карантине.'
-            )
-            return await ctx.reply(embed=embed)
+            view = to_view(f'{member.name} и так не в карантине.', ERROR_C)
+            return await ctx.reply(view=view)
         
         # removing from quarantine
         log(f'{ctx.author.id} released user {member.id} from quarantine')
         bot.mg.remove_quarantine(member.id)
 
-        embed = discord.Embed(
-            title='🦠 Карантин', color=DEFAULT_C,
-            description=f'{member.mention} выпущен с карантина.'
-        )
+        view = to_view([
+            '### 🦠 Карантин', SEP(),
+            f'{member.name} успешно выпущен с карантина.'
+        ], DEFAULT_C)
 
         try:
             role = ctx.guild.get_role(QUARANTINE_ROLE)
+            verify_role = ctx.guild.get_role(VERIFY_ROLE)
             await member.remove_roles(role)
+            await member.add_roles(verify_role)
             
         except Exception as e:
             log(f'Unable to remove quarantine role from user {member.id}: {e}', level=ERROR)
-            embed = discord.Embed(
-                title='🦠 Карантин', color=DEFAULT_C,
-                description=f'{member.mention} выпущен с карантина.\n-# ⚠ Не удалось снять роль карантина с участинка!'
-            )
+            view = to_view([
+                '### 🦠 Карантин', SEP(),
+                f'{member.name} успешно выпущен с карантина.',
+                '-# :warning: Не удалось снять роль карантина с участинка!'
+            ], DEFAULT_C)
 
-        await ctx.reply(embed=embed)
+        await ctx.reply(view=view)
     
     
     @tasks.loop(seconds=5)
     async def quarantine_end_loop():
         guild = bot.get_guild(GUILD_ID)
         role = guild.get_role(QUARANTINE_ROLE)
+        verify_role = guild.get_role(VERIFY_ROLE)
 
         quars = copy.deepcopy(list(bot.mg.quarantines.items()))
 
@@ -143,6 +139,7 @@ async def setup(bot: commands.Bot):
             try:
                 member = await guild.fetch_member(user_id)
                 await member.remove_roles(role)
+                await member.add_roles(verify_role)
             except Exception as e:
                 log(f'Unable to remove quarantine role from {user_id}: {e}', level=ERROR)
 

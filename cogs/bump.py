@@ -39,12 +39,13 @@ async def setup(bot: commands.Bot):
         bumptime = deepcopy(bot.mg.last_bump)
         xp = bot.mg.bump(user.id)
 
-        embed = discord.Embed(
-            color=DEFAULT_C,
-            description=f'Спасибо за бамп, <@{user.id}>!\nЗа него вы получили **{xp} XP**.'\
-                f'\n\n-# Прошлый бамп был <t:{int(bumptime)}:R>.'
-        )
-        await after.channel.send(embed=embed)
+        view = to_view([
+            f'### 🤜 Спасибо за бамп, <@{user.id}>!',
+            f'За него вы получили **{xp} XP**.',
+            SEP(),
+            f'-# Прошлый бамп был <t:{int(bumptime)}:R>.'
+        ])
+        await after.channel.send(view=view)
 
         
     @tasks.loop(seconds=1)

@@ -20,13 +20,10 @@ async def setup(bot: commands.Bot):
             session = aiohttp.ClientSession()
             webhook = discord.Webhook.from_url(bot.WEBHOOK, session=session)
 
-            embed = discord.Embed(color=3092790)
+            view = to_view(f'{sender.mention}   ›   {REP_EMOJIS[amount]}   ›   {receiver.mention}')
+            mentions = discord.AllowedMentions(users=False, everyone=False, roles=False, replied_user=False)
 
-            embed.add_field(name='Отправитель', value=sender.mention, inline=True)
-            embed.add_field(name='Кол-во', value=REP_EMOJIS[amount], inline=True)
-            embed.add_field(name='Получатель', value=receiver.mention, inline=True)
-
-            await webhook.send(embed=embed, username='Отправлен реп', avatar_url=JOIN_IMAGE)
+            await webhook.send(view=view, username='Отправлен реп', avatar_url=JOIN_IMAGE, allowed_mentions=mentions)
             await session.close()
 
         except Exception as e:
@@ -45,10 +42,6 @@ async def setup(bot: commands.Bot):
             
             # checking message answer
             if message.reference == None:
-                # embed = discord.Embed(
-                #     description='Надо __ответить на сообщение__,', color=ERROR_C
-                # )
-                # return await message.reply(embed=embed)
                 return
 
             try:
@@ -57,27 +50,19 @@ async def setup(bot: commands.Bot):
                 return
             
             if reference.author == message.author:
-                # embed = discord.Embed(
-                #     description='Нельзя репать свои сообщения!', color=ERROR_C
-                # )
-                # return await message.reply(embed=embed)
                 return
 
             if reference.author.bot: 
-                # embed = discord.Embed(
-                #     description='У ботов нет репутации!', color=ERROR_C
-                # )
-                # return await message.reply(embed=embed)
                 return
 
             # repblock
             botuser = bot.mg.get_user(message.author.id)
             if time.time() < botuser.rep_block_until:
-                embed = discord.Embed(
-                    description=f'**У тебя репблок**! Ты сможешь репать <t:{int(botuser.rep_block_until)}:R>', 
-                    color=ERROR_C
-                )
-                return await message.reply(embed=embed)
+                view = to_view([
+                    '### У тебя репблок!', SEP(),
+                    f'Ты сможешь репать <t:{int(botuser.rep_block_until)}:R>'
+                ], ERROR_C)
+                return await message.reply(view=view)
 
             # rep adding / removing
             if amount not in REP_EMOJIS: return
@@ -86,10 +71,10 @@ async def setup(bot: commands.Bot):
             out = bot.mg.add_rep(reference.author.id, amount, message.author.id)
 
             if out != None:
-                embed = discord.Embed(
-                    description=f'**Кулдаун**! Попробуй снова <t:{int(out)}:R>', color=ERROR_C
-                )
-                return await message.reply(embed=embed)
+                view = to_view([
+                    '### Кулдаун!', SEP(), f'Попробуй снова <t:{int(out)}:R>'
+                ], ERROR_C)
+                return await message.reply(view=view)
 
             log(f'{reference.author.id} got {amount} rep from {message.author.id}')
             await send_to_logs(reference.author, amount, message.author)
@@ -127,23 +112,33 @@ async def setup(bot: commands.Bot):
         # repblock
         botuser = bot.mg.get_user(reaction.user_id)
         if time.time() < botuser.rep_block_until:
-            embed = discord.Embed(
-                description=f'**У тебя репблок**! Ты сможешь репать <t:{int(botuser.rep_block_until)}:R>', 
-                color=ERROR_C
-            )
+            c = to_container([
+                '### У тебя репблок!', SEP(),
+                f'Ты сможешь репать <t:{int(botuser.rep_block_until)}:R>'
+            ], ERROR_C)
+
+            view = ui.LayoutView()
+            view.add_item(ui.TextDisplay(f'<@{reaction.user_id}>'))
+            view.add_item(c)
+
             mentions = discord.AllowedMentions(replied_user=False)
-            await message.reply(f'<@{reaction.user_id}>', embed=embed, allowed_mentions=mentions)
+            await message.reply(view=view, allowed_mentions=mentions)
             return
     
         # adding rep
         out = bot.mg.add_rep(message.author.id, REP_EMOJI_IDS[reaction.emoji.id], reaction.member.id)
 
         if out != None:
-            embed = discord.Embed(
-                description=f'**Кулдаун**! Попробуй снова <t:{int(out)}:R>', color=ERROR_C
-            )
+            c = to_container([
+                '### Кулдаун!', SEP(), f'Попробуй снова <t:{int(out)}:R>'
+            ], ERROR_C)
+
+            view = ui.LayoutView()
+            view.add_item(ui.TextDisplay(f'<@{reaction.user_id}>'))
+            view.add_item(c)
+
             mentions = discord.AllowedMentions(replied_user=False)
-            await message.reply(f'<@{reaction.user_id}>', embed=embed, allowed_mentions=mentions)
+            await message.reply(view=view, allowed_mentions=mentions)
             return
 
         await send_to_logs(message.author, REP_EMOJI_IDS[reaction.emoji.id], reaction.member)
@@ -168,10 +163,8 @@ async def setup(bot: commands.Bot):
             await ctx.channel.typing()
 
         if user.bot:
-            embed = discord.Embed(
-                description='хахахаха боты сосите', color=ERROR_C
-            )
-            return await ctx.reply(embed=embed)
+            view = to_view('хахахаха боты сосите', ERROR_C)
+            return await ctx.reply(view=view)
 
         path = bot.mg.renderer.rep(user)
         file = discord.File(path, 'image.png')
@@ -201,18 +194,14 @@ async def setup(bot: commands.Bot):
         '''
         # checking permissions
         if not ctx.permissions.moderate_members:
-            await ctx.reply(embed=MISSING_PERMS_EMBED)
+            await ctx.reply(view=c_to_view(MISSING_PERMS_EMBED))
             return
 
         # muting user
         data = utils.seconds_from_string(time)
         # checking input validity
         if data == None:
-            embed = discord.Embed(
-                title='➖ Репблок', color=ERROR_C,
-                description=f'Указана некорректная длина.'
-            )
-            await ctx.reply(embed=embed, ephemeral=True)
+            await ctx.reply(view=c_to_view(INCORRECT_LENGTH_EMBED), ephemeral=True)
             return
         
         else:
@@ -226,14 +215,16 @@ async def setup(bot: commands.Bot):
 
         # sending message
         if reason == None:
-            embed = discord.Embed(
-                title='➖ Репблок', color=DEFAULT_C,
-                description=f'{member.mention} успешно репблокнут на **{unit_length} {unit_name}**.'
-            )
+            view = to_view([
+                '### ➖ Репблок', SEP(),
+                f'{member.mention} успешно репблокнут на **{unit_length} {unit_name}**.'
+            ], DEFAULT_C)
+
         else:
-            embed = discord.Embed(
-                title='➖ Репблок', color=DEFAULT_C,
-                description=f'{member.mention} успешно репблокнут на **{unit_length} {unit_name}**'\
-                    f' по причине **{utils.remove_md(reason)}**.'
-            )
-        await ctx.reply(embed=embed)
+            view = to_view([
+                '### ➖ Репблок', SEP(),
+                f'{member.mention} успешно репблокнут на **{unit_length} {unit_name}** '\
+                    f'по причине **{utils.remove_md(reason)}**.'
+            ], DEFAULT_C)
+            
+        await ctx.reply(view=view)

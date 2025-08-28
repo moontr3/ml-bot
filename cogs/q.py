@@ -59,11 +59,8 @@ async def setup(bot: commands.Bot):
 
         # showing error
         if not fetched:
-            embed = discord.Embed(
-                title='❌ Ошибка!', color=ERROR_C,
-                description=f'Надо __ответить на сообщение__.'
-            )
-            await ctx.reply(embed=embed)
+            view = to_view('Надо ответить на сообщение, на которое хотите поставить :regional_indicator_q:.', ERROR_C)
+            await ctx.reply(view=view)
             return
 
         # yaay success

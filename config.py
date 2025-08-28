@@ -1,4 +1,5 @@
 import discord
+from builder import *
 
 PREFIXES = ('tml!', 'ml!', 'odbs!','мл!','penis!','пенис!')
 TEMP_VC_CREATE_COMMANDS = ['!типа где', '!типо где', '!тип где', '!tipa gde', '!tipo gde']
@@ -33,6 +34,7 @@ PIDORAS_ID = [1380792995242180749, 1408431830503391232, 1398177733699305574, 140
 IMBA_ROLE = 1118918623466110976
 QUARANTINE_ROLE = 1003696913138323496
 MFR_CHANNEL = 1409508564732481646
+VC_PING_ROLE = 1410600327907901480
 
 THRESHOLD = 0.1
 WORD_MAX_AMOUNT = 3
@@ -116,32 +118,15 @@ DEFAULT_C = discord.Color.green()
 LOADING_C = discord.Color.yellow()
 ERROR_C = discord.Color.red()
 
-MISSING_PERMS_EMBED = discord.Embed(
-    title='❌ Ошибка!', color=ERROR_C,
-    description='Недостаточно прав для ввода этой команды.'
-)
-UNKNOWN_ERROR_EMBED = discord.Embed(
-    title='❌ Ошибка!', color=ERROR_C,
-    description=f'Произошла неизвестная ошибка. Попробуйте ещё раз.'
-)
-ARGS_REQUIRED_EMBED = discord.Embed(
-    title='❌ Ошибка!', color=ERROR_C,
-    description='Приведено недостаточно аргументов.'
-)
-UNKNOWN_USER_EMBED = discord.Embed(
-    title='❌ Ошибка!', color=ERROR_C,
-    description='Неизвестный пользователь.'
-)
-UNKNOWN_CHANNEL_EMBED = discord.Embed(
-    title='❌ Ошибка!', color=ERROR_C,
-    description='Неизвестный канал.'
-)
-LOADING_EMBED = discord.Embed(
-    title='Загружаем...', color=LOADING_C
-)
-NO_DM_EMBED = discord.Embed(
-    description='Бота можно использовать только на сервере.', color=ERROR_C
-)
+MISSING_PERMS_EMBED = to_container('Недостаточно прав для ввода этой команды.', ERROR_C)
+UNKNOWN_ERROR_EMBED = to_container('Произошла неизвестная ошибка. Попробуйте ещё раз.', ERROR_C)
+ARGS_REQUIRED_EMBED = to_container('Приведено недостаточно аргументов.', ERROR_C)
+UNKNOWN_USER_EMBED = to_container('Неизвестный пользователь.', ERROR_C)
+UNKNOWN_CHANNEL_EMBED = to_container('Неизвестный канал.', ERROR_C)
+LOADING_EMBED = to_container('Загружаем...', LOADING_C)
+NO_DM_EMBED = to_container('Бота можно использовать только на сервере.', ERROR_C)
+NOT_ADMIN_EMBED = to_container('Вы не администратор бота!', ERROR_C)
+INCORRECT_LENGTH_EMBED = to_container('Указана некорректная длина', ERROR_C)
 
 WARN_IMAGE = 'https://moontr3.ru/assets/wpbot/warn.png'
 JOIN_IMAGE = 'https://moontr3.ru/assets/wpbot/join.png'

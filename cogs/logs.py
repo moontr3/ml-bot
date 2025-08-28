@@ -14,23 +14,23 @@ async def setup(bot: commands.Bot):
     async def on_message_delete(message: discord.Message):
         session = aiohttp.ClientSession()
         webhook = Webhook.from_url(bot.WEBHOOK, session=session)
-        embed = discord.Embed(
-            color=3092790,
-            description=f'{message.channel.mention} ・ {message.channel.id}'
-        )
+        
+        elements = [
+            message.content if message.content else None,
+            SEP(spacing=discord.SeparatorSpacing.large),
+            f'{message.channel.mention} ・ {message.id}',
+            f'{message.author.mention} ・ {message.author.id}'
+        ]
 
-        embed.set_footer(
-            text=f'{message.author.name} ・ {message.author.id}',
-            icon_url=message.author.avatar.url if message.author.avatar is not None else None
-        )
+        if message.attachments:
+            elements.append(SEP())
+            elements.append('### Вложения')
+            elements.append('\n'.join(['- '+i.url for i in message.attachments]))
 
-        if message.attachments != []:
-            embed.add_field(name='Вложения', value='\n'.join([i.url for i in message.attachments]), inline=False)
+        view = to_view(elements)
+        mentions = discord.AllowedMentions(users=False, everyone=False, roles=False, replied_user=False)
 
-        elif message.content == '':
-            return
-
-        await webhook.send(content=message.content, embed=embed, username='Сообщение удалено', avatar_url=DELETE_IMAGE)
+        await webhook.send(view=view, username='Сообщение удалено', avatar_url=DELETE_IMAGE, allowed_mentions=mentions)
         await session.close()
 
 
@@ -54,37 +54,31 @@ async def setup(bot: commands.Bot):
     # editing
     @bot.listen()
     async def on_message_edit(before: discord.Message, after: discord.Message):
-        if before.content == after.content:
-            return
-        
-        if not before.content:
-            return
-        
         session = aiohttp.ClientSession()
         webhook = Webhook.from_url(bot.WEBHOOK, session=session)
         
-        # embed
-        embed = discord.Embed(
-            color=3092790,
-            description=f'{after.channel.mention} ・ {after.channel.id}\n{after.jump_url} ・ {after.id}'
-        )
-        embed.set_footer(
-            text=f'{after.author.name} ・ {after.author.id}',
-            icon_url=after.author.avatar.url if after.author.avatar is not None else None
-        )
-
-        # embeds before and after
-        before_embed = discord.Embed(title='До изменений', color=3092790, description=before.content)
-        after_embed = discord.Embed(title='После изменений', color=3092790, description=after.content)
-
+        elements = ['### До изменений', before.content if before.content else None]
         if before.attachments != []:
-            before_embed.add_field(name='Вложения', value='\n'.join([i.url for i in before.attachments]), inline=False)
+            elements.extend([SEP(), '\n'.join(['- '+i.url for i in before.attachments])])
+
+        elements.extend([
+            SEP(spacing=discord.SeparatorSpacing.large), '### После изменений',
+            after.content if after.content else None
+        ])
         if after.attachments != []:
-            after_embed.add_field(name='Вложения', value='\n'.join([i.url for i in after.attachments]), inline=False)
+            elements.extend([SEP(), '\n'.join(['- '+i.url for i in after.attachments])])
 
-        embeds = [before_embed, after_embed, embed]
+        elements.extend([
+            SEP(spacing=discord.SeparatorSpacing.large),
+            f'{after.channel.mention} ・ {after.channel.id}',
+            f'{after.jump_url} ・ {after.id}',
+            f'{after.author.mention} ・ {after.author.id}'
+        ])
 
-        await webhook.send(embeds=embeds, username='Сообщение изменено', avatar_url=EDIT_IMAGE)
+        view = to_view(elements)
+        mentions = discord.AllowedMentions(users=False, everyone=False, roles=False, replied_user=False)
+
+        await webhook.send(view=view, username='Сообщение изменено', avatar_url=EDIT_IMAGE, allowed_mentions=mentions)
         await session.close()
 
 
@@ -94,10 +88,19 @@ async def setup(bot: commands.Bot):
         session = aiohttp.ClientSession()
         webhook = Webhook.from_url(bot.WEBHOOK, session=session)
 
-        embed = discord.Embed(title=member.name, color=3092790, description=f'{member.mention} ・ {member.id}')
-        embed.set_thumbnail(url=member.avatar.url if member.avatar is not None else None)
+        view = ui.LayoutView()
+        elements = [
+            ui.TextDisplay('**'+member.name+'**'),
+            ui.TextDisplay(member.mention),
+            ui.TextDisplay(member.id),
+        ]
 
-        await webhook.send(embed=embed, username='Участник зашел на сервер', avatar_url=JOIN_IMAGE)
+        if member.avatar.url:
+            elements = [ui.Section(*elements, accessory=ui.Thumbnail(member.avatar.url))]
+        
+        view.add_item(ui.Container(*elements))
+
+        await webhook.send(view=view, username='Участник зашел на сервер', avatar_url=JOIN_IMAGE)
         await session.close()
 
 
@@ -107,8 +110,17 @@ async def setup(bot: commands.Bot):
         session = aiohttp.ClientSession()
         webhook = Webhook.from_url(bot.WEBHOOK, session=session)
 
-        embed = discord.Embed(title=member.name, color=3092790, description=f'{member.mention} ・ {member.id}')
-        embed.set_thumbnail(url=member.avatar.url if member.avatar is not None else None)
+        view = ui.LayoutView()
+        elements = [
+            ui.TextDisplay('**'+member.name+'**'),
+            ui.TextDisplay(member.mention),
+            ui.TextDisplay(member.id),
+        ]
 
-        await webhook.send(embed=embed, username='Участник вышел из сервера', avatar_url=LEAVE_IMAGE)
+        if member.avatar.url:
+            elements = [ui.Section(*elements, accessory=ui.Thumbnail(member.avatar.url))]
+        
+        view.add_item(ui.Container(*elements))
+
+        await webhook.send(view=view, username='Участник вышел из сервера', avatar_url=LEAVE_IMAGE)
         await session.close()

@@ -66,8 +66,7 @@ async def reload(ctx):
     desc = f'{len(bot.commands)} commands, {len(bot.tree.get_commands())} slash, '\
         f'{len(bot.extensions)}/{len(glob.glob(f"{COGS_FOLDER}/*.py"))} cogs loaded'
     
-    embed = discord.Embed(title=f'✅ Commands reloaded!', description=desc, color=DEFAULT_C)
-    await ctx.reply(embed=embed)
+    await ctx.reply(view=to_view('Команды перезагружены!', DEFAULT_C))
 
 
 @bot.command(aliases=['st'])
@@ -78,13 +77,13 @@ async def synctree(ctx):
     if ctx.author.id not in ADMINS: return
 
     log(f'{ctx.author.id} requested tree syncing')
-    embed = discord.Embed(title=f'Syncing...', color=discord.Color.yellow())
-    msg = await ctx.reply(embed=embed)
+    view = to_view('Синхронизируем...', LOADING_C)
+    msg = await ctx.reply(view=view)
     
     synced = await bot.tree.sync()
     log(f'{ctx.author.id} synced tree with {len(synced)} commands', level=SUCCESS)
-    embed = discord.Embed(title=f'✅ {len(synced)} commands synced!', color=DEFAULT_C)
-    await msg.edit(embed=embed)
+    view = to_view(f'{len(synced)} команд синхронизировано!', DEFAULT_C)
+    await msg.edit(view=view)
     
 
 ## RUNNING BOT

@@ -17,7 +17,7 @@ async def setup(bot: commands.Bot):
             return
 
         if message.guild == None:
-            await message.reply(embed=NO_DM_EMBED)
+            await message.reply(view=c_to_view(NO_DM_EMBED))
             return
         
         await bot.process_commands(message)

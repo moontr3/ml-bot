@@ -25,11 +25,10 @@ async def setup(bot: commands.Bot):
         '''
         log(f'{ctx.author.id} requested bot ping')
         ping = round(bot.latency*1000)
-        embed = discord.Embed(
-            title='🏓 Понг!', description=f'**{ping}** мс',
-            color=DEFAULT_C
-        )
-        await ctx.reply(embed=embed)
+        view = to_view([
+            '### 🏓 Понг!', SEP(), f'**{ping}** мс'
+        ])
+        await ctx.reply(view=view)
 
 
     @bot.hybrid_command(
@@ -50,11 +49,8 @@ async def setup(bot: commands.Bot):
         for i in invitelist:
             invites += i.uses
         
-        embed = discord.Embed(
-            description=f'# {utils.to_cool_numbers(invites)}',
-            color=DEFAULT_C
-        )
-        await ctx.reply(embed=embed)
+        view = to_view(f'# {utils.to_cool_numbers(invites)}')
+        await ctx.reply(view=view)
 
 
     @bot.hybrid_command(
@@ -73,25 +69,21 @@ async def setup(bot: commands.Bot):
             user = ctx.author
 
         if user.bot:
-            embed = discord.Embed(
-                color=ERROR_C, description='❌ Это бот да. незя атата'
-            )
-            await ctx.reply(embed=embed)
+            view = to_view('Это бот да. незя атата', ERROR_C)
+            await ctx.reply(view=view)
             return
 
         botuser: api.User = bot.mg.get_user(user.id)
         finishes = bot.mg.get_lb_finishes(user.id)
         
-        embed = discord.Embed(
-            color=DEFAULT_C, title=f'ℹ️ Статистика {user.display_name}',
-            description=\
-                f'### {PLACE1} **{finishes[1]}** ・ {PLACE2} **{finishes[2]}** ・ {PLACE3} **{finishes[3]}**\n'\
-                f'Поставлено напоминаний: **{len(botuser.reminders)}**\n'\
-                f'Режим Зверя: {"✅" if botuser.marked_by_beast else "❌"}'\
-                f'Likee Bot: {"✅" if botuser.likee else "❌"}'
-        )
-
-        await ctx.reply(embed=embed)
+        view = to_view([
+            f'### 📊 Статистика {user.display_name}', SEP(),
+            f'### {PLACE1} **{finishes[1]}** ・ {PLACE2} **{finishes[2]}** ・ {PLACE3} **{finishes[3]}**',
+            f'Поставлено напоминаний: **{len(botuser.reminders)}**',
+            f'Режим Зверя: {"✅" if botuser.marked_by_beast else "❌"}',
+            f'Likee Bot: {"✅" if botuser.likee else "❌"}',
+        ])
+        await ctx.reply(view=view)
 
 
     @bot.tree.command(
@@ -105,17 +97,13 @@ async def setup(bot: commands.Bot):
         Sends anonymous message.
         '''
         if ctx.channel.id != CHAT_CHANNEL:
-            embed = discord.Embed(
-                color=ERROR_C, description=f'Эта команда доступна только в канале <#{CHAT_CHANNEL}>.'
-            )
-            await ctx.response.send_message(embed=embed, ephemeral=True)
+            view = to_view(f'Эта команда доступна только в канале <#{CHAT_CHANNEL}>.', ERROR_C)
+            await ctx.response.send_message(view=view, ephemeral=True)
             return
 
         if 'discord.com/invite/' in text.lower() or 'discord.gg/' in text.lower():
-            embed = discord.Embed(
-                color=ERROR_C, description='Нет иди нахуй'
-            )
-            await ctx.response.send_message(embed=embed, ephemeral=True)
+            view = to_view('Нет иди нахуй', ERROR_C)
+            await ctx.response.send_message(view=view, ephemeral=True)
             return
         
         await ctx.response.defer(ephemeral=True)
@@ -132,8 +120,8 @@ async def setup(bot: commands.Bot):
         log(f'{ctx.user.id} sent an anonymous message: {text}')
 
         # success
-        embed = discord.Embed(color=DEFAULT_C, description='Сообщение отправлено!')
-        await ctx.followup.send(embed=embed)
+        view = to_view('Сообщение отправлено!', DEFAULT_C)
+        await ctx.followup.send(view=view)
 
 
     @bot.hybrid_command(
@@ -151,22 +139,23 @@ async def setup(bot: commands.Bot):
         stats = bot.mg.get_all_info()
         verified_count = len(ctx.guild.get_role(VERIFY_ROLE).members)
         
-        embed = discord.Embed(
-            color=DEFAULT_C, title='ℹ️ О боте',
-            description='Создатель: `moontr3` (obviously)\n'\
-                f'Контрибьюторы: `n0n1m`, `mbutsk`\n'\
-                f'Написан на **Python** и **discord.py**\n'\
-                f'-# Рендеринг картинок через **pygame-ce**\n\n'\
-                f'Пользователей зарегистрировано: **{len(bot.mg.users)}**\n'\
-                f'Участников на сервере: **{ctx.guild.member_count}**\n'\
-                f'Верифицировано: **{verified_count}**\n'\
-                f'Всего заработано опыта: **{stats["xp"]} XP**\n'\
-                f'Всего получено скинов: **{stats["skins"]}**\n'\
-                f'Всего получено шрифтов: **{stats["fonts"]}**\n'\
-                f'Всего собрано Q: **{stats["q"]} Q**\n'\
-        )
+        view = to_view([
+            '### :information_source: О боте', SEP(),
+            'Создатель: `moontr3` (obviously)',
+            'Контрибьюторы: `n0n1m`, `mbutsk`',
+            'Написан на **Python** и **discord.py**\n-# Рендеринг картинок через **pygame-ce**',
+            SEP(),
+            f'Пользователей зарегистрировано: **{len(bot.mg.users)}**',
+            f'Участников на сервере: **{ctx.guild.member_count}**',
+            f'Верифицировано: **{verified_count}**',
+            SEP(),
+            f'Всего заработано опыта: **{stats["xp"]} XP**',
+            f'Всего получено скинов: **{stats["skins"]}**',
+            f'Всего получено шрифтов: **{stats["fonts"]}**',
+            f'Всего собрано Q: **{stats["q"]} Q**',
+        ])
 
-        await ctx.reply(embed=embed)
+        await ctx.reply(view=view)
 
 
     # purge command
@@ -190,11 +179,11 @@ async def setup(bot: commands.Bot):
         '''
         # checking permissions
         if not ctx.permissions.manage_messages:
-            await ctx.reply(embed=MISSING_PERMS_EMBED)
+            await ctx.reply(view=c_to_view(MISSING_PERMS_EMBED))
             return
         
         # sending loading message
-        await ctx.reply(embed=LOADING_EMBED)
+        await ctx.reply(view=c_to_view(LOADING_EMBED))
 
         # just purge
         if member == None and keywords == '':
@@ -207,7 +196,7 @@ async def setup(bot: commands.Bot):
                 return m.author.id == member.id
             
             deleted = await ctx.channel.purge(limit=amount, check=check)
-            text = f'Успешно очищено **{len(deleted)}** сообщений от {member.mention}!'
+            text = f'Успешно очищено **{len(deleted)}** сообщений от {member.name}!'
 
         # filter by keywords
         elif member == None and keywords != '':
@@ -224,23 +213,22 @@ async def setup(bot: commands.Bot):
                     (m.author.id == member.id)
             
             deleted = await ctx.channel.purge(limit=amount, check=check)
-            text = f'Успешно очищено **{len(deleted)}** сообщений от {member.mention}!'
+            text = f'Успешно очищено **{len(deleted)}** сообщений от {member.name}!'
 
         log(f'{ctx.author.id} purged {len(deleted)}/{amount} messages in {ctx.channel.id}')
 
         # sending message
         # checking if there even was something deleted
         if len(deleted) == 0:
-            embed = discord.Embed(
-                title='🗑 Очистка', color=ERROR_C,
-                description='По такому запросу не найдено сообщений, которые можно удалить.'
-            )
+            view = to_view([
+                '🗑 Очистка', SEP(),
+                'По такому запросу не найдено сообщений, которые можно удалить.'
+            ], ERROR_C)
         else:
-            embed = discord.Embed(
-                title='🗑 Очистка', description=text,
-                color=DEFAULT_C
-            )
-        await ctx.response.edit_message(embed=embed)
+            view = to_view([
+                '🗑 Очистка', SEP(), text
+            ], DEFAULT_C)
+        await ctx.response.edit_message(view=view)
 
 
     # mute command
@@ -265,18 +253,14 @@ async def setup(bot: commands.Bot):
         '''
         # checking permissions
         if not ctx.permissions.moderate_members:
-            await ctx.reply(embed=MISSING_PERMS_EMBED)
+            await ctx.reply(view=c_to_view(MISSING_PERMS_EMBED))
             return
 
         # muting user
         data = utils.seconds_from_string(length)
         # checking input validity
         if data == None:
-            embed = discord.Embed(
-                title='🤐 Таймаут', color=ERROR_C,
-                description=f'Указана некорректная длина.'
-            )
-            await ctx.reply(embed=embed, ephemeral=True)
+            await ctx.reply(view=c_to_view(INCORRECT_LENGTH_EMBED), ephemeral=True)
             return
         
         else:
@@ -293,26 +277,25 @@ async def setup(bot: commands.Bot):
         
         except Exception as e:
             log(f'Error while {ctx.author.id} was timeouting {member.id} for {length}: {e}', level=ERROR)
-            embed = discord.Embed(
-                title='🤐 Таймаут', color=ERROR_C,
-                description=f'Не удалось замутить участника.'
-            )
-            await ctx.reply(embed=embed, ephemeral=True)
+            view = to_view('Не удалось замутить участника.', ERROR_C)
+            await ctx.reply(view=view, ephemeral=True)
             return
 
         # sending message
         if reason == None:
-            embed = discord.Embed(
-                title='🤐 Таймаут', color=DEFAULT_C,
-                description=f'{member.mention} успешно замьючен на **{unit_length} {unit_name}**.'
-            )
+            view = to_view([
+                '### 🤐 Таймаут', SEP(),
+                f'{member.name} успешно замьючен на **{unit_length} {unit_name}**.'
+            ], DEFAULT_C)
+
         else:
-            embed = discord.Embed(
-                title='🤐 Таймаут', color=DEFAULT_C,
-                description=f'{member.mention} успешно замьючен на **{unit_length} {unit_name}**'\
-                    f' с причиной **{utils.remove_md(reason)}**.'
-            )
-        await ctx.reply(embed=embed)
+            view = to_view([
+                '### 🤐 Таймаут', SEP(),
+                f'{member.name} успешно замьючен на **{unit_length} {unit_name}** '\
+                    f'по причине **{reason}**.'
+            ], DEFAULT_C)
+
+        await ctx.reply(view=view)
 
 
     # unmute command
@@ -333,16 +316,13 @@ async def setup(bot: commands.Bot):
         '''
         # checking permissions
         if not ctx.permissions.moderate_members:
-            await ctx.reply(embed=MISSING_PERMS_EMBED)
+            await ctx.reply(view=c_to_view(MISSING_PERMS_EMBED))
             return
 
         # checking if the user is muted or not
         if member.timed_out_until == None:
-            embed = discord.Embed(
-                title='🤐 Размут', color=ERROR_C,
-                description=f'Выбранный участник и так не в муте.'
-            )
-            await ctx.reply(embed=embed, ephemeral=True)
+            view = to_view('Этот участник и так не в муте.', ERROR_C)
+            await ctx.reply(view=view, ephemeral=True)
             return
 
         # unmuting
@@ -352,15 +332,12 @@ async def setup(bot: commands.Bot):
 
         except Exception as e:
             log(f'Error while {ctx.author.id} was unmuting {member.id}: {e}', level=ERROR)
-            embed = discord.Embed(
-                title='🤐 Размут', color=ERROR_C,
-                description=f'Не удалось размутить участника.'
-            )
-            await ctx.reply(embed=embed, ephemeral=True)
+            view = to_view('Не удалось размутить участника.', ERROR_C)
+            await ctx.reply(view=view, ephemeral=True)
             return
-            
-        embed = discord.Embed(
-            title='🤐 Размут', color=DEFAULT_C,
-            description=f'Вы успешно размутили {member.mention}!'
-        )
-        await ctx.reply(embed=embed)
+           
+        view = to_view([
+            '### 🤐 Размут', SEP(),
+            f'Вы успешно размутили {member.name}!'
+        ], DEFAULT_C)
+        await ctx.reply(view=view)

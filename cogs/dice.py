@@ -46,6 +46,11 @@ async def setup(bot: commands.Bot):
             if amount < 1:
                 return
             
+            if amount > 100:
+                view = to_view('пожалуй нет', ERROR_C)
+                await message.reply(view=view)
+                return
+            
             # positive bias
             if '+' in parts[1]:
                 try: bias.append(int(parts[1].split('+')[1]))
@@ -62,23 +67,35 @@ async def setup(bot: commands.Bot):
             
             # dice
             try:
+                parts[1] = int(parts[1])
+                
+                if parts[1] < 1:
+                    view = to_view(f'каким хуем я должен по твоему кинуть кубик с {parts[1]} сторонами?', ERROR_C)
+                    await message.reply(view=view)
+                    return
+            
                 for i in range(amount):
-                    dice.append(int(parts[1]))
+                    dice.append(parts[1])
             except:
                 return
             
         # checking data
         if len(dice) > 100:
-            embed = discord.Embed(description=f'{len(dice)} кубиков чет многовато не думаешь', color=ERROR_C)
-            await message.reply(embed=embed)
+            view = to_view(f'{len(dice)} кубиков чет многовато не думаешь', ERROR_C)
+            await message.reply(view=view)
             return
         
         if sum(dice) > 1000000:
-            embed = discord.Embed(description='пожалуй нет', color=ERROR_C)
-            await message.reply(embed=embed)
+            view = to_view('пожалуй нет', ERROR_C)
+            await message.reply(view=view)
             return
             
         # sending message
+        if random.randint(1, 2000000) == 1:
+            view = to_view('кубик упал на ребро', ERROR_C)
+            await message.reply(view=view)
+            return
+        
         results = [
             random.randint(1, i) for i in dice
         ]

@@ -49,11 +49,16 @@ async def setup(bot: commands.Bot):
         # sending verify hint
         channel = bot.get_channel(VERIFY_ID)
 
-        embed = discord.Embed(
-            title='👋 Добро пожаловать на мунленд!',
-            description='Для получения доступа к серверу введи команду `ml!verify` в этот чат.',
-            color=DEFAULT_C
-        )
-        embed.set_thumbnail(url='https://moontr3.ru/assets/mlverify.png')
+        view = ui.LayoutView()
+        
+        c = ui.Container()
+        c.add_item(ui.Section(
+            ui.TextDisplay('### 👋 Добро пожаловать на moonland!'),
+            ui.TextDisplay('Для получения доступа к серверу введи команду `ml!verify` в этот чат.'),
+            accessory=ui.Thumbnail('https://moontr3.ru/assets/mlverify.png')
+        ))
 
-        await channel.send(f'<@{member.id}>', embed=embed)
+        view.add_item(ui.TextDisplay(f'<@{member.id}>'))
+        view.add_item(c)
+
+        await channel.send(view=view)

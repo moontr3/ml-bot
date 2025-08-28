@@ -1,12 +1,14 @@
 from discord.ext import commands
 import discord
+from builder import *
 from config import *
+import utils
 
 async def setup(bot: commands.Bot):
     # command
     @bot.hybrid_command(
         name='faq',
-        aliases=['чаво',"гайд",'guide','help','хелп','помощь'],
+        aliases=['чаво',"гайд",'guide','help','хелп','помощь','fuckyou','факю','факью','fucku'],
         description='Показывает часто задаваемые вопросы.'
     )
     @discord.app_commands.guild_only()
@@ -18,21 +20,11 @@ async def setup(bot: commands.Bot):
         if page:
             for i in bot.mg.data.get('faq', []):
                 if any([item.lower() == page.lower() for item in i['alt']]):
-                    embed = discord.Embed(
-                        title=i['name'],
-                        description=i['contents'],
-                        color=DEFAULT_C
-                    )
-                    await ctx.reply(embed=embed)
+                    view = to_view(utils.get_faq_view_items(i))
+                    await ctx.reply(view=view)
                     return
         
         # no page
-        embed = discord.Embed(
-            title='Помощь',
-            description='Приветствую в FAQ!\n\nЗдесь можно узнать больше о сервере и боте.',
-            color=DEFAULT_C
-        )
-
         options = []
 
         for c, i in enumerate(bot.mg.data.get('faq', [])):
@@ -40,14 +32,16 @@ async def setup(bot: commands.Bot):
                 label=i['name'], value=str(c), emoji=i['emoji']
             ))
 
-        view = discord.ui.View(timeout=None)
-        view.add_item(discord.ui.Select(
-            custom_id='faq',
-            options=options,
-            placeholder='Выбери вопрос...'
-        ))
-
-        await ctx.reply(embed=embed, view=view)
+        view = to_view([
+            '### 📚 Помощь', SEP(),
+            'Приветствую в FAQ!', 'Здесь можно узнать больше о сервере и боте.', SEP(),
+            ui.Select(
+                custom_id='faq',
+                options=options,
+                placeholder='Выбери страничку...'
+            )
+        ])
+        await ctx.reply(view=view)
 
     # handling components
     @bot.listen()
@@ -56,10 +50,5 @@ async def setup(bot: commands.Bot):
             index = int(interaction.data['values'][0])
             data = bot.mg.data.get('faq', [])[index]
             
-            embed = discord.Embed(
-                title=data['name'],
-                description=data['contents'],
-                color=DEFAULT_C
-            )
-
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+            view = to_view(utils.get_faq_view_items(data))
+            await interaction.response.send_message(view=view, ephemeral=True)
