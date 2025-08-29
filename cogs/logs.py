@@ -28,9 +28,8 @@ async def setup(bot: commands.Bot):
             elements.append('\n'.join(['- '+i.url for i in message.attachments]))
 
         view = to_view(elements)
-        mentions = discord.AllowedMentions(users=False, everyone=False, roles=False, replied_user=False)
 
-        await webhook.send(view=view, username='Сообщение удалено', avatar_url=DELETE_IMAGE, allowed_mentions=mentions)
+        await webhook.send(view=view, username='Сообщение удалено', avatar_url=DELETE_IMAGE, allowed_mentions=NO_MENTIONS)
         await session.close()
 
 
@@ -76,9 +75,8 @@ async def setup(bot: commands.Bot):
         ])
 
         view = to_view(elements)
-        mentions = discord.AllowedMentions(users=False, everyone=False, roles=False, replied_user=False)
 
-        await webhook.send(view=view, username='Сообщение изменено', avatar_url=EDIT_IMAGE, allowed_mentions=mentions)
+        await webhook.send(view=view, username='Сообщение изменено', avatar_url=EDIT_IMAGE, allowed_mentions=NO_MENTIONS)
         await session.close()
 
 
@@ -88,17 +86,12 @@ async def setup(bot: commands.Bot):
         session = aiohttp.ClientSession()
         webhook = Webhook.from_url(bot.WEBHOOK, session=session)
 
-        view = ui.LayoutView()
-        elements = [
-            ui.TextDisplay('**'+member.name+'**'),
-            ui.TextDisplay(member.mention),
-            ui.TextDisplay(member.id),
-        ]
+        elements = ['**'+member.name+'**', member.mention, str(member.id)]
 
         if member.avatar.url:
-            elements = [ui.Section(*elements, accessory=ui.Thumbnail(member.avatar.url))]
+            elements = [add_accessory(elements, accessory=ui.Thumbnail(member.avatar.url))]
         
-        view.add_item(ui.Container(*elements))
+        view = to_view(elements)
 
         await webhook.send(view=view, username='Участник зашел на сервер', avatar_url=JOIN_IMAGE)
         await session.close()
@@ -110,17 +103,12 @@ async def setup(bot: commands.Bot):
         session = aiohttp.ClientSession()
         webhook = Webhook.from_url(bot.WEBHOOK, session=session)
 
-        view = ui.LayoutView()
-        elements = [
-            ui.TextDisplay('**'+member.name+'**'),
-            ui.TextDisplay(member.mention),
-            ui.TextDisplay(member.id),
-        ]
+        elements = ['**'+member.name+'**', member.mention, str(member.id)]
 
         if member.avatar.url:
-            elements = [ui.Section(*elements, accessory=ui.Thumbnail(member.avatar.url))]
+            elements = [add_accessory(elements, accessory=ui.Thumbnail(member.avatar.url))]
         
-        view.add_item(ui.Container(*elements))
+        view = to_view(elements)
 
         await webhook.send(view=view, username='Участник вышел из сервера', avatar_url=LEAVE_IMAGE)
         await session.close()

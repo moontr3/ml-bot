@@ -79,7 +79,6 @@ async def setup(bot: commands.Bot):
         # leaving/joining vc messages
         session = aiohttp.ClientSession()
         webhook = discord.Webhook.from_url(bot.SERVICE_WEBHOOK, session=session)
-        mentions = discord.AllowedMentions(users=False)
     
         if before.channel == None and after.channel != None:
             if after.channel.type == discord.ChannelType.stage_voice:
@@ -89,7 +88,7 @@ async def setup(bot: commands.Bot):
             await webhook.send(
                 f'<@{member.id}>  →  <#{after.channel.id}>',
                 avatar_url=JOIN_IMAGE, username='Вход в голосовой канал',
-                allowed_mentions=mentions
+                allowed_mentions=NO_MENTIONS
             )
         
         elif before.channel != None and after.channel == None:
@@ -100,14 +99,14 @@ async def setup(bot: commands.Bot):
             await webhook.send(
                 f'<@{member.id}>  ←  <#{before.channel.id}>',
                 avatar_url=LEAVE_IMAGE, username='Выход из голосового канала',
-                allowed_mentions=mentions
+                allowed_mentions=NO_MENTIONS
             )
 
         elif before.channel != after.channel and (before.channel != None and after.channel != None):
             await webhook.send(
                 f'<#{before.channel.id}>  →  <@{member.id}>  →  <#{after.channel.id}>',
                 avatar_url=MOVE_IMAGE, username='Переход в голосовой канал',
-                allowed_mentions=mentions
+                allowed_mentions=NO_MENTIONS
             )
 
         # live messages
@@ -119,7 +118,7 @@ async def setup(bot: commands.Bot):
             await webhook.send(
                 f'<@{member.id}> ・ <#{after.channel.id}>',
                 avatar_url=LIVE_IMAGE, username='Включение трансляции экрана',
-                allowed_mentions=mentions
+                allowed_mentions=NO_MENTIONS
             )
             
         elif before.self_stream and not after.self_stream:
@@ -130,7 +129,7 @@ async def setup(bot: commands.Bot):
             await webhook.send(
                 f'<@{member.id}> ・ <#{after.channel.id}>',
                 avatar_url=LIVESTOP_IMAGE, username='Выключение трансляции экрана',
-                allowed_mentions=mentions
+                allowed_mentions=NO_MENTIONS
             )
 
         await session.close()

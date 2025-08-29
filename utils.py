@@ -229,3 +229,11 @@ def get_faq_view_items(i: dict) -> list:
         items.append(element)
 
     return items
+
+
+def get_revolver_image(left: int) -> str:
+    return f'https://moontr3.ru/assets/r/l{left}.png'
+
+
+def get_revolver_endgame_image(left: int) -> str:
+    return f'https://moontr3.ru/assets/r/d{left}.png'

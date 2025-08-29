@@ -114,7 +114,7 @@ async def setup(bot: commands.Bot):
                         label=i['name'], value=str(c), emoji=i['emoji']
                     ))
 
-                c = to_container([
+                view = to_view([
                     f'### 👋 Добро пожаловать, {ctx.author.name}!', SEP(),
                     'Первым делом советуем узнать больше о сервере, выбрав любой из пунктов FAQ ниже:',
                     ui.ActionRow(discord.ui.Select(
@@ -125,10 +125,7 @@ async def setup(bot: commands.Bot):
                     'Посмотреть их снова в любой момент можно по команде `ml!faq`.',
                     'Также можешь повыбирать себе ролей в <id:customize>.',
                     '-# И не забудь прочитать <#1364721575282217074>!'
-                ])
-                view = ui.LayoutView()
-                view.add_item(ui.TextDisplay(f'<@{ctx.author.id}>'))
-                view.add_item(c)
+                ], text=f'<@{ctx.author.id}>')
 
                 channel = ctx.guild.get_channel(CHAT_CHANNEL)
                 await channel.send(view=view)

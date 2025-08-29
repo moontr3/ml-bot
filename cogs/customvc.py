@@ -188,7 +188,7 @@ async def setup(bot: commands.Bot):
         log(f"Creating new temp VC {channel.id} - {channel.name} (owner - {user.id})")
         bot.mg.new_temp_vc(channel.name, channel.id, user)
 
-        c = to_container([
+        view = to_view([
             '### 🔊 Временные войсы',
             'Вы создали временный голосовой канал!',
             SEP(),
@@ -196,8 +196,5 @@ async def setup(bot: commands.Bot):
             SEP(),
             'Используйте `ml!tvc` для просмотра.',
             f'-# Если никто не зайдёт, канал удалится <t:{int(time.time()+TEMP_VC_INACTIVITY_TIME)}:R>.'
-        ], DEFAULT_C)
-        view = ui.LayoutView()
-        view.add_item(ui.TextDisplay(f'<@&{VC_PING_ROLE}>'))
-        view.add_item(c)
+        ], DEFAULT_C, text=f'<@&{VC_PING_ROLE}>')
         await message.reply(view=view)

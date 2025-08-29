@@ -79,7 +79,7 @@ async def setup(bot: commands.Bot):
         view = to_view([
             f'### 📊 Статистика {user.display_name}', SEP(),
             f'### {PLACE1} **{finishes[1]}** ・ {PLACE2} **{finishes[2]}** ・ {PLACE3} **{finishes[3]}**',
-            f'Поставлено напоминаний: **{len(botuser.reminders)}**',
+            f'Поставлено напоминаний: **{len(botuser.reminders)} / {MAX_REMINDERS}**',
             f'Режим Зверя: {"✅" if botuser.marked_by_beast else "❌"}',
             f'Likee Bot: {"✅" if botuser.likee else "❌"}',
         ])
@@ -112,9 +112,7 @@ async def setup(bot: commands.Bot):
         session = aiohttp.ClientSession()
         webhook = discord.Webhook.from_url(bot.SERVICE_WEBHOOK, session=session)
 
-        mentions = discord.AllowedMentions(everyone=False, users=False, roles=False, replied_user=False)
-
-        await webhook.send(content=text, username='Анонимное сообщение ・ /anon', avatar_url=MESSAGE_IMAGE, allowed_mentions=mentions)
+        await webhook.send(content=text, username='Анонимное сообщение ・ /anon', avatar_url=MESSAGE_IMAGE, allowed_mentions=NO_MENTIONS)
         await session.close()
 
         log(f'{ctx.user.id} sent an anonymous message: {text}')

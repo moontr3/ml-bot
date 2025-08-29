@@ -84,9 +84,8 @@ async def setup(bot: commands.Bot):
                 elements.extend(reason)
 
                 view = to_view(elements)
-                mentions = discord.AllowedMentions(users=False, everyone=False, roles=False, replied_user=False)
 
-                await webhook.send(view=view, username='Удалён спам', avatar_url=WARN_IMAGE, allowed_mentions=mentions)
+                await webhook.send(view=view, username='Удалён спам', avatar_url=WARN_IMAGE, allowed_mentions=NO_MENTIONS)
                 await session.close()
 
             except Exception as e:

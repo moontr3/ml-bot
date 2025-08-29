@@ -1,7 +1,7 @@
 import discord
 from builder import *
 
-PREFIXES = ('tml!', 'ml!', 'odbs!','мл!','penis!','пенис!')
+PREFIXES = ('tml!', 'ml!', 'odbs!','мл!','penis!','пенис!','=')
 TEMP_VC_CREATE_COMMANDS = ['!типа где', '!типо где', '!тип где', '!tipa gde', '!tipo gde']
 ADMINS = [698457845301248010]
 
@@ -61,6 +61,7 @@ MFR_TIMEOUT = 4.5
 PLUS_REP_EVERY = 30
 MINUS_REP_EVERY = 120
 MINUS_REP_COUNTER_TIMEOUT = 300
+MAX_REMINDERS = 10
 
 
 LIKEE_WORDS = [
@@ -127,6 +128,9 @@ LOADING_EMBED = to_container('Загружаем...', LOADING_C)
 NO_DM_EMBED = to_container('Бота можно использовать только на сервере.', ERROR_C)
 NOT_ADMIN_EMBED = to_container('Вы не администратор бота!', ERROR_C)
 INCORRECT_LENGTH_EMBED = to_container('Указана некорректная длина', ERROR_C)
+NDTMKR_EMBED = to_container('Не для тебя моя кнопочка росла', ERROR_C)
+
+NO_MENTIONS = discord.AllowedMentions(users=False, everyone=False, roles=False, replied_user=False)
 
 WARN_IMAGE = 'https://moontr3.ru/assets/wpbot/warn.png'
 JOIN_IMAGE = 'https://moontr3.ru/assets/wpbot/join.png'
@@ -142,6 +146,10 @@ MESSAGE_IMAGE = 'https://moontr3.ru/assets/wpbot/message.png'
 PLACE1 = '<:1p:1373797888831918100>'
 PLACE2 = '<:2p:1373797899921788988>'
 PLACE3 = '<:3p:1373797912164827246>'
+NO = '<:no:1358207748294316253>'
+GUN = '<:gun:1411017718483652698>'
+ACCEPT = '<:accept:1411021199697514650>'
+REJECT = '<:reject:1411021214566060042>'
 
 UNITTABLE = {
     's': 1,

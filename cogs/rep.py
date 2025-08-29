@@ -21,9 +21,8 @@ async def setup(bot: commands.Bot):
             webhook = discord.Webhook.from_url(bot.WEBHOOK, session=session)
 
             view = to_view(f'{sender.mention}   ›   {REP_EMOJIS[amount]}   ›   {receiver.mention}')
-            mentions = discord.AllowedMentions(users=False, everyone=False, roles=False, replied_user=False)
 
-            await webhook.send(view=view, username='Отправлен реп', avatar_url=JOIN_IMAGE, allowed_mentions=mentions)
+            await webhook.send(view=view, username='Отправлен реп', avatar_url=JOIN_IMAGE, allowed_mentions=NO_MENTIONS)
             await session.close()
 
         except Exception as e:
@@ -112,14 +111,10 @@ async def setup(bot: commands.Bot):
         # repblock
         botuser = bot.mg.get_user(reaction.user_id)
         if time.time() < botuser.rep_block_until:
-            c = to_container([
+            view = to_view([
                 '### У тебя репблок!', SEP(),
                 f'Ты сможешь репать <t:{int(botuser.rep_block_until)}:R>'
-            ], ERROR_C)
-
-            view = ui.LayoutView()
-            view.add_item(ui.TextDisplay(f'<@{reaction.user_id}>'))
-            view.add_item(c)
+            ], ERROR_C, text=f'<@{reaction.user_id}>')
 
             mentions = discord.AllowedMentions(replied_user=False)
             await message.reply(view=view, allowed_mentions=mentions)
@@ -129,13 +124,9 @@ async def setup(bot: commands.Bot):
         out = bot.mg.add_rep(message.author.id, REP_EMOJI_IDS[reaction.emoji.id], reaction.member.id)
 
         if out != None:
-            c = to_container([
+            view = to_view([
                 '### Кулдаун!', SEP(), f'Попробуй снова <t:{int(out)}:R>'
-            ], ERROR_C)
-
-            view = ui.LayoutView()
-            view.add_item(ui.TextDisplay(f'<@{reaction.user_id}>'))
-            view.add_item(c)
+            ], ERROR_C, text=f'<@{reaction.user_id}>')
 
             mentions = discord.AllowedMentions(replied_user=False)
             await message.reply(view=view, allowed_mentions=mentions)
