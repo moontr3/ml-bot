@@ -20,6 +20,7 @@ async def setup(bot: commands.Bot):
     )
     @discord.app_commands.user_install()
     @discord.app_commands.guild_install()
+    @discord.app_commands.allowed_contexts(guilds=True, dms=False, private_channels=True)
     @discord.app_commands.describe(user='Пользователь, с которым вы хотите играть.')
     async def slash_duel(ctx: commands.Context, user: discord.Member = None):
         log(f'{ctx.author.id} started duel')

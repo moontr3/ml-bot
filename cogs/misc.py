@@ -13,6 +13,42 @@ import os
 # setup
 async def setup(bot: commands.Bot):
 
+    @bot.command(
+        name='partner'
+    )
+    async def partner_msg(ctx: commands.Context):
+        view = to_container([
+            # '### :loudspeaker: пожалуй в этот раз пропустим все приветы и перейдем сразу к смаку - **что вообще за мунленд?**',
+            ui.MediaGallery(discord.MediaGalleryItem('attachment://text.png')), 
+            SEP(visible=False), ui.MediaGallery(discord.MediaGalleryItem('attachment://bar.png')), SEP(visible=False),
+            '### у нас тут есть:',
+            ':speaking_head: разговоры на **нишевые темы** (и часто программирование (ну и ненишевые тоже есть да))',
+            ':speaker: частые посиделки в войсах ||без микро||',
+            ':sparkles: уникальная **система левелинга и репутации** которую не найдете на любом другом сервере',
+            ':robot: Мега Эпичный Кастомный **Мунленд Бот с игрульками**',
+            ':busts_in_silhouette: участники **лошки** (я проверял)',
+            ':bar_chart: рандомные необычные **ивентики и происходилки** и мега глубокий лор',
+            ':nazar_amulet: _~~сысыкутариканыктинак...~~_',
+            SEP(visible=False), ui.MediaGallery(discord.MediaGalleryItem('attachment://bar.png')), SEP(visible=False),
+            to_container([
+                'в общем поделать тут есть что - можно собирать скины для **преукрашивания своего профиля** в таблице лидеров, '\
+                    '**батлиться** с другими участниками или просто **общаться** :thumbsup:'
+            ], accent_color=discord.Color.from_str('#641CBC')),
+            SEP(visible=False), ui.MediaGallery(discord.MediaGalleryItem('attachment://bar.png')), SEP(visible=False),
+            '#  <:em1:1411447501055070349><:em2:1411447490875625603> '\
+                '[заходи не заскучаешь (обещаю)](https://discord.gg/s3NrXyYjnG) '\
+                '<:em3:1411447512631611453><:em4:1411447525704990720>',
+            SEP(visible=False), ui.MediaGallery(discord.MediaGalleryItem('attachment://banner.png')),
+        ], no_container=True)
+
+        files = [
+            discord.File('./assets/bar.png', filename='bar.png'),
+            discord.File('./assets/text.png', filename='text.png'),
+            discord.File('./assets/banner.png', filename='banner.png'),
+        ]
+        await ctx.send(view=view, files=files)
+
+
     @bot.hybrid_command(
         name='ping',
         aliases=['пинг'],
@@ -61,6 +97,7 @@ async def setup(bot: commands.Bot):
         name='moonland',
         description='💜 Отправить ссылку-приглашение на moonland:re'
     )
+    @discord.app_commands.allowed_contexts(guilds=True, dms=False, private_channels=True)
     @discord.app_commands.allowed_installs(guilds=False, users=True)
     async def slash_invite(ctx: commands.Context):
         log(f'{ctx.author.id} sending invite')

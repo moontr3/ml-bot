@@ -52,6 +52,7 @@ async def setup(bot: commands.Bot):
         view = to_view([add_accessory(
             [
                 '### 👋 Добро пожаловать на moonland!',
+                'Еще чуть-чуть!',
                 'Для получения доступа к серверу введи команду `ml!verify` в этот чат.'
             ],
             accessory=ui.Thumbnail('https://moontr3.ru/assets/mlverify.png')

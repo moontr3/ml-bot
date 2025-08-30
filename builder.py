@@ -16,11 +16,13 @@ ACTIONROW_ELEMENTS = [
 ]
 
 
-def to_container(elements: list, accent_color: discord.Color = None, spoiler: bool = False) -> ui.Container:
+def to_container(elements: list, accent_color: discord.Color = None, spoiler: bool = False, no_container: bool = False) -> ui.Container:
     '''
     Converts a list of elements into a view.
     '''
     view = ui.Container(accent_color=accent_color, spoiler=spoiler)
+    if no_container:
+        view = ui.LayoutView(timeout=None)
 
     if isinstance(elements, str):
         view.add_item(ui.TextDisplay(elements))

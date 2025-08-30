@@ -418,6 +418,8 @@ async def setup(bot: commands.Bot):
                 if user.xp.level <= len(LEVELS):
                     role = guild.get_role(LEVELS[user.xp.level-1])
                     await guild.get_member(user.id).add_roles(role)
+                else:
+                    role = None
 
                 channel = guild.get_channel(user.last_msg_channel)
 
