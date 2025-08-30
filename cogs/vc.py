@@ -40,7 +40,9 @@ async def setup(bot: commands.Bot):
         aliases=['войс','голос','voice'],
         description='Показывает время пользователя в голосовом канале.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(
         member='Участник сервера, у которого нужно узнать время.'
     )

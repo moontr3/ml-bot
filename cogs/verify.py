@@ -5,20 +5,19 @@ from log import *
 from typing import *
 from config import *
 import utils
-import datetime
+import api
 import os
 
 
 # setup
 async def setup(bot: commands.Bot):
 
-    @bot.hybrid_command(
+    @bot.command(
         name='verify',
-        aliases=['вериф', 'верифицировать', 'верифнуть', 'iqтест','iqtest','iq-test','iq_test','iq_тест','iq-тест'],
-        description='Верифцироваться!'
+        aliases=['вериф', 'верифицировать', 'верифнуть', 'iqтест','iqtest','iq-test','iq_test','iq_тест','iq-тест']
     )
-    @discord.app_commands.guild_only()
-    async def slash_verify(ctx: commands.Context):
+    @api.check_guild
+    async def verify(ctx: commands.Context):
         '''
         Verify yourself.
         '''

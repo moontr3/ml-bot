@@ -18,7 +18,9 @@ async def setup(bot: commands.Bot):
         aliases=['пинг'],
         description='Показывает пинг бота.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     async def slash_ping(ctx: commands.Context):
         '''
         Shows bot ping.
@@ -36,7 +38,9 @@ async def setup(bot: commands.Bot):
         aliases=['invite','инвайты','инвайтов','инвайт'],
         description='Показывает количество использовний ссылки-приглашения.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     async def slash_invite(ctx: commands.Context):
         '''
         Shows invite count.
@@ -54,11 +58,32 @@ async def setup(bot: commands.Bot):
 
 
     @bot.hybrid_command(
+        name='moonland',
+        description='💜 Отправить ссылку-приглашение на moonland:re'
+    )
+    @discord.app_commands.allowed_installs(guilds=False, users=True)
+    async def slash_invite(ctx: commands.Context):
+        log(f'{ctx.author.id} sending invite')
+
+        if ctx.guild and ctx.guild.id == GUILD_ID:
+            return
+
+        view = to_view([
+            '**moonland bot** - бот сервера moonland:re.',
+            '## https://discord.gg/s3NrXyYjnG'
+        ], discord.Color.from_str('#641CBC'))
+
+        await ctx.reply(view=view)
+
+
+    @bot.hybrid_command(
         name='stats',
         aliases=['стат','стата','статистика','stat','statistics'],
         description='Показывает вашу статистику на сервере.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     async def slash_about(ctx: commands.Context, user: discord.User=None):
         '''
         Shows bot info.
@@ -91,11 +116,17 @@ async def setup(bot: commands.Bot):
         description='Отправляет анонимное сообщение в #чат.'
     )
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(text='Текст сообщения')
     async def slash_anon(ctx: discord.Interaction, text: str):
         '''
         Sends anonymous message.
         '''
+        if not ctx.guild:
+            return
+        if ctx.guild.id != GUILD_ID:
+            return
+        
         if ctx.channel.id != CHAT_CHANNEL:
             view = to_view(f'Эта команда доступна только в канале <#{CHAT_CHANNEL}>.', ERROR_C)
             await ctx.response.send_message(view=view, ephemeral=True)
@@ -127,7 +158,9 @@ async def setup(bot: commands.Bot):
         aliases=['info','оботе','инфо','информация'],
         description='Показывает информацию о боте.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     async def slash_about(ctx: commands.Context):
         '''
         Shows bot info.
@@ -162,7 +195,9 @@ async def setup(bot: commands.Bot):
         aliases=['очистить'],
         description='Удаляет определенное количество сообщений в канале.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(
         amount='Количество сообщений для очистки',
         member='Фильтр для удаления сообщений только указанного участника',
@@ -236,7 +271,9 @@ async def setup(bot: commands.Bot):
         aliases=['мут','timeout','таймаут'],
         description='Мутит определенного участника на сервере.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(
         member='Участник, которого нужно замутить',
         length='Длина мута в формате "10h", "3д" и так далее',
@@ -302,7 +339,9 @@ async def setup(bot: commands.Bot):
         aliases=['размут','анмут'],
         description='Размучивает определенного участника на сервере.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(
         member='Участник, которого нужно размутить'
     )

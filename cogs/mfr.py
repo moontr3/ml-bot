@@ -20,7 +20,9 @@ async def setup(bot: commands.Bot):
         description='Случайная карточка мишкфреде (+XP)',
         aliases=['мишкфреде','мф','mf','mfr','мишкафреде','мшкфреди','мшкфреде','мишкфреди','мишкафреди','motherfucker','фреде']
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     async def mishkfrede(ctx: commands.Context):
         botuser: api.User = bot.mg.get_user(ctx.author.id)
         if botuser.mfr_timeout > time.time():
@@ -63,7 +65,9 @@ async def setup(bot: commands.Bot):
             'мишкфредестата','мфстата','мфрстата','мишкфредестаты','мфстаты','мфрстаты',
          ]
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(
         user='Пользователь, статистику которого вы хотите узнать.'
     )

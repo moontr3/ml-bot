@@ -73,10 +73,12 @@ async def setup(bot: commands.Bot):
 
     @bot.hybrid_command(
         name='temp-vc',
-        description='Показвыает информацию о вашем созданном временном войсе.',
+        description='Показывает информацию о вашем созданном временном войсе.',
         aliases=['tvc','tempvc','temp_vc','ввойс','временныйвойс','временный-войс','временный_войс']
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     async def tvc(ctx: commands.Context):
         '''
         Shows info about the temp VC the user has created.

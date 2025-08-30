@@ -64,7 +64,9 @@ async def setup(bot: commands.Bot):
         aliases=['скины'],
         description='Показывает список разблокированных скинов пользователя.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(
         member='Участник сервера, у которого нужно узнать список скинов.'
     )
@@ -95,7 +97,9 @@ async def setup(bot: commands.Bot):
         aliases=['setskin','set_skin','установитьскин','установить_скин','установить-скин','поставить-скин','поставить_скин','поставитьскин'],
         description='Установить скин.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(
         skin='Номер скина или его название.'
     )
@@ -156,7 +160,9 @@ async def setup(bot: commands.Bot):
         aliases=['removeskin','remove_skin','убратьскин','убрать_скин','убрать-скин'],
         description='Убрать скин.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     async def slash_removeskin(ctx:discord.Interaction):
         '''
         Removes a skin.

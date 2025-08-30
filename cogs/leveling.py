@@ -91,7 +91,9 @@ async def setup(bot: commands.Bot):
         aliases=['календарь','cal'],
         description='Показывает календарь опыта участника.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(
         date='Дата в формате ММ.ГГГГ, ГГГГ.ММ, ММ или название месяца.',
         member='Участник сервера, у которого нужно посмотреть календарь опыта.'
@@ -139,7 +141,9 @@ async def setup(bot: commands.Bot):
         description='Показывает календарь опыта сервера.',
         aliases=['scal','скал','server_calendar','servercalendar','серверкалендарь','сервер-календарь','сервер_календарь'],
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(
         date='Дата в формате ММ.ГГГГ, ГГГГ.ММ, ММ или название месяца.'
     )
@@ -183,7 +187,9 @@ async def setup(bot: commands.Bot):
         aliases=['опыт','lvl','rank','level','уровень','ранк','ранг'],
         description='Показывает текущий опыт пользователя.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(
         member='Участник сервера, у которого нужно узнать опыт.'
     )
@@ -216,7 +222,9 @@ async def setup(bot: commands.Bot):
         aliases=['лидеры','leaderboard','lb','top','топ'],
         description='Показывает таблицу лидеров по опыту.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(
         board='Нужная таблица лидеров - Всё время, День, Неделя, Сезон, Войс, Микро, Стрим, Q, Реп.'
     )

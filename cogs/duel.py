@@ -14,20 +14,20 @@ import os
 async def setup(bot: commands.Bot):
 
     @bot.hybrid_command(
-        name='russian-roulette',
-        aliases=['rr','roulette','russian_roulette','russianroulette','рулетка','рр','русскаярулетка','русская-рулетка','русская_рулетка'],
-        description='Сыграть с кем-то в русскую рулетку.'
+        name='duel',
+        aliases=['d','дуэль','д'],
+        description='Сыграть с кем-то в дуэль.'
     )
     @discord.app_commands.user_install()
     @discord.app_commands.guild_install()
     @discord.app_commands.describe(user='Пользователь, с которым вы хотите играть.')
-    async def slash_roulette(ctx: commands.Context, user: discord.Member = None):
-        log(f'{ctx.author.id} started roulette')
-        game = bot.mg.get_roulette_by_user(ctx.author.id)
+    async def slash_duel(ctx: commands.Context, user: discord.Member = None):
+        log(f'{ctx.author.id} started duel')
+        game = bot.mg.get_duel_by_user(ctx.author.id)
 
         if game:
             view = to_view(add_accessory(
-                ['Вы уже играете в русскую рулетку!'],
+                ['Вы уже играете в Дуэль!'],
                 ui.Button(
                     style=discord.ButtonStyle.link,
                     label='Перейти', url=game.message.jump_url
@@ -43,37 +43,37 @@ async def setup(bot: commands.Bot):
         
         if not user:
             view = to_view([
-                f'### {GUN} Русская рулетка', SEP(),
-                f'{ctx.author.name} хочет сыграть с кем-то в Русскую рулетку!',
+                f'### 🎯 Дуэль', SEP(),
+                f'{ctx.author.name} хочет сыграть с кем-то в Дуэль!',
                 [
                     ui.Button(
                         style=discord.ButtonStyle.blurple,
-                        emoji='✋', label='Я хочу!', custom_id=f'acceptroulette:{ctx.author.id}:0'
+                        emoji='✋', label='Я хочу!', custom_id=f'acceptduel:{ctx.author.id}:0'
                     ),
                     ui.Button(
                         style=discord.ButtonStyle.red,
-                        emoji=REJECT, label='Отменить', custom_id=f'giveuproulette'
+                        emoji=REJECT, label='Отменить', custom_id=f'giveupduel'
                     ),
                 ]
             ])
 
         else:
             view = to_view([
-                f'### {GUN} Русская рулетка', SEP(),
-                f'{user.mention}, {ctx.author.name} хочет сыграть с тобой в Русскую рулетку!',
+                f'### 🎯 Дуэль', SEP(),
+                f'{user.mention}, {ctx.author.name} хочет сыграть с тобой в Дуэль!',
                 [
                     ui.Button(
                         style=discord.ButtonStyle.green,
-                        emoji=ACCEPT, label='Го', custom_id=f'acceptroulette:{ctx.author.id}:{user.id}'
+                        emoji=ACCEPT, label='Го', custom_id=f'acceptduel:{ctx.author.id}:{user.id}'
                     ),
                     ui.Button(
                         style=discord.ButtonStyle.red,
-                        emoji=REJECT, label='Не', custom_id=f'rejectroulette:{ctx.author.id}:{user.id}'
+                        emoji=REJECT, label='Не', custom_id=f'rejectduel:{ctx.author.id}:{user.id}'
                     ),
                 ]
             ])
 
-        game = bot.mg.add_roulette(ctx.author.id)
+        game = bot.mg.add_duel(ctx.author.id)
         message = await ctx.reply(view=view)
         game.message = message
 
@@ -86,22 +86,22 @@ async def setup(bot: commands.Bot):
         cid = interaction.data['custom_id']
 
         # cancelling game
-        if cid == 'giveuproulette':
-            game = bot.mg.give_up_roulette(interaction.user.id)
+        if cid == 'giveupduel':
+            game = bot.mg.give_up_duel(interaction.user.id)
 
             if not game:
-                view = to_view('Вы сейчас не играете в русскую рулетку!', ERROR_C)
+                view = to_view('Вы сейчас не играете в Дуэль!', ERROR_C)
                 await interaction.response.send_message(view=view, ephemeral=True)
                 return
             
             if game.user2 is None:
                 view = to_view([
-                    f'### {GUN} Русская рулетка', SEP(),
+                    f'### 🎯 Дуэль', SEP(),
                     f'<@{interaction.user.id}> отменил приглашение.'
                 ], ERROR_C)
             else:
                 view = to_view([
-                    f'### {GUN} Русская рулетка', SEP(),
+                    f'### 🎯 Дуэль', SEP(),
                     f'<@{interaction.user.id}> сдался...',
                 ], ERROR_C)
             
@@ -109,7 +109,7 @@ async def setup(bot: commands.Bot):
             return
         
         # accepting invite
-        if cid.startswith('acceptroulette:'):
+        if cid.startswith('acceptduel:'):
             user = int(cid.split(':')[1])
             target = int(cid.split(':')[2])
 
@@ -122,7 +122,7 @@ async def setup(bot: commands.Bot):
                 await interaction.response.send_message(view=view, ephemeral=True)
                 return
             
-            game = bot.mg.start_roulette(user, interaction.user.id)
+            game = bot.mg.start_duel(user, interaction.user.id)
 
             if not game:
                 view = to_view('⚡ Игра - В С Ё', ERROR_C)
@@ -140,7 +140,7 @@ async def setup(bot: commands.Bot):
             game.processing = False
         
         # rejecting invite
-        if cid.startswith('rejectroulette:'):
+        if cid.startswith('rejectduel:'):
             user = int(cid.split(':')[1])
             target = int(cid.split(':')[2])
 
@@ -148,7 +148,7 @@ async def setup(bot: commands.Bot):
                 await interaction.response.send_message(view=c_to_view(NDTMKR_EMBED), ephemeral=True)
                 return
             
-            game = bot.mg.give_up_roulette(user)
+            game = bot.mg.give_up_duel(user)
 
             if not game:
                 view = to_view('⚡ Игра - В С Ё', ERROR_C)
@@ -161,16 +161,16 @@ async def setup(bot: commands.Bot):
                 return
             
             view = to_view([
-                f'### {GUN} Русская рулетка', SEP(),
+                f'### 🎯 Дуэль', SEP(),
                 f'<@{interaction.user.id}> отменил приглашение.'
             ], ERROR_C)
             
             await interaction.response.edit_message(view=view)
             return
         
-        # shooting self
-        if cid == 'rouletteself':
-            game = bot.mg.get_roulette_by_user(interaction.user.id)
+        # shooting
+        if cid == 'duelshoot':
+            game = bot.mg.get_duel_by_user(interaction.user.id)
 
             if not game:
                 view = to_view('⚡ Игра - В С Ё', ERROR_C)
@@ -178,22 +178,18 @@ async def setup(bot: commands.Bot):
                 return
             
             if game.processing:
-                view = to_view('Подожди, пока я дорасскажу.', ERROR_C)
+                view = to_view('Опоздал!', ERROR_C)
                 await interaction.response.send_message(view=view, ephemeral=True)
-                return
-            
-            if interaction.user.id != game.player:
-                await interaction.response.send_message(view=c_to_view(NDTMKR_EMBED), ephemeral=True)
                 return
             
             game.processing = True
             await interaction.response.defer()
-            await game.shoot_self()
+            await game.shoot(interaction.user.id)
             game.processing = False
         
-        # shooting opponent
-        if cid == 'rouletteother':
-            game = bot.mg.get_roulette_by_user(interaction.user.id)
+        # focusing
+        if cid == 'duelfocus':
+            game = bot.mg.get_duel_by_user(interaction.user.id)
 
             if not game:
                 view = to_view('⚡ Игра - В С Ё', ERROR_C)
@@ -201,15 +197,12 @@ async def setup(bot: commands.Bot):
                 return
             
             if game.processing:
-                view = to_view('Подожди, пока я дорасскажу.', ERROR_C)
+                view = to_view('Опоздал!', ERROR_C)
                 await interaction.response.send_message(view=view, ephemeral=True)
-                return
-            
-            if interaction.user.id != game.player:
-                await interaction.response.send_message(view=c_to_view(NDTMKR_EMBED), ephemeral=True)
                 return
             
             game.processing = True
             await interaction.response.defer()
-            await game.shoot_opponent()
+            await game.act_focus(interaction.user.id)
             game.processing = False
+

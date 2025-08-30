@@ -6,6 +6,7 @@ from config import *
 import utils
 import time
 import copy
+import api
 
 # setup
 async def setup(bot: commands.Bot):
@@ -15,7 +16,9 @@ async def setup(bot: commands.Bot):
         aliases=['карантин', 'гречкамартини', 'quar', 'кар'],
         description='Отправляет пользователя в карантин.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(
         member='Участник, которого нужно отправить в карантин.',
         length='Длина карантина в формате "10h", "3д" и так далее.',
@@ -79,7 +82,9 @@ async def setup(bot: commands.Bot):
         aliases=['разкарантин', 'негречкамартини', 'unquar', 'разкар', 'выпустить', 'unquarantine'],
         description='Выпускает пользователя с карантина.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(
         member='Участник, которого нужно выпустить с карантина',
     )

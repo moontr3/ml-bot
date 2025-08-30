@@ -62,6 +62,8 @@ PLUS_REP_EVERY = 30
 MINUS_REP_EVERY = 120
 MINUS_REP_COUNTER_TIMEOUT = 300
 MAX_REMINDERS = 10
+ROULETTE_XP = [12,16]
+DUEL_XP = [6,10]
 
 
 LIKEE_WORDS = [
@@ -129,6 +131,10 @@ NO_DM_EMBED = to_container('Бота можно использовать тол�
 NOT_ADMIN_EMBED = to_container('Вы не администратор бота!', ERROR_C)
 INCORRECT_LENGTH_EMBED = to_container('Указана некорректная длина', ERROR_C)
 NDTMKR_EMBED = to_container('Не для тебя моя кнопочка росла', ERROR_C)
+NOT_MOONLAND_EMBED = to_container([
+    'Эту команду можно вводить только **на сервере moonland:re**!',
+    '### https://discord.gg/s3NrXyYjnG'
+], ERROR_C)
 
 NO_MENTIONS = discord.AllowedMentions(users=False, everyone=False, roles=False, replied_user=False)
 
@@ -150,6 +156,11 @@ NO = '<:no:1358207748294316253>'
 GUN = '<:gun:1411017718483652698>'
 ACCEPT = '<:accept:1411021199697514650>'
 REJECT = '<:reject:1411021214566060042>'
+TARGET = '<:target:1411110283870732414>'
+LEFTN = '<:hp1n:1411112549415649280>'
+LEFTY = '<:hp1y:1411112559318405336>'
+RIGHTN = '<:hp2n:1411112571855048836>'
+RIGHTY = '<:hp2y:1411112583037059186>'
 
 UNITTABLE = {
     's': 1,

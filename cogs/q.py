@@ -19,7 +19,9 @@ async def setup(bot: commands.Bot):
         description='Посмотреть количество пойманных Q.',
         aliases=['balance','b','баланс','бал','б']
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(
         user='Пользователь, Q которого вы хотите узнать.'
     )

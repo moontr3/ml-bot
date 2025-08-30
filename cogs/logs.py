@@ -12,6 +12,9 @@ async def setup(bot: commands.Bot):
 
     @bot.listen()
     async def on_message_delete(message: discord.Message):
+        if not message.content and not message.attachments:
+            return
+        
         session = aiohttp.ClientSession()
         webhook = Webhook.from_url(bot.WEBHOOK, session=session)
         
@@ -53,6 +56,9 @@ async def setup(bot: commands.Bot):
     # editing
     @bot.listen()
     async def on_message_edit(before: discord.Message, after: discord.Message):
+        if not before.content and not after.content and not before.attachments and not after.attachments:
+            return
+        
         session = aiohttp.ClientSession()
         webhook = Webhook.from_url(bot.WEBHOOK, session=session)
         

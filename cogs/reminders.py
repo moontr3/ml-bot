@@ -71,7 +71,9 @@ async def setup(bot: commands.Bot):
         description='Ставит напоминание.',
         aliases=['remindme','напомни','напоминание','remind']
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(
         duration='Через сколько времени напомнить.',
         text='Текст напоминания.'
@@ -165,7 +167,9 @@ async def setup(bot: commands.Bot):
         description='Посмотреть список своих напоминаний.',
         aliases=['remindmes','напоминания','reminds']
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     async def slash_reminders(
         ctx: commands.Context
     ):

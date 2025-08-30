@@ -38,6 +38,11 @@ async def setup(bot: commands.Bot):
             log(f'{ctx.author} {ctx.author.id} channel not found', level=ERROR)
             await ctx.reply(view=c_to_view(UNKNOWN_CHANNEL_EMBED))
 
+        # not moonland
+        elif isinstance(error, commands.CheckFailure):
+            log(f'{ctx.author} {ctx.author.id} failed a check {error}', level=ERROR)
+            await ctx.reply(view=c_to_view(NOT_MOONLAND_EMBED), ephemeral=True)
+
         # unknown command
         elif isinstance(error, commands.CommandNotFound):
             log(f'{ctx.author} {ctx.author.id} entered an unknown command: {ctx.message.content}', level=ERROR)

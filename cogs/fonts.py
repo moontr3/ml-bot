@@ -66,7 +66,9 @@ async def setup(bot: commands.Bot):
         aliases=['шрифты'],
         description='Показывает список разблокированных шрифтов пользователя.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(
         member='Участник сервера, у которого нужно узнать список шрифтов.'
     )
@@ -97,7 +99,9 @@ async def setup(bot: commands.Bot):
         aliases=['setfont','set_font','установитьшрифт','установить_шрифт','установить-шрифт','поставить-шрифт','поставитьшрифт','поставить_шрифт'],
         description='Установить шрифт.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(
         font='Название шрифта.'
     )
@@ -151,7 +155,9 @@ async def setup(bot: commands.Bot):
         aliases=['removefont','remove_font','убратьшрифт','убрать_шрифт','убрать-шрифт'],
         description='Убрать шрифт.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     async def slash_removefont(ctx:discord.Interaction):
         '''
         Removes a font.

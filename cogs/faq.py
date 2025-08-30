@@ -3,6 +3,7 @@ import discord
 from builder import *
 from config import *
 import utils
+import api
 
 async def setup(bot: commands.Bot):
     # command
@@ -11,7 +12,9 @@ async def setup(bot: commands.Bot):
         aliases=['чаво',"гайд",'guide','help','хелп','помощь','fuckyou','факю','факью','fucku'],
         description='Показывает часто задаваемые вопросы.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(
         page="Имя или сокращение желаемой страницы / вопроса."
     )

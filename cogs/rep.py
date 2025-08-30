@@ -141,7 +141,9 @@ async def setup(bot: commands.Bot):
         description='Посмотреть репутацию.',
         aliases=['reputation','реп','репутация']
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(
         user='Пользователь, репутацию которого вы хотите узнать.'
     )
@@ -170,7 +172,9 @@ async def setup(bot: commands.Bot):
         aliases=['репблок','реп-блок','реп_блок','rep_block','rep-block'],
         description='Запрещает участнику репать других на некоторое время.'
     )
+    @api.check_guild
     @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
     @discord.app_commands.describe(
         member='Участник, которого нужно репблокнуть',
         time='Длина репблока в формате "10h", "3д" и так далее',
