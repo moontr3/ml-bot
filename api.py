@@ -526,7 +526,7 @@ class Roulette:
         self.target = random.randint(1, 6)
         self.bullets = 6
         await self.message.edit(view=view)
-        await asyncio.sleep(3.5)
+        await asyncio.sleep(2.5)
 
         await self.move()
 
@@ -600,7 +600,7 @@ class Roulette:
 
         # bro dead :skull:
         if is_dead:
-            xp = random.randint(*ROULETTE_XP)
+            xp = random.randint(*ROULETTE_XP) if self.message.guild and self.message.guild.id == GUILD_ID else 0
 
             view = to_view(elements+[
                 f'<@{self.player}> нажимает на курок...',
@@ -613,7 +613,8 @@ class Roulette:
                     f'<@{self.get_opposite(self.player)}> остался в выигрыше.',
                     f'<@{self.get_opposite(self.player)}> остался в живых.',
                 ]),
-                f'Награда за выигрыш: **{xp} XP**',
+                f'За выигрыш заработано **{xp} XP**. Поздравляем.' if xp > 0 else\
+                    '-# За эту игру можно зарабатывать опыт на нашем сервере - </moonland:1411399171042443447>!',
                 SEP(spacing=discord.SeparatorSpacing.large),
                 ui.MediaGallery(discord.MediaGalleryItem(utils.get_revolver_endgame_image(self.bullets)))
             ])

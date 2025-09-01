@@ -20,6 +20,9 @@ async def setup(bot: commands.Bot):
         # checking if bot
         if after.author.id != BUMP_BOT_ID:
             return
+
+        if not after.guild or after.guild.id != GUILD_ID:
+            return
         
         if len(after.embeds) == 0:
             return
