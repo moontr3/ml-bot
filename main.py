@@ -13,9 +13,10 @@ from typing import *
 # loading token
 load_dotenv()
 TOKEN = os.getenv('BOT_TOKEN')
+AI_KEY = os.getenv('AI_KEY')
 
 bot = commands.Bot(command_prefix=PREFIXES, intents=discord.Intents.all(), help_command=None)
-bot.mg = Manager(USERS_FILE, DATA_FILE)
+bot.mg = Manager(USERS_FILE, DATA_FILE, AI_KEY)
 bot.WEBHOOK = os.getenv('LOGGING_WEBHOOK')
 bot.SERVICE_WEBHOOK = os.getenv('SERVICE_WEBHOOK')
 

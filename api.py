@@ -5,6 +5,7 @@ from typing import *
 
 import aiofiles
 from discord.ext import commands
+from openai import AsyncOpenAI
 from config import *
 import json
 import os
@@ -879,10 +880,57 @@ class Duel:
             self.user2hp -= 1
 
 
+# ai
+
+
+class AIMessage:
+    def __init__(self, role: str, message: str, user: discord.User = None, attachment_url: str = None, reply: discord.Message = None):
+        self.role: str = role
+        self.message: str = message
+        self.user: discord.User = user
+        self.attachment_url: str = attachment_url
+        self.reply: discord.Message = reply
+
+
+    def get_data(self, is_last: bool = False) -> dict:
+        prefix = f'Отправил {self.user.display_name}: ' if self.user else ''
+        if self.reply and len(self.reply.content) < 256:
+            prefix = f'*Ответ на "{self.reply.content}" от {self.reply.author.display_name}*\n'+prefix
+
+        if self.attachment_url and is_last:
+            return [
+                {"type": "text", "text": prefix+self.message},
+                {"type": "image_url", "image_url": {"url": self.attachment_url}}
+            ]
+        
+        return prefix+self.message
+
+
+class AIHistory:
+    def __init__(self):
+        self.history: List[AIMessage] = []
+
+
+    def add(self, message: AIMessage):
+        self.history.append(message)
+        if len(self.history) > MAX_HISTORY_LENGTH:
+            self.history.pop(0)
+
+
+    def get_history(self) -> dict:
+        data = [
+            {"role": "developer", "content": PROMPT}
+        ]
+        for index, i in enumerate(self.history):
+            is_last = index == len(self.history)-1
+            data.append({"role": i.role, "content": i.get_data(is_last)})
+        return data
+
+
 # manager
 
 class Manager:
-    def __init__(self, users_file:str, data_file:str):
+    def __init__(self, users_file:str, data_file:str, key: str):
         '''
         API and backend manager.
         '''
@@ -898,6 +946,9 @@ class Manager:
         self.last_commit = 0
         self.roulette_games: List[Roulette] = []
         self.duel_games: List[Duel] = []
+        self.ai = AIHistory()
+        self.openai = AsyncOpenAI(api_key=key, base_url=BASE_URL)
+        self.generating = False
         self.reload()
 
 
@@ -1034,7 +1085,17 @@ class Manager:
         '''
         self.check_user(id)
         return self.users[id]
+    
 
+    async def gen_ai(self) -> str:
+        '''
+        Generates an AI message.
+        '''
+        chat_completion = await self.openai.chat.completions.create(
+            model="gpt-4o",
+            messages=self.ai.get_history()
+        )
+        return chat_completion.choices[0].message.content
 
     def get_roulette_by_user(self, user: int) -> "Roulette | None":
         '''
