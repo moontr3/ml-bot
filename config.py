@@ -1,10 +1,16 @@
 import discord
 from builder import *
 
-PREFIXES = ('tml!', 'ml!', 'odbs!','мл!','penis!','пенис!','=')
-TEMP_VC_CREATE_COMMANDS = ['!типа где', '!типо где', '!тип где', '!tipa gde', '!tipo gde']
-ADMINS = [698457845301248010]
+PREFIXES = (
+    'tml!', 'ml!', 'odbs!','мл!','penis!','пенис!','='
+) # prefixes used when entering bot commands
+TEMP_VC_CREATE_COMMANDS = [
+    '!типа где', '!типо где', '!тип где', '!tipa gde', '!tipo gde'
+] # prefixes used when creating a temporary VC
 
+# IDs
+
+ADMINS = [698457845301248010] # list of bot admins that have access to admin features like adding XP or reloading commands
 LEVELS = [
     976773904968343572,
     976774001793843241,
@@ -17,60 +23,46 @@ LEVELS = [
     976774995516751985,
     976775077376974858,
     976775159358844968
-]
+] # list of role IDs for each level (level names are taken as role names)
+GUILD_ID = 975809939920539729 # ID of the server
+ZERO_ID = 975809940444819467 # ID of the channel to send `на часах 00` message to
+COUNTER_ID = 1024411443929550858 # ID of the counter channel
+VERIFY_ID = 996491256865767475 # ID of the channel used for verification
+VERIFY_ROLE = 996492289562136638 # Role ID to be given to verified members
+CHAT_CHANNEL = 975809940444819467 # ID of the main chat channel
+TEMP_VC_CATEGORY = 975809940444819466 # ID of the category for temporary voice channels
+BOT_ROLE_ID = 975814330987712643 # ID of the general bot role to be given to new bots
+BUMP_PING_ROLE = 1277389635957559348 # ID of the role to ping on bump reminders
+BUMP_BOT_ID = 789751844821401630 # ID of the bump bot
+BUMP_CHANNEL = 1277389897342255137 # Channel to send bump reminders to
+PIDORAS_ID = [
+    1380792995242180749, 1408431830503391232, 1398177733699305574,
+    1404712625790783569, 1407265359010074644, 1403277400829198456
+] # Bot IDs that are often used for mischevious purposes and using them will prolly get you banned
+IMBA_ROLE = 1118918623466110976 # ID of the имба role
+QUARANTINE_ROLE = 1003696913138323496 # ID of the role to be given to users in quarantine
+MFR_CHANNEL = 1409508564732481646 # ID of the mishkfrede channel
+VC_PING_ROLE = 1410600327907901480 # ID of the role to ping on temp VC creation
+NERD_USERS = [] # The AI will only insult people whose IDs are in the list
+CHATTABLE_CHANNELS = [
+    975809940444819467,
+    1301244013243928729,
+    1091095982294438028,
+    1052634269891170335,
+    975817187191324814,
+    1239901014757474334,
+    1019936005912010772,
+    1019941166613008425,
+    1019938361718345738,
+] # IDs of channels that users can earn XP / collect skins in
 
-GUILD_ID = 975809939920539729
-ZERO_ID = 975809940444819467
-COUNTER_ID = 1024411443929550858
-VERIFY_ID = 996491256865767475
-VERIFY_ROLE = 996492289562136638
-CHAT_CHANNEL = 975809940444819467
-TEMP_VC_CATEGORY = 975809940444819466
-BOT_ROLE_ID = 975814330987712643
-BUMP_PING_ROLE = 1277389635957559348
-BUMP_BOT_ID = 789751844821401630
-BUMP_CHANNEL = 1277389897342255137
-PIDORAS_ID = [1380792995242180749, 1408431830503391232, 1398177733699305574, 1404712625790783569, 1407265359010074644, 1403277400829198456]
-IMBA_ROLE = 1118918623466110976
-QUARANTINE_ROLE = 1003696913138323496
-MFR_CHANNEL = 1409508564732481646
-VC_PING_ROLE = 1410600327907901480
-NERD_USERS = []
+# Likee messages
 
-THRESHOLD = 0.1
-WORD_MAX_AMOUNT = 3
-WORD_ADDING_THRESHOLD = 0.2
-EMOJIS_MAX_AMOUNT = 4
-EMOJIS_ADDING_THRESHOLD = 0.5
-
-ZERO_TEXT = 'на часах 00'
-Q_CHANCE = 0.01
-SKIN_CHANCE = 0.007
-FONT_CHANCE = 0.004
-MAX_MINUTE_XP = 25
-ONE_WORD_MSGS = 3
-TEMP_VC_INACTIVITY_TIME = 60*5
-TEMP_VC_CREATION_TIMEOUT = 60*10
-DEAFEN_MUTE_LEVEL_REQ = 5 # unused
-MAX_QS = 15 # unused
-MIN_LENGTH_XP = 7
-XP_THRESHOLD = 50
-BUMP_PING_EVERY = 60*60*24
-BUMP_TIMEOUT = 60*60*4
-BUMP_XP = [15,20]
-MFR_TIMEOUT = 4.5
-PLUS_REP_EVERY = 30
-MINUS_REP_EVERY = 120
-MINUS_REP_COUNTER_TIMEOUT = 300
-MAX_REMINDERS = 10
-ROULETTE_XP = [12,16]
-DUEL_XP = [6,10]
-BASE_URL = 'https://api.navy/v1'
-MAX_HISTORY_LENGTH = 20
-MODEL = 'gemini-2.5-flash'
-PROMPT = 'Ты - бот под названием "мунленд бот".\nВ твоем сообщении должен быть **только** ответ пользователю без лишних текстов. Старайся отвечать кратко при простом общении (5-15 слов), писать с маленькой буквы, не использовать знаки препинания и время от времени оскорблять других людей. Используй маты. При необходимости следуй указаниям пользователя.'
-
-
+THRESHOLD = 0.1 # Chance of the bot sending the Likee message
+WORD_MAX_AMOUNT = 3 # Maximum amount of "parts" in a Likee message
+WORD_ADDING_THRESHOLD = 0.2 # The chance of each word being added to the Likee message
+EMOJIS_MAX_AMOUNT = 4 # Maximum amount of emojis in a Likee message
+EMOJIS_ADDING_THRESHOLD = 0.5 # The chance of each emoji being added to the Likee message
 LIKEE_WORDS = [
     'Вау!',
     'Красотка!',
@@ -87,7 +79,7 @@ LIKEE_WORDS = [
     'Продолжай это делать!',
     'Продолжай!',
     'Привет!'
-]
+] # All possible "parts" of a Likee message
 LIKEE_EMOJI = [
     '💐',
     '😊',
@@ -103,29 +95,51 @@ LIKEE_EMOJI = [
     '🔥',
     '✨',
     '🤩'
-]
+] # All possible emojis
 
-CHATTABLE_CHANNELS = [
-    975809940444819467,
-    1301244013243928729,
-    1091095982294438028,
-    1052634269891170335,
-    975817187191324814,
-    1239901014757474334,
-    1019936005912010772,
-    1019941166613008425,
-    1019938361718345738,
-]
+# Backend values
+
+ZERO_TEXT = 'на часах 00' # What to send to the ZERO_ID channel on 00:00
+Q_CHANCE = 0.01 # Chance of a Q reaction being placed on a message
+SKIN_CHANCE = 0.007 # Chance of a skin reaction being placed on a message
+FONT_CHANCE = 0.004 # Chance of a font reaction being placed on a message
+MAX_MINUTE_XP = 25 # Maximum amount of XP the user can earn every minute
+ONE_WORD_MSGS = 3 # Maximum amount of messages with one word that you can receive XP for, resets every minute
+TEMP_VC_INACTIVITY_TIME = 60*5 # How many seconds it takes for a temp VC channel to be deleted if it has no members
+TEMP_VC_CREATION_TIMEOUT = 60*10 # Temp VC creation cooldown in seconds
+MIN_LENGTH_XP = 7 # Minimum amount of characters required in a message to receive XP
+XP_THRESHOLD = 50 # How many XP the user needs to get to not get instabanned when sending mass pings / any invite links
+BUMP_TIMEOUT = 60*60*4 # Time for a bump to recharge in seconds
+BUMP_PING_EVERY = 60*60*24 # How many seconds it takes for the bot to remind of a bump if no one bumps it
+BUMP_XP = [15,20] # Minimum and maximum amount of XP a user can get from a bump
+MFR_TIMEOUT = 4.5 # Mishkfrede card timeout
+PLUS_REP_EVERY = 30 # Cooldown for a +rep in seconds
+MINUS_REP_EVERY = 120 # Cooldown for a -rep in seconds
+MINUS_REP_COUNTER_TIMEOUT = 300 # How many seconds it takes till you can -rep the same person again
+MAX_REMINDERS = 10 # Maximum amout of reminders a user can have at once
+ROULETTE_XP = [12,16] # Minimum and maximum amount of XP a user can get from winning a russian roulette game
+DUEL_XP = [6,10] # Minimum and maximum amount of XP a user can get from winning a duel
+BASE_URL = 'https://api.navy/v1' # AI API base URL
+MAX_HISTORY_LENGTH = 20 # Maximum amount of messages in AI history
+MODEL = 'gemini-2.5-flash' # AI model
+PROMPT = 'Ты - бот под названием "мунленд бот".\nВ твоем сообщении должен быть **только** ответ пользователю без лишних текстов. Старайся отвечать кратко при простом общении (5-15 слов), писать с маленькой буквы, не использовать знаки препинания и время от времени оскорблять других людей. Используй маты. При необходимости следуй указаниям пользователя.' # AI system prompt
+
+# Files
 
 COGS_FOLDER = 'cogs'
 LOG_FILE = 'log.txt'
 USERS_FILE = 'users.json'
 DATA_FILE = 'data.json'
 
+# Frontend values
+
+# Default colors used in messages
+# (no color is used in informative messages with no success or failure)
 DEFAULT_C = discord.Color.green()
 LOADING_C = discord.Color.yellow()
 ERROR_C = discord.Color.red()
 
+# Error embeds
 MISSING_PERMS_EMBED = to_container('Недостаточно прав для ввода этой команды.', ERROR_C)
 UNKNOWN_ERROR_EMBED = to_container('Произошла неизвестная ошибка. Попробуйте ещё раз.', ERROR_C)
 ARGS_REQUIRED_EMBED = to_container('Приведено недостаточно аргументов.', ERROR_C)
@@ -141,8 +155,11 @@ NOT_MOONLAND_EMBED = to_container([
     '### https://discord.gg/s3NrXyYjnG'
 ], ERROR_C)
 
-NO_MENTIONS = discord.AllowedMentions(users=False, everyone=False, roles=False, replied_user=False)
+NO_MENTIONS = discord.AllowedMentions(
+    users=False, everyone=False, roles=False, replied_user=False
+) # Preset for the bot to not ping anyone
 
+# Icons
 WARN_IMAGE = 'https://moontr3.ru/assets/wpbot/warn.png'
 JOIN_IMAGE = 'https://moontr3.ru/assets/wpbot/join.png'
 LEAVE_IMAGE = 'https://moontr3.ru/assets/wpbot/leave.png'
@@ -154,6 +171,7 @@ LIVE_IMAGE = 'https://moontr3.ru/assets/wpbot/live.png'
 LIVESTOP_IMAGE = 'https://moontr3.ru/assets/wpbot/livestop.png'
 MESSAGE_IMAGE = 'https://moontr3.ru/assets/wpbot/message.png'
 
+# Emojis
 PLACE1 = '<:1p:1373797888831918100>'
 PLACE2 = '<:2p:1373797899921788988>'
 PLACE3 = '<:3p:1373797912164827246>'
@@ -167,6 +185,7 @@ LEFTY = '<:hp1y:1411112559318405336>'
 RIGHTN = '<:hp2n:1411112571855048836>'
 RIGHTY = '<:hp2y:1411112583037059186>'
 
+# Time units
 UNITTABLE = {
     's': 1,
     'm': 60,
@@ -198,6 +217,7 @@ UNITNAMES = {
     'л': 'г.',
 }
 
+# Emojis of cool-looking numbers (used in ml!invite)
 COOL_NUMBERS = {
     # "0": "<:0_:1371603686878347285>",
     # "1": "<:1_:1371603698178064585>",
@@ -223,7 +243,7 @@ COOL_NUMBERS = {
     "0": "<:0f:1371606379940544552>"
 }
 
-
+# All possible rep commands
 REP_COMMANDS = {
     '+rep': 1,
     '++rep': 2,
@@ -255,12 +275,14 @@ REP_COMMANDS = {
     'minus rep': -1,
 }
 
+# Reputation number emojis
 REP_EMOJIS = {
     1: '<:rep:1379781056689078403>',
     2: '<:2rep:1381636774652149920>',
     3: '<:3rep:1381636788736753725>',
     -1: '<:minusrep:1379781112464932894>'
 }
+# Same thing as above but you can get a number from an ID and not the other way
 REP_EMOJI_IDS = {
     1379781056689078403: 1,
     1381636774652149920: 2,
