@@ -49,9 +49,7 @@ async def setup(bot: commands.Bot):
         found_keyword = any([
             'млбот' in message.content.lower(),
             'mlbot' in message.content.lower(),
-            'как' in message.content.lower(),
             'мл бот' in message.content.lower(),
-            'ии' in message.content.lower(),
         ])
         if (bot.user in message.mentions or found_keyword) and message_length_pass:
             log(f'Received AI prompt from {message.author.id} (msg {message.id}), image {url}')

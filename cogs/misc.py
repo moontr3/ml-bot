@@ -14,7 +14,7 @@ import os
 async def setup(bot: commands.Bot):
 
     @bot.command(
-        name='partner'
+        name='partner2'
     )
     async def partner_msg(ctx: commands.Context):
         view = to_container([
@@ -46,6 +46,26 @@ async def setup(bot: commands.Bot):
             discord.File('./assets/bar.png', filename='bar.png'),
             discord.File('./assets/text.png', filename='text.png'),
             discord.File('./assets/banner.png', filename='banner.png'),
+        ]
+        await ctx.send(view=view, files=files)
+
+
+    @bot.command(
+        name='partner'
+    )
+    async def partner_msg(ctx: commands.Context):
+        view = to_container([
+            ui.MediaGallery(discord.MediaGalleryItem('attachment://sex.png')),
+            'предложить не могу, но крутой дискорд сервер у нас есть',
+            SEP(visible=False), ui.MediaGallery(discord.MediaGalleryItem('attachment://bar.png')), SEP(visible=False),
+            '## <:em1:1411447501055070349><:em2:1411447490875625603> '\
+                '[moonland:re](https://discord.gg/s3NrXyYjnG) '\
+                '<:em3:1411447512631611453><:em4:1411447525704990720>',
+        ], no_container=True)
+
+        files = [
+            discord.File('./assets/bar.png', filename='bar.png'),
+            discord.File('./assets/СЕКС.png', filename='sex.png'),
         ]
         await ctx.send(view=view, files=files)
 

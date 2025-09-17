@@ -897,9 +897,11 @@ class AIMessage:
         if self.reply and len(self.reply.content) < 256:
             prefix = f'*Ответ на "{self.reply.content}" от {self.reply.author.display_name}*\n'+prefix
 
+        print(self.attachment_url, prefix+self.message)
         if self.attachment_url and is_last:
             return [
                 {"type": "text", "text": prefix+self.message},
+                # {"type": "image_url", "image_url": self.attachment_url}
                 {"type": "image_url", "image_url": {"url": self.attachment_url}}
             ]
         
@@ -919,11 +921,12 @@ class AIHistory:
 
     def get_history(self) -> dict:
         data = [
-            {"role": "developer", "content": PROMPT}
+            {"role": "system", "content": PROMPT}
         ]
         for index, i in enumerate(self.history):
             is_last = index == len(self.history)-1
             data.append({"role": i.role, "content": i.get_data(is_last)})
+
         return data
 
 
@@ -1092,7 +1095,7 @@ class Manager:
         Generates an AI message.
         '''
         chat_completion = await self.openai.chat.completions.create(
-            model="gpt-4o",
+            model=MODEL,
             messages=self.ai.get_history()
         )
         return chat_completion.choices[0].message.content
