@@ -1,9 +1,7 @@
 import asyncio
 import random
-import threading
 from typing import *
 
-import aiofiles
 from discord.ext import commands
 from config import *
 import json
@@ -13,7 +11,6 @@ from log import *
 from renderer import *
 from copy import deepcopy
 import utils
-import pygame as pg
 import aiohttp
 import base64
 
@@ -1103,15 +1100,18 @@ class Manager:
         Generates an AI message.
         '''
         async with aiohttp.ClientSession(base_url=BASE_URL, headers={'Authorization': 'Bearer '+self.ai_key}) as session:
-            async with session.post('/chat/completions', json={
+            async with session.post('chat/completions', json={
                 'model': MODEL,
                 'messages': await self.ai.get_history()
             }, raise_for_status=True) as response:
                 respjson = await response.json()
+
         message = respjson['choices'][0]['message']
+
         if 'images' in message:
             img_base64 = message['images'][0]['image_url']['url'].split('base64,')[1]
             return message['content'], base64.b64decode(img_base64)
+        
         return message['content'], None
 
     def get_roulette_by_user(self, user: int) -> "Roulette | None":

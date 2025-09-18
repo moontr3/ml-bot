@@ -34,6 +34,7 @@ async def on_router_message(messages: List[aiogram.types.Message]):
     via = via[0] if via else None
     show_caption_above = any([i.show_caption_above_media for i in messages])
     is_bot = any([i.from_user.is_bot for i in messages])
+    user = messages[0].from_user
 
     # checking if channel in crossposting pairs
     for pair in manager.data['crosspost_pairs']:
@@ -52,7 +53,6 @@ async def on_router_message(messages: List[aiogram.types.Message]):
 
     # user
     if pair['show_user'] and not webhook and not pair['footer']:
-        user = messages[0].from_user
         if user.username:
             username = f'-# 👤 [{user.full_name}](<https://t.me/{user.username}>)'
         else:
@@ -90,6 +90,9 @@ async def on_router_message(messages: List[aiogram.types.Message]):
 
     # text
     if not show_caption_above and len(content) > 0:
+        if pair['show_user'] and webhook and not pair['footer'] and user.username:
+            content += f'  [{VIEWUSER}](<https://t.me/{user.username}>)'
+
         view.add_item(ui.TextDisplay(content))
 
     # button
@@ -111,15 +114,16 @@ async def on_router_message(messages: List[aiogram.types.Message]):
     try:
         # sending thru webhook
         if webhook:
-            async with aiohttp.ClientSession() as session:
-                webhook = discord.Webhook.from_url(webhook, session=session)
+            webhook = discord.Webhook.from_url(webhook, client=dcbot, bot_token=dcbot.TOKEN)
 
-                user = messages[0].from_user if messages[0].from_user else messages[0].sender_chat
-                name = utils.truncate(user.full_name, 32)
-                # avatar = user.photo.small_file_id if user.photo else None
-                avatar = None
+            user = messages[0].from_user if messages[0].from_user else messages[0].sender_chat
+            name = utils.truncate(user.full_name, 32)
+            avatar = TELEGRAM_IMAGE
 
-                message = await webhook.send(view=view, username=name, avatar_url=avatar, files=files, allowed_mentions=NO_MENTIONS)
+            await webhook.send(
+                view=view, username=name, avatar_url=avatar,
+                files=files, allowed_mentions=NO_MENTIONS
+            )
 
         # sending as bot
         else:
@@ -167,7 +171,13 @@ async def setup(bot: commands.Bot):
         if message.author.bot and not pair['allow_bots']:
             return
         
-        # sending message to telegram channel
+        # checking if its the same webhook
+        if pair['webhook']:
+            webhook = os.getenv(pair['webhook'])
+            if webhook and webhook.split('/')[-2] == str(message.webhook_id):
+                return
+        
+        # sending message to telegram
         try:
             tgbot: aiogram.Bot = bot.tgbot
             markup = None

@@ -119,9 +119,9 @@ MINUS_REP_COUNTER_TIMEOUT = 300 # How many seconds it takes till you can -rep th
 MAX_REMINDERS = 10 # Maximum amout of reminders a user can have at once
 ROULETTE_XP = [12,16] # Minimum and maximum amount of XP a user can get from winning a russian roulette game
 DUEL_XP = [6,10] # Minimum and maximum amount of XP a user can get from winning a duel
-BASE_URL = 'https://api.navy/v1' # AI API base URL
+BASE_URL = 'https://api.navy/v1/' # AI API base URL
 MAX_HISTORY_LENGTH = 20 # Maximum amount of messages in AI history
-MODEL = 'gemini-2.5-flash' # AI model
+MODEL = 'gemini-2.5-flash-image-preview' # AI model
 PROMPT = 'Ты - бот под названием "мунленд бот".\nВ твоем сообщении должен быть **только** ответ пользователю без лишних текстов. Старайся отвечать кратко при простом общении (5-15 слов), писать с маленькой буквы, не использовать знаки препинания и время от времени оскорблять других людей. Используй маты. При необходимости следуй указаниям пользователя.' # AI system prompt
 
 # Files
@@ -170,20 +170,22 @@ MOVE_IMAGE = 'https://moontr3.ru/assets/wpbot/move.png'
 LIVE_IMAGE = 'https://moontr3.ru/assets/wpbot/live.png'
 LIVESTOP_IMAGE = 'https://moontr3.ru/assets/wpbot/livestop.png'
 MESSAGE_IMAGE = 'https://moontr3.ru/assets/wpbot/message.png'
+TELEGRAM_IMAGE = 'https://moontr3.ru/assets/wpbot/telegram.png'
 
 # Emojis
-PLACE1 = '<:1p:1373797888831918100>'
-PLACE2 = '<:2p:1373797899921788988>'
-PLACE3 = '<:3p:1373797912164827246>'
-NO = '<:no:1358207748294316253>'
-GUN = '<:gun:1411017718483652698>'
-ACCEPT = '<:accept:1411021199697514650>'
-REJECT = '<:reject:1411021214566060042>'
-TARGET = '<:target:1411110283870732414>'
-LEFTN = '<:hp1n:1411112549415649280>'
-LEFTY = '<:hp1y:1411112559318405336>'
-RIGHTN = '<:hp2n:1411112571855048836>'
-RIGHTY = '<:hp2y:1411112583037059186>'
+PLACE1 = '<:1p:1373797888831918100>' # 1st place emoji in ml!stats
+PLACE2 = '<:2p:1373797899921788988>' # 2nd place emoji in ml!stats
+PLACE3 = '<:3p:1373797912164827246>' # 3rd place emoji in ml!stats
+NO = '<:no:1358207748294316253>' # completely transparent emoji
+GUN = '<:gun:1411017718483652698>' # revolver emoji used in russian roulette
+ACCEPT = '<:accept:1411021199697514650>' # accept check emoji for a button
+REJECT = '<:reject:1411021214566060042>' # reject X emoji for a button
+TARGET = '<:target:1411110283870732414>' # target emoji for a button
+LEFTN = '<:hp1n:1411112549415649280>' # left empty hp emoji in duel
+LEFTY = '<:hp1y:1411112559318405336>' # left full hp emoji in duel
+RIGHTN = '<:hp2n:1411112571855048836>' # right empty hp emoji in duel
+RIGHTY = '<:hp2y:1411112583037059186>' # right full hp emoji in duel
+VIEWUSER = '↱' # view user emoji in crossposter
 
 # Time units
 UNITTABLE = {
@@ -219,17 +221,6 @@ UNITNAMES = {
 
 # Emojis of cool-looking numbers (used in ml!invite)
 COOL_NUMBERS = {
-    # "0": "<:0_:1371603686878347285>",
-    # "1": "<:1_:1371603698178064585>",
-    # "2": "<:2_:1371603711142396114>",
-    # "3": "<:3_:1371603725789171752>",
-    # "4": "<:4_:1371603740490072195>",
-    # "5": "<:5_:1371603752808612001>",
-    # "6": "<:6_:1371603764342947901>",
-    # "7": "<:7_:1371603776523341904>",
-    # "8": "<:8_:1371603788158472253>",
-    # "9": "<:9_:1371603802242945074>",
-    # "-": "<:__:1371603912280244294>"
     "-": "<:-f:1371606495485231124>",
     "9": "<:9f:1371606485502529597>",
     "8": "<:8f:1371606475591520297>",

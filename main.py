@@ -21,6 +21,7 @@ AI_KEY = os.getenv('AI_KEY')
 
 bot = commands.Bot(command_prefix=PREFIXES, intents=discord.Intents.all(), help_command=None)
 bot.mg = Manager(USERS_FILE, DATA_FILE, AI_KEY)
+bot.TOKEN = TOKEN
 bot.WEBHOOK = os.getenv('LOGGING_WEBHOOK')
 bot.SERVICE_WEBHOOK = os.getenv('SERVICE_WEBHOOK')
 

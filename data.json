@@ -683,7 +683,7 @@
         {
             "dc_id": 975809940444819467,
             "tg_id": -1003000053798,
-            "webhook": "SERVICE_WEBHOOK",
+            "webhook": "CROSSPOST_WEBHOOK",
             "users": [],
             "footer": false,
             "show_user": true,
