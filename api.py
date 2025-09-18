@@ -15,6 +15,8 @@ from renderer import *
 from copy import deepcopy
 import utils
 import pygame as pg
+import aiohttp
+import base64
 
 
 # user and user-related classes
@@ -899,10 +901,16 @@ class AIMessage:
 
         print(self.attachment_url, prefix+self.message)
         if self.attachment_url and is_last:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(self.attachment_url) as resp:
+                    if resp.status != 200:
+                        raise Exception(f"Failed to fetch image: {response.status}")
+                    encoded_image = base64.b64encode(await resp.read()).decode('utf-8')
+                    image_url = f"data:{resp.content_type};base64,{encoded_image}"
             return [
                 {"type": "text", "text": prefix+self.message},
                 # {"type": "image_url", "image_url": self.attachment_url}
-                {"type": "image_url", "image_url": {"url": self.attachment_url}}
+                {"type": "image_url", "image_url": {"url": image_url}}
             ]
         
         return prefix+self.message
