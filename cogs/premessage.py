@@ -71,7 +71,9 @@ async def setup(bot: commands.Bot):
                 else:
                     bot.mg.generating = False
                     bot.mg.ai.add(api.AIMessage('assistant', response))
-                    await message.reply(response, file=discord.File(BytesIO(image), 'degeneration.png') if image else None)
+
+                    file = discord.File(BytesIO(image), 'image.png') if image else None
+                    await message.reply(response, file=file, allowed_mentions=NO_MENTIONS)
 
         # processing commands
         await bot.process_commands(message)

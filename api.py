@@ -898,7 +898,6 @@ class AIMessage:
         if self.reply and len(self.reply.content) < 256:
             prefix = f'*Ответ на "{self.reply.content}" от {self.reply.author.display_name}*\n'+prefix
 
-        print(self.attachment_url, prefix+self.message)
         if self.attachment_url and is_last:
             async with aiohttp.ClientSession() as session:
                 async with session.get(self.attachment_url) as resp:
