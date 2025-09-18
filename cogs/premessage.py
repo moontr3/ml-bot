@@ -6,6 +6,7 @@ from typing import *
 from config import *
 import api
 import utils
+from io import BytesIO
 
 
 # setup
@@ -62,7 +63,7 @@ async def setup(bot: commands.Bot):
             async with message.channel.typing():    
                 bot.mg.generating = True
                 try:
-                    response = await bot.mg.gen_ai()
+                    response, image = await bot.mg.gen_ai()
                     assert response
                 except Exception as e:
                     log(f'Failed to generate response: {e}', level=ERROR)
@@ -71,9 +72,8 @@ async def setup(bot: commands.Bot):
                     bot.mg.generating = False
                     bot.mg.ai.add(api.AIMessage('assistant', response))
 
-                    view = ui.LayoutView()
-                    view.add_item(ui.TextDisplay(response))
-                    await message.reply(view=view, allowed_mentions=NO_MENTIONS)
+                    file = discord.File(BytesIO(image), 'image.png') if image else None
+                    await message.reply(response, file=file, allowed_mentions=NO_MENTIONS)
 
         # processing commands
         await bot.process_commands(message)

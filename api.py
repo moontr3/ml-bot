@@ -5,7 +5,6 @@ from typing import *
 
 import aiofiles
 from discord.ext import commands
-from openai import AsyncOpenAI
 from config import *
 import json
 import os
@@ -15,6 +14,8 @@ from renderer import *
 from copy import deepcopy
 import utils
 import pygame as pg
+import aiohttp
+import base64
 
 
 # user and user-related classes
@@ -892,16 +893,22 @@ class AIMessage:
         self.reply: discord.Message = reply
 
 
-    def get_data(self, is_last: bool = False) -> dict:
+    async def get_data(self, is_last: bool = False) -> dict:
         prefix = f'Отправил {self.user.display_name}: ' if self.user else ''
         if self.reply and len(self.reply.content) < 256:
             prefix = f'*Ответ на "{self.reply.content}" от {self.reply.author.display_name}*\n'+prefix
 
         if self.attachment_url and is_last:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(self.attachment_url) as resp:
+                    if resp.status != 200:
+                        raise Exception(f"Failed to fetch image: {resp.status}")
+                    encoded_image = base64.b64encode(await resp.read()).decode('utf-8')
+                    image_url = f"data:{resp.content_type};base64,{encoded_image}"
             return [
                 {"type": "text", "text": prefix+self.message},
                 # {"type": "image_url", "image_url": self.attachment_url}
-                {"type": "image_url", "image_url": {"url": self.attachment_url}}
+                {"type": "image_url", "image_url": {"url": image_url}}
             ]
         
         return prefix+self.message
@@ -918,13 +925,13 @@ class AIHistory:
             self.history.pop(0)
 
 
-    def get_history(self) -> dict:
+    async def get_history(self) -> dict:
         data = [
             {"role": "system", "content": PROMPT}
         ]
         for index, i in enumerate(self.history):
             is_last = index == len(self.history)-1
-            data.append({"role": i.role, "content": i.get_data(is_last)})
+            data.append({"role": i.role, "content": await i.get_data(is_last)})
 
         return data
 
@@ -949,7 +956,7 @@ class Manager:
         self.roulette_games: List[Roulette] = []
         self.duel_games: List[Duel] = []
         self.ai = AIHistory()
-        self.openai = AsyncOpenAI(api_key=key, base_url=BASE_URL)
+        self.ai_key = key
         self.generating = False
         self.reload()
 
@@ -960,6 +967,8 @@ class Manager:
         '''
         self.users: Dict[int, User] = {}
         self.timed_lb = TimedLeaderboard()
+        self.bump_ping_at = time.time()+BUMP_PING_EVERY
+        self.last_bump = 0
 
         self.commit()
 
@@ -1089,15 +1098,21 @@ class Manager:
         return self.users[id]
     
 
-    async def gen_ai(self) -> str:
+    async def gen_ai(self) -> Tuple[str, bytes | None]:
         '''
         Generates an AI message.
         '''
-        chat_completion = await self.openai.chat.completions.create(
-            model=MODEL,
-            messages=self.ai.get_history()
-        )
-        return chat_completion.choices[0].message.content
+        async with aiohttp.ClientSession(base_url=BASE_URL, headers={'Authorization': 'Bearer '+self.ai_key}) as session:
+            async with session.post('/chat/completions', json={
+                'model': MODEL,
+                'messages': await self.ai.get_history()
+            }, raise_for_status=True) as response:
+                respjson = await response.json()
+        message = respjson['choices'][0]['message']
+        if 'images' in message:
+            img_base64 = message['images'][0]['image_url']['url'].split('base64,')[1]
+            return message['content'], base64.b64decode(img_base64)
+        return message['content'], None
 
     def get_roulette_by_user(self, user: int) -> "Roulette | None":
         '''
