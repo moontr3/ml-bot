@@ -1104,7 +1104,7 @@ class Manager:
         Generates an AI message.
         '''
         async with aiohttp.ClientSession(base_url=BASE_URL, headers={'Authorization': 'Bearer '+self.ai_key}) as session:
-            async with session.post('/v1/chat/completions', json={
+            async with session.post('/chat/completions', json={
                 'model': MODEL,
                 'messages': await self.ai.get_history()
             }, raise_for_status=True) as response:
