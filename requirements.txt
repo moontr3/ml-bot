@@ -4,4 +4,3 @@ python-dotenv
 pygame
 aiofiles
 aiohttp
-openai
