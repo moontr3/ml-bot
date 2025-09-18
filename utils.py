@@ -1,4 +1,5 @@
 import random
+import re
 from typing import *
 from config import *
 import datetime
@@ -237,3 +238,80 @@ def get_revolver_image(left: int) -> str:
 
 def get_revolver_endgame_image(left: int) -> str:
     return f'https://moontr3.ru/assets/r/d{left}.png'
+
+
+def truncate(string: str, length: int) -> str:
+    if len(string) > length:
+        return string[:length-3] + '...'
+    return string
+
+
+def resolve_component_tree(message: discord.Message, components: List) -> str:
+    text = ''
+
+    for i in components:
+        if hasattr(i, 'content'):
+            text += "\n"+discord_clean_content(
+                message.guild, message.mentions, message.role_mentions, i.content
+            )
+
+        elif hasattr(i, 'children'):
+            text += "\n"+resolve_component_tree(message, i.children)
+
+        elif hasattr(i, '_children'):
+            text += "\n"+resolve_component_tree(message, i._children)
+
+        elif isinstance(i, discord.SeparatorComponent):
+            text += "\n"
+
+    return text
+
+
+#### stolen from discord.py
+
+def discord_clean_content(
+    guild: discord.Guild | None,
+    mentions: List[discord.User | discord.Member],
+    role_mentions: List[discord.Role],
+    content: str
+) -> str:
+    if guild:
+        def resolve_member(id: int) -> str:
+            m = guild.get_member(id) or utils.get(mentions, id=id)  # type: ignore
+            return f'@{m.display_name}' if m else '@deleted-user'
+
+        def resolve_role(id: int) -> str:
+            r = guild.get_role(id) or utils.get(role_mentions, id=id)  # type: ignore
+            return f'@{r.name}' if r else '@deleted-role'
+
+        def resolve_channel(id: int) -> str:
+            c = guild._resolve_channel(id)  # type: ignore
+            return f'#{c.name}' if c else '#deleted-channel'
+
+    else:
+        def resolve_member(id: int) -> str:
+            m = discord.utils.get(mentions, id=id)
+            return f'@{m.display_name}' if m else '@deleted-user'
+
+        def resolve_role(id: int) -> str:
+            return '@deleted-role'
+
+        def resolve_channel(id: int) -> str:
+            return '#deleted-channel'
+
+    transforms = {
+        '@': resolve_member,
+        '@!': resolve_member,
+        '#': resolve_channel,
+        '@&': resolve_role,
+    }
+
+    def repl(match: re.Match) -> str:
+        type = match[1]
+        id = int(match[2])
+        transformed = transforms[type](id)
+        return transformed
+
+    result = re.sub(r'<(@[!&]?|#)([0-9]{15,20})>', repl, content)
+
+    return discord.utils.escape_mentions(result)

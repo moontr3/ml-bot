@@ -897,7 +897,6 @@ class AIMessage:
         if self.reply and len(self.reply.content) < 256:
             prefix = f'*Ответ на "{self.reply.content}" от {self.reply.author.display_name}*\n'+prefix
 
-        print(self.attachment_url, prefix+self.message)
         if self.attachment_url and is_last:
             return [
                 {"type": "text", "text": prefix+self.message},

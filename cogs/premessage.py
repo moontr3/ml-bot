@@ -73,7 +73,7 @@ async def setup(bot: commands.Bot):
 
                     view = ui.LayoutView()
                     view.add_item(ui.TextDisplay(response))
-                    await message.reply(view=view)
+                    await message.reply(view=view, allowed_mentions=NO_MENTIONS)
 
         # processing commands
         await bot.process_commands(message)

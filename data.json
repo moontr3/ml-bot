@@ -667,5 +667,29 @@
             ],
             "color": "#ffffff"
         }
-    }
+    },
+    "crosspost_pairs": [
+        {
+            "dc_id": 0,
+            "tg_id": -1002962023380,
+            "webhook": null,
+            "users": [698457845301248010, 981586348198735912],
+            "footer": true,
+            "show_user": false,
+            "allow_bots": false,
+            "tg_link": null,
+            "dc_link": "https://discord.gg/s3NrXyYjnG"
+        },
+        {
+            "dc_id": 975809940444819467,
+            "tg_id": -1003000053798,
+            "webhook": "SERVICE_WEBHOOK",
+            "users": [],
+            "footer": false,
+            "show_user": true,
+            "allow_bots": true,
+            "tg_link": null,
+            "dc_link": null
+        }
+    ]
 }
