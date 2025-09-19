@@ -7,3 +7,4 @@ conv.py
 temp
 *.ignore
 backups/*
+messages.json

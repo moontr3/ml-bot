@@ -933,6 +933,123 @@ class AIHistory:
         return data
 
 
+# crossposter message history
+
+
+class Crossposter:
+    def __init__(self, file: str):
+        self.file: str = file
+        self.last_commit: int = 0
+        self.reload()
+
+
+    def new(self):
+        '''
+        Rewrites the old database with the new one.
+        '''
+        self.messages: Dict[int, Tuple[int,List[int]]] = {}
+        # [Telegram Chat ID, [Discord Message ID, [Telegram Message IDs]]]
+        self.commit()
+
+
+    def panic(self):
+        '''
+        Creates a duplicate of the database and creates a new one.
+        '''
+        log('Panic in crossposter file!', 'api', WARNING)
+
+        # copying file
+        if os.path.exists(self.file):
+            os.rename(self.file, self.file+'.bak')
+            log(f'Cloned crossposter data file to {self.file}.bak', 'api')
+
+        # creating a new one
+        self.new()
+
+
+    def reload(self):
+        '''
+        Reloads crossposter data.
+        '''
+        # user data
+        try:
+            with open(self.file, encoding='utf-8') as f:
+                data = json.load(f)
+        except:
+            self.panic()
+            return
+
+        self.messages = {int(k): v for k, v in data.get('messages', {}).items()}
+
+        # saving
+        self.commit()
+
+
+    def commit(self):
+        '''
+        Saves data to the file.
+        '''
+        if time.time()-self.last_commit < 2:
+            return
+        self.last_commit = time.time()
+        
+        data = {
+            "messages": self.messages
+        }
+
+        # saving
+        try:
+            json_data = json.dumps(data)
+        except Exception as e:
+            log(f'Unable to save crossposter data: {e}', 'api', WARNING)
+            return
+
+        try:
+            with open(self.file+'.temp', 'w') as f:
+                f.write(json_data)
+                f.flush()
+                os.fsync(f.fileno())
+
+            os.replace(self.file+'.temp', self.file)
+        except Exception as e:
+            log(f'Unable to save crossposter data to file: {e}', 'api', ERROR)
+
+
+    def add_message(self, chat_id: int, dc_id: int, tg_ids: List[int], preview_text: str, jump_url: str):
+        '''
+        Adds a pair of IDs to the database.
+        '''
+        if chat_id not in self.messages:
+            self.messages[chat_id] = []
+
+        self.messages[chat_id].append([dc_id, tg_ids, preview_text, jump_url])
+        self.commit()
+
+
+    def get_tg_by_dc(self, dc_id: int) -> Tuple[int, List[int], str, str]:
+        '''
+        Get Telegram message ID by Discord message ID.
+
+        Returns: (chat_id, message_ids, preview_text, message_url)
+        '''
+        for chat_id, messages in self.messages.items():
+            for message in messages:
+                if message[0] == dc_id:
+                    return chat_id, message[1], message[2], message[3]
+                
+
+    def get_dc_by_tg(self, chat_id: int, tg_id: int) -> Tuple[int, str, str]:
+        '''
+        Get Discord message ID by Telegram message ID.
+
+        Returns: (message_id, preview_text, message_url)
+        '''
+        return next((
+            (message[0], message[2], message[3]) \
+            for message in self.messages.get(chat_id, []) if tg_id in message[1]),
+        None)
+        
+
 # manager
 
 class Manager:
@@ -955,6 +1072,7 @@ class Manager:
         self.ai = AIHistory()
         self.ai_key = key
         self.generating = False
+        self.crossposter = Crossposter(CROSSPOSTER_FILE)
         self.reload()
 
 
@@ -1021,19 +1139,6 @@ class Manager:
 
         # saving
         self.commit()
-
-
-    # def commit(self):
-    #     '''
-    #     Это костыль или гениальное решение?
-    #     Anti Ctrl+C Device
-    #     '''
-    #     if self.committing:
-    #         return
-        
-    #     self.committing = True
-    #     threading.Thread(target=self._commit).start()
-    #     self.committing = False
 
 
     def commit(self):

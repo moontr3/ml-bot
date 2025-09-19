@@ -1,4 +1,5 @@
 
+import random
 from discord.ext import commands
 import discord
 from log import *
@@ -14,9 +15,9 @@ async def setup(bot: commands.Bot):
 
     @bot.event
     async def on_message(message: discord.Message):
-        if message.author.bot:
+        if message.author.id == bot.user.id:
             return
-
+        
         if message.guild == None:
             await message.reply(view=c_to_view(NO_DM_EMBED))
             return
@@ -68,6 +69,7 @@ async def setup(bot: commands.Bot):
                 except Exception as e:
                     log(f'Failed to generate response: {e}', level=ERROR)
                     bot.mg.generating = False
+                    await message.reply(random.choice(HANGUP_TEXTS), allowed_mentions=NO_MENTIONS)
                 else:
                     bot.mg.generating = False
                     bot.mg.ai.add(api.AIMessage('assistant', response))

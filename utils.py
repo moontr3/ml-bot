@@ -267,6 +267,14 @@ def resolve_component_tree(message: discord.Message, components: List) -> str:
     return text
 
 
+def discord_message_to_text(message: discord.Message) -> str:
+    clean_text = message.clean_content
+    clean_text += resolve_component_tree(message, message.components)
+    clean_text = clean_text.strip()
+    clean_text = discord.utils.remove_markdown(clean_text)
+    return clean_text
+
+
 #### stolen from discord.py
 
 def discord_clean_content(
