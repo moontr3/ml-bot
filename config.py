@@ -2,7 +2,7 @@ import discord
 from builder import *
 
 PREFIXES = (
-    'tml!', 'ml!', 'odbs!','мл!','penis!','пенис!','='
+    'tml!', 'ml!', 'odbs!','мл!','penis!','пенис!','=','ьд!'
 ) # prefixes used when entering bot commands
 TEMP_VC_CREATE_COMMANDS = [
     '!типа где', '!типо где', '!тип где', '!tipa gde', '!tipo gde'

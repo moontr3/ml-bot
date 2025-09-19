@@ -1208,7 +1208,9 @@ class Manager:
             async with session.post('chat/completions', json={
                 'model': MODEL,
                 'messages': await self.ai.get_history()
-            }, raise_for_status=True) as response:
+            }) as response:
+                if response.status != 200:
+                    raise Exception(response.content)
                 respjson = await response.json()
 
         message = respjson['choices'][0]['message']

@@ -28,13 +28,31 @@ manager: api.Manager = None
 async def on_router_message(messages: List[aiogram.types.Message]):
     bot = messages[0].bot
     chat_id = messages[0].chat.id
+    user = messages[0].from_user
     content = '\n'.join([i.text or i.caption for i in messages if i.text or i.caption])
     clean_content = content
+
     photos = [i.photo[-1] for i in messages if i.photo]
     via = next((i.via_bot for i in messages if i.via_bot), None)
     show_caption_above = any([i.show_caption_above_media for i in messages])
     is_bot = any([i.from_user.is_bot for i in messages])
-    user = messages[0].from_user
+
+    forward_data = next((
+        i.forward_origin.sender_user if isinstance(i.forward_origin, aiogram.types.MessageOriginUser) else
+        i.forward_origin.sender_chat if isinstance(i.forward_origin, aiogram.types.MessageOriginChat) else
+        i.forward_origin.chat if isinstance(i.forward_origin, aiogram.types.MessageOriginChannel) else
+        i.forward_origin.sender_user_name if isinstance(i.forward_origin, aiogram.types.MessageOriginHiddenUser)
+        else None for i in messages if i.forward_origin
+    ), None)
+
+    forward_name = (
+        forward_data if isinstance(forward_data, str) else
+        forward_data.full_name if forward_data else None
+    )
+    forward_link = (
+        None if isinstance(forward_data, str) else
+        forward_data.username if forward_data and forward_data.username else None
+    )
 
     # checking if channel in crossposting pairs
     for pair in manager.data['crosspost_pairs']:
@@ -61,6 +79,18 @@ async def on_router_message(messages: List[aiogram.types.Message]):
 
             view.add_item(ui.TextDisplay(username))
 
+        # forwarded
+        if forward_name:
+            if forward_link:
+                name = f'[{forward_name}](<https://t.me/{forward_link}>)'
+            else:
+                name = forward_name
+            view.add_item(ui.TextDisplay(f'-# переслано от {name}'))
+
+        # via
+        if via and via.username:
+            view.add_item(ui.TextDisplay(f'-# через [@{via.username}](<https://t.me/{via.username}>)'))
+
         # reply text
         reply = next((i.reply_to_message for i in messages if i.reply_to_message), None)
         reply_text = ''
@@ -74,17 +104,10 @@ async def on_router_message(messages: List[aiogram.types.Message]):
 
                 if preview:
                     reply_text = f'[╭ {preview}](<{url}>)\n'
-
-        # via
-        if via and via.username:
-            view.add_item(ui.TextDisplay(f'-# via [@{via.username}](<https://t.me/{via.username}>)'))
-
-        # text (if set to show above media)
-        if show_caption_above and len(content) > 0:
-            view.add_item(ui.TextDisplay(content))
-
+                
         # photos
         files = []
+        gallery = None
 
         if photos:
             gallery = ui.MediaGallery()
@@ -101,14 +124,20 @@ async def on_router_message(messages: List[aiogram.types.Message]):
                 files.append(discord.File(out, name))
                 gallery.add_item(media='attachment://'+name)
 
+        # gallery if shown above text
+        if not show_caption_above and gallery:
             view.add_item(gallery)
 
         # text
-        if not show_caption_above and len(content) > 0:
+        if len(content) > 0:
             if pair['show_user'] and webhook and not pair['footer'] and user.username:
-                content += f'  [{VIEWUSER}](<https://t.me/{user.username}>)'
+                content += f'  [{VIEWUSER}](<https://t.me/{messages[0].get_url()}>)'
 
             view.add_item(ui.TextDisplay(reply_text + content))
+
+        # gallery if shown below text
+        if show_caption_above and gallery:
+            view.add_item(gallery)
 
         # button
         if pair['footer']:

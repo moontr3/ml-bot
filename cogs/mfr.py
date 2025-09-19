@@ -18,7 +18,7 @@ async def setup(bot: commands.Bot):
     @bot.hybrid_command(
         name='mishkfrede',
         description='Случайная карточка мишкфреде (+XP)',
-        aliases=['мишкфреде','мф','mf','mfr','мишкафреде','мшкфреди','мшкфреде','мишкфреди','мишкафреди','motherfucker','фреде']
+        aliases=['мишкфреде','мф','mf','ьа','mfr','мишкафреде','мшкфреди','мшкфреде','мишкфреди','мишкафреди','motherfucker','фреде']
     )
     @api.check_guild
     @discord.app_commands.guild_only()

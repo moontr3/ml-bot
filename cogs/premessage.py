@@ -28,48 +28,65 @@ async def setup(bot: commands.Bot):
 
         # ml ai
         message_length_pass = len(message.content) < 512 and len(message.content) > 0
+
+        # checking for reply
         try:
-            reply_to = None if not message.reference else \
+            actual_reply_to = None if not message.reference else \
                 message.reference.cached_message if message.reference.cached_message else \
                 (await message.channel.fetch_message(message.reference.message_id))
             
-            if len(reply_to.content) == 0:
+            if actual_reply_to and len(actual_reply_to.content) == 0:
                 reply_to = None
-        except:
+            else:
+                reply_to = actual_reply_to
+        except Exception as e:
+            reply_to = None
             pass
 
+        # checking if an image is attached
         url = None
         if len(message.attachments) > 0:
             url = message.attachments[0].proxy_url
 
+        # adding message to history
         if message_length_pass:
             if message.author.id in NERD_USERS:
                 bot.mg.ai.add(api.AIMessage('user', 'Ответь на это сообщение случайным оскорблением с кучей матов слов в 20'))
             else:
                 bot.mg.ai.add(api.AIMessage('user', message.content, message.author, url, reply_to))
         
+        # chceking if mlbot is being called for
         found_keyword = any([
             'млбот' in message.content.lower(),
             'mlbot' in message.content.lower(),
             'мл бот' in message.content.lower(),
         ])
-        if (bot.user in message.mentions or found_keyword) and message_length_pass:
+        replied_to = actual_reply_to.author.id == bot.user.id if actual_reply_to else False
+        
+        # sending ai request
+        if (replied_to or found_keyword) and message_length_pass:
             log(f'Received AI prompt from {message.author.id} (msg {message.id}), image {url}')
 
+            # nvm not sending ai request
             if bot.mg.generating:
                 log('Already generating response', level=WARNING)
                 await bot.process_commands(message)
                 return
 
+            # sending request
             async with message.channel.typing():    
                 bot.mg.generating = True
                 try:
                     response, image = await bot.mg.gen_ai()
                     assert response
+                
+                # sending error message
                 except Exception as e:
                     log(f'Failed to generate response: {e}', level=ERROR)
                     bot.mg.generating = False
                     await message.reply(random.choice(HANGUP_TEXTS), allowed_mentions=NO_MENTIONS)
+                
+                # sending response
                 else:
                     bot.mg.generating = False
                     bot.mg.ai.add(api.AIMessage('assistant', response))
