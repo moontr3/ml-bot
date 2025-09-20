@@ -1137,6 +1137,28 @@ class Manager:
             k: FontData(k, v) for k, v in self.data.get('fonts', {}).items()
         }
 
+        # other data from folder
+        
+        # emoji list
+        try:
+            with open(EMOJIS_FILE, encoding='utf-8') as f:
+                data = f.read()
+                self.emojis: List[str] = data.split('\n')
+            log('Reloaded emoji list', 'api')
+
+        except Exception as e:
+            log(f'Error while loading emoji list: {e}', 'api', level=ERROR)
+        
+        # fate actions
+        try:
+            with open(FATE_ACTIONS_FILE, encoding='utf-8') as f:
+                data = f.read()
+                self.fate_actions: List[str] = data.split('\n')
+            log('Reloaded fate actions', 'api')
+
+        except Exception as e:
+            log(f'Error while loading fate actions: {e}', 'api', level=ERROR)
+
         # saving
         self.commit()
 
@@ -1402,7 +1424,8 @@ class Manager:
         '''
         user = self.get_user(user_id)
 
-        user.mfr_timeout = time.time()+MFR_TIMEOUT
+        if user.mfr_timeout < time.time():
+            user.mfr_timeout = time.time()+MFR_TIMEOUT
 
         if card not in user.mfr_stats:
             user.mfr_stats[card] = 0

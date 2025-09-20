@@ -30,29 +30,9 @@ async def on_router_message(messages: List[aiogram.types.Message]):
     chat_id = messages[0].chat.id
     user = messages[0].from_user
     content = '\n'.join([i.text or i.caption for i in messages if i.text or i.caption])
-    clean_content = content
 
     photos = [i.photo[-1] for i in messages if i.photo]
-    via = next((i.via_bot for i in messages if i.via_bot), None)
-    show_caption_above = any([i.show_caption_above_media for i in messages])
     is_bot = any([i.from_user.is_bot for i in messages])
-
-    forward_data = next((
-        i.forward_origin.sender_user if isinstance(i.forward_origin, aiogram.types.MessageOriginUser) else
-        i.forward_origin.sender_chat if isinstance(i.forward_origin, aiogram.types.MessageOriginChat) else
-        i.forward_origin.chat if isinstance(i.forward_origin, aiogram.types.MessageOriginChannel) else
-        i.forward_origin.sender_user_name if isinstance(i.forward_origin, aiogram.types.MessageOriginHiddenUser)
-        else None for i in messages if i.forward_origin
-    ), None)
-
-    forward_name = (
-        forward_data if isinstance(forward_data, str) else
-        forward_data.full_name if forward_data else None
-    )
-    forward_link = (
-        None if isinstance(forward_data, str) else
-        forward_data.username if forward_data and forward_data.username else None
-    )
 
     # checking if channel in crossposting pairs
     for pair in manager.data['crosspost_pairs']:
@@ -68,43 +48,6 @@ async def on_router_message(messages: List[aiogram.types.Message]):
 
     # sending message to discord channel
     try:
-        view = ui.LayoutView()
-
-        # user
-        if pair['show_user'] and not webhook and not pair['footer']:
-            if user.username:
-                username = f'-# 👤 [{user.full_name}](<https://t.me/{user.username}>)'
-            else:
-                username = f'-# 👤 {user.full_name}'
-
-            view.add_item(ui.TextDisplay(username))
-
-        # forwarded
-        if forward_name:
-            if forward_link:
-                name = f'[{forward_name}](<https://t.me/{forward_link}>)'
-            else:
-                name = forward_name
-            view.add_item(ui.TextDisplay(f'-# переслано от {name}'))
-
-        # via
-        if via and via.username:
-            view.add_item(ui.TextDisplay(f'-# через [@{via.username}](<https://t.me/{via.username}>)'))
-
-        # reply text
-        reply = next((i.reply_to_message for i in messages if i.reply_to_message), None)
-        reply_text = ''
-
-        if reply:
-            data = manager.crossposter.get_dc_by_tg(chat_id, reply.message_id)
-
-            if data:
-                preview = data[1].replace(']', '\\]')
-                url = data[2]
-
-                if preview:
-                    reply_text = f'[╭ {preview}](<{url}>)\n'
-                
         # photos
         files = []
         gallery = None
@@ -124,35 +67,9 @@ async def on_router_message(messages: List[aiogram.types.Message]):
                 files.append(discord.File(out, name))
                 gallery.add_item(media='attachment://'+name)
 
-        # gallery if shown above text
-        if not show_caption_above and gallery:
-            view.add_item(gallery)
-
-        # text
-        if len(content) > 0:
-            if pair['show_user'] and webhook and not pair['footer'] and user.username:
-                content += f'  [{VIEWUSER}](<https://t.me/{messages[0].get_url()}>)'
-
-            view.add_item(ui.TextDisplay(reply_text + content))
-
-        # gallery if shown below text
-        if show_caption_above and gallery:
-            view.add_item(gallery)
-
-        # button
-        if pair['footer']:
-            button = ui.Button(
-                style=discord.ButtonStyle.link, label=messages[0].chat.title,
-                url=pair["tg_link"] if pair["tg_link"] else messages[0].get_url()
-            )
-
-            if messages[0].author_signature:
-                view.add_item(ui.Section(
-                    ui.TextDisplay(f'-# {messages[0].author_signature}'),
-                    accessory=button
-                ))
-            else:
-                view.add_item(ui.ActionRow(button))
+        # generating view
+        view = utils.get_tg_message_view(messages, pair, webhook, manager, gallery)
+        saved_text = utils.get_preview_tg_message_text(content)
 
         # sending thru webhook
         if webhook:
@@ -174,27 +91,120 @@ async def on_router_message(messages: List[aiogram.types.Message]):
         
         manager.crossposter.add_message(
             chat_id, message.id, [i.message_id for i in messages],
-            utils.truncate(clean_content, 50), message.jump_url
+            saved_text, message.jump_url
         )
 
     except Exception as e:
         log(f'Unable to crosspost message: {e}', level=ERROR)
 
 
+async def on_router_edit_message(messages: List[aiogram.types.Message]):
+    bot = messages[0].bot
+    chat_id = messages[0].chat.id
+    user = messages[0].from_user
+    content = '\n'.join([i.text or i.caption for i in messages if i.text or i.caption])
+
+    photos = [i.photo[-1] for i in messages if i.photo]
+    is_bot = any([i.from_user.is_bot for i in messages])
+
+    # checking if channel in crossposting pairs
+    for pair in manager.data['crosspost_pairs']:
+        if pair["tg_id"] == chat_id:
+            break
+    else:
+        return
+    
+    if is_bot and not pair['allow_bots']:
+        return
+    
+    webhook = os.getenv(pair['webhook'])
+
+    # sending message to discord channel
+    try:
+        # photos
+        files = []
+        gallery = None
+
+        if photos:
+            gallery = ui.MediaGallery()
+
+            log(f'Downloading {len(photos)} photos...')
+
+            for i in photos:
+                out = io.BytesIO()
+                await bot.download(i.file_id, out)
+
+                image = Image.open(copy(out))
+                name = f'{i.file_unique_id}.{image.format.lower()}'
+
+                files.append(discord.File(out, name))
+                gallery.add_item(media='attachment://'+name)
+
+        # generating view
+        view = utils.get_tg_message_view(messages, pair, webhook, manager, gallery)
+        saved_text = utils.get_preview_tg_message_text(content)
+
+        # sending thru webhook
+        if webhook:
+            webhook = discord.Webhook.from_url(webhook, client=dcbot, bot_token=dcbot.TOKEN)
+
+            user = messages[0].from_user if messages[0].from_user else messages[0].sender_chat
+            name = utils.truncate(user.full_name, 32)
+            avatar = TELEGRAM_IMAGE
+
+            message = await webhook.send(
+                view=view, username=name, avatar_url=avatar,
+                files=files, allowed_mentions=ONLY_USERS, wait=True
+            )
+
+        # sending as bot
+        else:
+            channel: discord.TextChannel = dcbot.get_channel(pair["dc_id"])
+            message = await channel.send(view=view, files=files, allowed_mentions=NO_MENTIONS)
+        
+        manager.crossposter.add_message(
+            chat_id, message.id, [i.message_id for i in messages],
+            saved_text, message.jump_url
+        )
+
+    except Exception as e:
+        log(f'Unable to crosspost message: {e}', level=ERROR)
+
+
+
+
+
+
 @router.channel_post(F.media_group_id.is_(None))
 async def on_message(message: aiogram.types.Message):
     await on_router_message([message])
+
+@router.channel_post(F.media_group_id.is_not(None))
+@media_group_handler()
+async def on_media_group(messages: List[aiogram.types.Message]):
+    await on_router_message(messages)
+
 
 
 @router.message(F.media_group_id.is_(None))
 async def on_message(message: aiogram.types.Message):
     await on_router_message([message])
 
-
 @router.message(F.media_group_id.is_not(None))
 @media_group_handler()
 async def on_media_group(messages: List[aiogram.types.Message]):
     await on_router_message(messages)
+
+
+
+@router.edited_channel_post(F.media_group_id.is_(None))
+async def on_message(message: aiogram.types.Message):
+    await on_router_edit_message([message])
+
+@router.edited_message(F.media_group_id.is_(None))
+async def on_message(message: aiogram.types.Message):
+    await on_router_edit_message([message])
+
 
 
 # discord bot
@@ -238,14 +248,8 @@ async def setup(bot: commands.Bot):
                 markup = kb.as_markup()
 
             # text
-            clean_text = utils.discord_message_to_text(message)
-            clean_text = formatting.Text(clean_text).as_markdown()
-
-            if pair['show_user']:
-                name = message.author.name.replace("_", "\\_")
-                text = f'`{name}` 　 {clean_text}'
-            else:
-                text = clean_text
+            saved_text = utils.get_preview_dc_message_text(message)
+            text = utils.get_dc_message_text(message, pair)
 
             # media
             media = []
@@ -269,7 +273,6 @@ async def setup(bot: commands.Bot):
             reply_to = None
 
             if message.reference:
-                # todo добавить превью в само сообщение если сообщение не найдено в базе
                 messageid = bot.mg.crossposter.get_tg_by_dc(
                     message.reference.message_id
                 )
@@ -290,7 +293,7 @@ async def setup(bot: commands.Bot):
                 ids = [new_message.message_id]
 
             bot.mg.crossposter.add_message(
-                pair['tg_id'], message.id, ids, utils.truncate(clean_text, 50), message.jump_url
+                pair['tg_id'], message.id, ids, saved_text, message.jump_url
             )
 
         except Exception as e:

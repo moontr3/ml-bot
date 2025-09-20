@@ -28,7 +28,7 @@ async def setup(bot: commands.Bot):
             ':sparkles: уникальная **система левелинга и репутации** которую не найдете на любом другом сервере',
             ':robot: Мега Эпичный Кастомный **Мунленд Бот с игрульками**',
             ':busts_in_silhouette: крутые сигма участники (проверено)',
-            ':bar_chart: рандомные необычные **ивентики и происходилки** и мега глубокий лор',
+            ':bar_chart: рандомные необычные **ивентики и происходилки**',
             ':nazar_amulet: _~~сысыкутариканыктинак...~~_',
             SEP(visible=False), ui.MediaGallery(discord.MediaGalleryItem('attachment://bar.png')), SEP(visible=False),
             to_container([
@@ -37,7 +37,7 @@ async def setup(bot: commands.Bot):
             ], accent_color=discord.Color.from_str('#641CBC')),
             SEP(visible=False), ui.MediaGallery(discord.MediaGalleryItem('attachment://bar.png')), SEP(visible=False),
             '#  <:em1:1411447501055070349><:em2:1411447490875625603> '\
-                '[заходи не заскучаешь (обещаю)](https://discord.gg/s3NrXyYjnG) '\
+                '[заходи не заскучаешь (нажми)](https://discord.gg/s3NrXyYjnG) '\
                 '<:em3:1411447512631611453><:em4:1411447525704990720>',
             SEP(visible=False), ui.MediaGallery(discord.MediaGalleryItem('attachment://banner.png')),
         ], no_container=True)

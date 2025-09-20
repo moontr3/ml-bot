@@ -54,12 +54,30 @@ async def setup(bot: commands.Bot):
                 bot.mg.ai.add(api.AIMessage('user', 'Ответь на это сообщение случайным оскорблением с кучей матов слов в 20'))
             else:
                 bot.mg.ai.add(api.AIMessage('user', message.content, message.author, url, reply_to))
-        
+
+        # dixus
+        found_keyword_dixus = any([
+            'диксус' in message.content.lower(),
+            'dixus' in message.content.lower(),
+            'diksus' in message.content.lower(),
+        ])
+        try:
+            if found_keyword_dixus:
+                if random.random() > 0.2:
+                    await message.reply(utils.get_dixus_phrase(message.author.name))
+                await bot.process_commands(message)
+                return
+        except Exception as e:
+            log(f'Failed to get dixus phrase: {e}', level=ERROR)
+            return
+
         # chceking if mlbot is being called for
         found_keyword = any([
             'млбот' in message.content.lower(),
             'mlbot' in message.content.lower(),
             'мл бот' in message.content.lower(),
+            'джарвис' in message.content.lower(),
+            'jarvis' in message.content.lower(),
         ])
         replied_to = actual_reply_to.author.id == bot.user.id if actual_reply_to else False
         

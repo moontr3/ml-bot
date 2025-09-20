@@ -608,7 +608,7 @@
         "epic": {
             "name": "Эпическая",
             "chance": 8,
-            "xp": [5,7],
+            "xp": [4,6],
             "images": [
                 "https://moontr3.ru/assets/mfr/epic/1.png",
                 "https://moontr3.ru/assets/mfr/epic/2.png",
@@ -622,7 +622,7 @@
         "mythic": {
             "name": "Мифическая",
             "chance": 3,
-            "xp": [13,15],
+            "xp": [7,10],
             "images": [
                 "https://moontr3.ru/assets/mfr/mythic/1.png",
                 "https://moontr3.ru/assets/mfr/mythic/2.png",
@@ -635,7 +635,7 @@
         "legendary": {
             "name": "Легендарка",
             "chance": 1,
-            "xp": [25,30],
+            "xp": [15,20],
             "images": [
                 "https://moontr3.ru/assets/mfr/legendary/1.png",
                 "https://moontr3.ru/assets/mfr/legendary/2.png",
@@ -649,7 +649,7 @@
             "name": "Тайная",
             "hidden": true,
             "chance": 0.1,
-            "xp": [50,60],
+            "xp": [30,35],
             "images": [
                 "https://moontr3.ru/assets/mfr/secret/1.png", 
                 "https://moontr3.ru/assets/mfr/secret/2.png", 

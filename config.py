@@ -112,7 +112,7 @@ XP_THRESHOLD = 50 # How many XP the user needs to get to not get instabanned whe
 BUMP_TIMEOUT = 60*60*4 # Time for a bump to recharge in seconds
 BUMP_PING_EVERY = 60*60*24 # How many seconds it takes for the bot to remind of a bump if no one bumps it
 BUMP_XP = [15,20] # Minimum and maximum amount of XP a user can get from a bump
-MFR_TIMEOUT = 4.5 # Mishkfrede card timeout
+MFR_TIMEOUT = 20 # Mishkfrede card timeout
 PLUS_REP_EVERY = 30 # Cooldown for a +rep in seconds
 MINUS_REP_EVERY = 120 # Cooldown for a -rep in seconds
 MINUS_REP_COUNTER_TIMEOUT = 300 # How many seconds it takes till you can -rep the same person again
@@ -122,7 +122,7 @@ DUEL_XP = [6,10] # Minimum and maximum amount of XP a user can get from winning 
 BASE_URL = 'https://api.navy/v1/' # AI API base URL
 MAX_HISTORY_LENGTH = 20 # Maximum amount of messages in AI history
 MODEL = 'gemini-2.5-flash-image-preview' # AI model
-PROMPT = 'Ты - бот под названием "мунленд бот".\nВ твоем сообщении должен быть **только** ответ пользователю без лишних текстов. Старайся отвечать кратко при простом общении (5-15 слов), писать с маленькой буквы, не использовать знаки препинания и время от времени оскорблять других людей. Используй маты. При необходимости следуй указаниям пользователя.\nЕсли пользователь просит сгенерировать или нарисовать картинку, ты обязан это сделать' # AI system prompt
+PROMPT = 'Ты - бот с названиями "мунленд бот", "млбот", "джарвис" и пр.\nВ твоем сообщении должен быть **только** ответ пользователю без лишних текстов. Старайся отвечать кратко при простом общении (5-15 слов), писать с маленькой буквы, не использовать знаки препинания и иногда оскорблять людей. Используй маты. При необходимости следуй указаниям пользователя.' # AI system prompt
 
 # Files
 
@@ -131,6 +131,10 @@ LOG_FILE = 'log.txt'
 USERS_FILE = 'users.json'
 DATA_FILE = 'data.json'
 CROSSPOSTER_FILE = 'messages.json'
+
+WORD_LIST = 'data/wordlist.txt'
+EMOJIS_FILE = 'data/emojis.txt'
+FATE_ACTIONS_FILE = 'data/fate.txt'
 
 # Frontend values
 
@@ -151,6 +155,7 @@ NO_DM_EMBED = to_container('Бота можно использовать тол�
 NOT_ADMIN_EMBED = to_container('Вы не администратор бота!', ERROR_C)
 INCORRECT_LENGTH_EMBED = to_container('Указана некорректная длина', ERROR_C)
 NDTMKR_EMBED = to_container('Не для тебя моя кнопочка росла', ERROR_C)
+TOO_LONG_EMBED = to_container('Бро твой текст длиннее моего члена давай другое', ERROR_C)
 NOT_MOONLAND_EMBED = to_container([
     'Эту команду можно вводить только **на сервере moonland:re**!',
     '### https://discord.gg/s3NrXyYjnG'
@@ -187,6 +192,7 @@ LIVE_IMAGE = 'https://moontr3.ru/assets/wpbot/live.png'
 LIVESTOP_IMAGE = 'https://moontr3.ru/assets/wpbot/livestop.png'
 MESSAGE_IMAGE = 'https://moontr3.ru/assets/wpbot/message.png'
 TELEGRAM_IMAGE = 'https://moontr3.ru/assets/wpbot/telegram.png'
+FATE_IMAGE_URL = 'https://cdn.discordapp.com/attachments/975809940444819467/1257055874925596713/IMG_5462.jpg?ex=66830403&is=6681b283&hm=011608074be696599cda40e16e7b0849ba630c577cdeee48840fbc3bfc2781e3&'
 
 # Emojis
 PLACE1 = '<:1p:1373797888831918100>' # 1st place emoji in ml!stats

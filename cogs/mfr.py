@@ -24,36 +24,32 @@ async def setup(bot: commands.Bot):
     @discord.app_commands.guild_only()
     @discord.app_commands.guild_install()
     async def mishkfrede(ctx: commands.Context):
+        # command
         botuser: api.User = bot.mg.get_user(ctx.author.id)
-        if botuser.mfr_timeout > time.time():
-            view = to_view(f'Использовать команду снова можно будет **<t:{int(botuser.mfr_timeout)}:R>**.', ERROR_C)
-            await ctx.reply(view=view)
-            return
-        
+
         card: api.MfrCard = bot.mg.get_random_mfr()
         ephemeral = ctx.channel.id != MFR_CHANNEL
-        if not ephemeral:
+        if not ephemeral and botuser.mfr_timeout <= time.time():
             bot.mg.add_xp(ctx.author.id, card.xp)
-        bot.mg.add_mfr_stat(ctx.author.id, card.key)
 
         color = discord.Color.from_str(card.color)
         if ephemeral:
             text = f':warning: Если хотите получать опыт за получение карточек, вводите эту команду в <#{MFR_CHANNEL}>.'
+        elif botuser.mfr_timeout > time.time():
+            text = f'-# Опыт за находку карточки можно будет получить только **<t:{int(botuser.mfr_timeout)}:R>**.'
         else:
             text = f'Вы получили **{card.xp} XP** за находку!'
+
+        bot.mg.add_mfr_stat(ctx.author.id, card.key)
 
         elements = [
             f'### {card.name}', text,
             ui.MediaGallery(discord.MediaGalleryItem(card.image)),
             SEP()
         ]
-        view = to_view(elements+['-# 🔴 Команда на кулдауне...'], color)
+        view = to_view(elements, color)
 
-        message = await ctx.reply(view=view, ephemeral=ephemeral)
-        await asyncio.sleep(max(0, botuser.mfr_timeout-time.time()))
-
-        view = to_view(elements+['-# 🟢 Можно отправлять снова'], color)
-        await message.edit(view=view)
+        await ctx.reply(view=view, ephemeral=ephemeral)
     
 
     @bot.hybrid_command(
