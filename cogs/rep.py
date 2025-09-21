@@ -51,9 +51,6 @@ async def setup(bot: commands.Bot):
             if reference.author == message.author:
                 return
 
-            if reference.author.bot: 
-                return
-
             # repblock
             botuser = bot.mg.get_user(message.author.id)
             if time.time() < botuser.rep_block_until:
@@ -104,10 +101,6 @@ async def setup(bot: commands.Bot):
         # target message
         message = await bot.get_channel(reaction.channel_id).fetch_message(reaction.message_id)
 
-        if message.author.bot or message.author.id == reaction.user_id:
-            await message.remove_reaction(reaction.emoji, reaction.member)
-            return
-
         # repblock
         botuser = bot.mg.get_user(reaction.user_id)
         if time.time() < botuser.rep_block_until:
@@ -155,9 +148,9 @@ async def setup(bot: commands.Bot):
         else:
             await ctx.channel.typing()
 
-        if user.bot:
-            view = to_view('хахахаха боты сосите', ERROR_C)
-            return await ctx.reply(view=view)
+        # if user.bot:
+        #     view = to_view('хахахаха боты сосите', ERROR_C)
+        #     return await ctx.reply(view=view)
 
         path = bot.mg.renderer.rep(user)
         file = discord.File(path, 'image.png')
