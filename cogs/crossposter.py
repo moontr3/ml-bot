@@ -30,6 +30,7 @@ async def on_router_message(messages: List[aiogram.types.Message]):
     chat_id = messages[0].chat.id
     user = messages[0].from_user
     content = '\n'.join([i.text or i.caption for i in messages if i.text or i.caption])
+    user_name = user.full_name if not messages[0].sender_chat else messages[0].sender_chat.full_name
 
     photos = [i.photo[-1] for i in messages if i.photo]
     is_bot = any([i.from_user.is_bot for i in messages])
@@ -76,7 +77,7 @@ async def on_router_message(messages: List[aiogram.types.Message]):
             webhook = discord.Webhook.from_url(webhook, client=dcbot, bot_token=dcbot.TOKEN)
 
             user = messages[0].from_user if messages[0].from_user else messages[0].sender_chat
-            name = utils.truncate(user.full_name, 32)
+            name = utils.truncate(user_name, 32)
             avatar = TELEGRAM_IMAGE
 
             message = await webhook.send(
@@ -96,82 +97,6 @@ async def on_router_message(messages: List[aiogram.types.Message]):
 
     except Exception as e:
         log(f'Unable to crosspost message: {e}', level=ERROR)
-
-
-async def on_router_edit_message(messages: List[aiogram.types.Message]):
-    bot = messages[0].bot
-    chat_id = messages[0].chat.id
-    user = messages[0].from_user
-    content = '\n'.join([i.text or i.caption for i in messages if i.text or i.caption])
-
-    photos = [i.photo[-1] for i in messages if i.photo]
-    is_bot = any([i.from_user.is_bot for i in messages])
-
-    # checking if channel in crossposting pairs
-    for pair in manager.data['crosspost_pairs']:
-        if pair["tg_id"] == chat_id:
-            break
-    else:
-        return
-    
-    if is_bot and not pair['allow_bots']:
-        return
-    
-    webhook = os.getenv(pair['webhook'])
-
-    # sending message to discord channel
-    try:
-        # photos
-        files = []
-        gallery = None
-
-        if photos:
-            gallery = ui.MediaGallery()
-
-            log(f'Downloading {len(photos)} photos...')
-
-            for i in photos:
-                out = io.BytesIO()
-                await bot.download(i.file_id, out)
-
-                image = Image.open(copy(out))
-                name = f'{i.file_unique_id}.{image.format.lower()}'
-
-                files.append(discord.File(out, name))
-                gallery.add_item(media='attachment://'+name)
-
-        # generating view
-        view = utils.get_tg_message_view(messages, pair, webhook, manager, gallery)
-        saved_text = utils.get_preview_tg_message_text(content)
-
-        # sending thru webhook
-        if webhook:
-            webhook = discord.Webhook.from_url(webhook, client=dcbot, bot_token=dcbot.TOKEN)
-
-            user = messages[0].from_user if messages[0].from_user else messages[0].sender_chat
-            name = utils.truncate(user.full_name, 32)
-            avatar = TELEGRAM_IMAGE
-
-            message = await webhook.send(
-                view=view, username=name, avatar_url=avatar,
-                files=files, allowed_mentions=ONLY_USERS, wait=True
-            )
-
-        # sending as bot
-        else:
-            channel: discord.TextChannel = dcbot.get_channel(pair["dc_id"])
-            message = await channel.send(view=view, files=files, allowed_mentions=NO_MENTIONS)
-        
-        manager.crossposter.add_message(
-            chat_id, message.id, [i.message_id for i in messages],
-            saved_text, message.jump_url
-        )
-
-    except Exception as e:
-        log(f'Unable to crosspost message: {e}', level=ERROR)
-
-
-
 
 
 

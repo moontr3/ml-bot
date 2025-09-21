@@ -275,7 +275,6 @@ def discord_message_to_text(message: discord.Message) -> str:
     clean_text = message.clean_content
     clean_text += resolve_component_tree(message, message.components)
     clean_text = clean_text.strip()
-    clean_text = discord.utils.remove_markdown(clean_text)
     return clean_text
 
 
@@ -384,7 +383,6 @@ def get_dixus_phrase(username: str) -> "str | None":
 
 def get_preview_dc_message_text(message: discord.Message) -> str:
     clean_text = discord_message_to_text(message)
-    clean_text = formatting.Text(clean_text).as_markdown()
     clean_text = truncate(clean_text.replace('\n', ' '), 50)
 
     return clean_text
@@ -431,6 +429,7 @@ def get_tg_message_view(
     chat_id = messages[0].chat.id
     user = messages[0].from_user
     content = '\n'.join([i.text or i.caption for i in messages if i.text or i.caption])
+    user_name = user.full_name if not messages[0].sender_chat else messages[0].sender_chat.full_name
 
     via = next((i.via_bot for i in messages if i.via_bot), None)
     show_caption_above = any([i.show_caption_above_media for i in messages])
@@ -455,9 +454,9 @@ def get_tg_message_view(
     # user
     if pair['show_user'] and not webhook and not pair['footer']:
         if user.username:
-            username = f'-# 👤 [{user.full_name}](<https://t.me/{user.username}>)'
+            username = f'-# 👤 [{user_name}](<https://t.me/{user.username}>)'
         else:
-            username = f'-# 👤 {user.full_name}'
+            username = f'-# 👤 {user_name}'
 
         view.add_item(ui.TextDisplay(username))
 
@@ -484,7 +483,9 @@ def get_tg_message_view(
             preview = data[1].replace(']', '\\]')
             url = data[2]
 
-            if preview:
+            if not preview:
+                reply_text = f'[╭ _Нажмите, чтобы просмотреть вложение_](<{url}>)\n'
+            else:
                 reply_text = f'[╭ {preview}](<{url}>)\n'
     
     # gallery if shown above text

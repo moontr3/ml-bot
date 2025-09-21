@@ -53,7 +53,7 @@ async def setup(bot: commands.Bot):
             if message.author.id in NERD_USERS:
                 bot.mg.ai.add(api.AIMessage('user', 'Ответь на это сообщение случайным оскорблением с кучей матов слов в 20'))
             else:
-                bot.mg.ai.add(api.AIMessage('user', message.content, message.author, url, reply_to))
+                bot.mg.ai.add(api.AIMessage('user', message.clean_content, message.author, url, reply_to))
 
         # dixus
         found_keyword_dixus = any([
