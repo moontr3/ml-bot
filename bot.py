@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from discord import app_commands
+from pydantic.dataclasses import dataclass
 from aiogram import Bot
 
 from api import *
@@ -8,15 +8,33 @@ from config import *
 from utils import *
 import os, glob, asyncio
 
+
+@dataclass
+class Features:
+    ai: bool
+    crossposter: bool
+
+    def __repr__(self) -> str:
+        return f'{self.ai=}, {self.crossposter=}'
+
+    @classmethod
+    def from_bot(cls, bot: "MLBot") -> 'Features':
+        return cls(
+            ai = bool(bot.AI_KEY),
+            crossposter = bool(bot.tgbot)
+        )
+
+
 class MLBot(commands.Bot):
-    tgbot: Bot
-
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self, tg_bot: Bot | None = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.mg = Manager(USERS_FILE, DATA_FILE, os.getenv('AI_KEY'))
+        self.tgbot: Bot | None = tg_bot
         self.TOKEN: str = os.getenv('BOT_TOKEN')
+        self.AI_KEY: str = os.getenv('AI_KEY')
+        self.mg = Manager(USERS_FILE, DATA_FILE, self.AI_KEY)
+        self.features: Features = Features.from_bot(self)
+        log(f'Features: {self.features}')
         asyncio.run(self.load_commands())
 
 
@@ -87,7 +105,7 @@ class MLBot(commands.Bot):
     async def on_ready(self):
         WEBHOOK = os.getenv('LOGGING_WEBHOOK')
         self.webhook = discord.Webhook.from_url(WEBHOOK, client=self) if WEBHOOK else None
-        
+
         SERVICE_WEBHOOK = os.getenv('SERVICE_WEBHOOK')
         self.service_webhook = discord.Webhook.from_url(SERVICE_WEBHOOK, client=self) if SERVICE_WEBHOOK else None
         

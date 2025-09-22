@@ -26,10 +26,14 @@ Don't.
 
 - `SERVICE_WEBHOOK` - Webhook URL used to send miscellaneous messages, like VC joins/leaves, anonymous messages, etc.
 
-- `AI_KEY` - api.navy API key
-
-- `TG_TOKEN` - Telegram bot token used for crossposting
-
 Other than that, you can configure bot settings in `config.py`.
 
 `data.json` contains data for different features, like list of skins, fonts, mfr cards, etc.
+
+## Optional features
+
+Add these to your `.env` file with the required data to enable the features:
+
+- `AI_KEY` - Provide an `api.navy` API key to enable AI chatbot
+
+- `TG_TOKEN` - Provide a Telegram bot token to enable crossposting from Discord to Telegram and vice versa

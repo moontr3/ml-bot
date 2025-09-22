@@ -1,7 +1,6 @@
-import asyncio
+
 from copy import copy
 import os
-import aiohttp
 from discord.ext import commands
 import discord
 import api
@@ -9,7 +8,7 @@ from log import *
 from typing import *
 from config import *
 from aiogram import F, Router
-from aiogram.utils import keyboard, formatting
+from aiogram.utils import keyboard
 import aiogram
 from aiogram_media_group import media_group_handler
 from PIL import Image
@@ -100,6 +99,7 @@ async def on_router_message(messages: List[aiogram.types.Message]):
         log(f'Unable to crosspost message: {e}', level=ERROR)
 
 
+# telegram
 
 @router.channel_post(F.media_group_id.is_(None))
 async def on_message(message: aiogram.types.Message):
@@ -133,9 +133,14 @@ async def on_message(message: aiogram.types.Message):
 
 
 
-# discord bot
+# setting up
 
 async def setup(bot: MLBot):
+    if not bot.features.crossposter:
+        return
+    
+    # discord
+    
     @bot.listen()
     async def on_message(message: discord.Message):
         if message.interaction_metadata:

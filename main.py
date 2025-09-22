@@ -16,27 +16,37 @@ from aiogram.client.default import DefaultBotProperties
 from cogs import crossposter
 
 # loading token
+
 load_dotenv()
 TOKEN = os.getenv('BOT_TOKEN')
-
-bot = MLBot(command_prefix=PREFIXES, intents=discord.Intents.all(), help_command=None)
+bots = []
 
 # telegram bot
 
 TG_TOKEN = os.getenv('TG_TOKEN')
+tg_bot = None
 
-tg_bot = Bot(TG_TOKEN, default=DefaultBotProperties(
-    parse_mode="HTML"
-))
-dp = Dispatcher()
-bot.tgbot = tg_bot
-crossposter.dcbot = bot
-crossposter.manager = bot.mg
-dp.include_router(crossposter.router)
+if TG_TOKEN:
+    tg_bot = Bot(TG_TOKEN, default=DefaultBotProperties(
+        parse_mode="HTML"
+    ))
+    dp = Dispatcher()
+    dp.include_router(crossposter.router)
+
+    bots.append(dp.start_polling(tg_bot))
+
+# discord bot
+
+bot = MLBot(command_prefix=PREFIXES, intents=discord.Intents.all(), help_command=None, tg_bot=tg_bot)
+bots.append(bot.start(TOKEN))
+
+if tg_bot:
+    crossposter.dcbot = bot
+    crossposter.manager = bot.mg
 
 # running bots
 
 async def main():
-    await asyncio.gather(dp.start_polling(tg_bot), bot.start(TOKEN))
+    await asyncio.gather(*bots)
 
 asyncio.run(main())

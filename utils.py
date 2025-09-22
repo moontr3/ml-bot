@@ -481,6 +481,7 @@ def get_tg_message_view(
 
         if data:
             preview = data[1].replace(']', '\\]')
+            preview = preview.replace('http', '\\http')
             url = data[2]
 
             if not preview:
@@ -495,7 +496,7 @@ def get_tg_message_view(
     # text
     if len(content) > 0:
         if pair['show_user'] and webhook and not pair['footer'] and user.username:
-            content += f'  [{VIEWUSER}](<https://t.me/{messages[0].get_url()}>)'
+            content += f'  [{VIEWUSER}](<{messages[0].get_url()}>)'
 
         view.add_item(ui.TextDisplay(reply_text + content))
 
