@@ -240,10 +240,7 @@ async def setup(bot: commands.Bot):
                     '0123456789', k=random.randint(2,6)
                 ))
 
-            try:
-                base = transliterate.translit(user.name, reversed=True)
-            except:
-                base = user.name.lower().replace(' ','')
+            base = utils.remove_md(user.name)
 
             email = base+numbers+provider
 
