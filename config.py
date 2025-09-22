@@ -43,7 +43,7 @@ IMBA_ROLE = 1118918623466110976 # ID of the имба role
 QUARANTINE_ROLE = 1003696913138323496 # ID of the role to be given to users in quarantine
 MFR_CHANNEL = 1409508564732481646 # ID of the mishkfrede channel
 VC_PING_ROLE = 1410600327907901480 # ID of the role to ping on temp VC creation
-NERD_USERS = [] # The AI will only insult people whose IDs are in the list
+NERD_USERS = [558214919405830151] # The AI will only insult people whose IDs are in the list
 CHATTABLE_CHANNELS = [
     975809940444819467,
     1301244013243928729,

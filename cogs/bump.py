@@ -56,6 +56,9 @@ async def setup(bot: MLBot):
     async def ping_check_loop():
         if bot.mg.bump_ping_at > time.time():
             return
+        bump_bot = bot.get_guild(GUILD_ID).get_member(BUMP_BOT_ID)
+        if not bump_bot or bump_bot.status == discord.Status.offline:
+            return
         
         bot.mg.bump_timeout()
 
