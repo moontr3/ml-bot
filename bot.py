@@ -15,8 +15,8 @@ class MLBot(commands.Bot):
     webhook: discord.Webhook
     tgbot: Bot
 
-    def __init__(self, command_prefix, *, help_command = ..., tree_cls = app_commands.CommandTree, description = None, allowed_contexts = ..., allowed_installs = ..., intents, **options):
-        super().__init__(command_prefix, help_command=help_command, tree_cls=tree_cls, description=description, allowed_contexts=allowed_contexts, allowed_installs=allowed_installs, intents=intents, **options)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self.mg = Manager(USERS_FILE, DATA_FILE, os.getenv('AI_KEY'))
         self.TOKEN = os.getenv('BOT_TOKEN')
