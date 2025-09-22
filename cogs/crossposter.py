@@ -171,7 +171,7 @@ async def setup(bot: MLBot):
             markup = None
 
             # link button
-            if pair['footer']:
+            if pair['footer'] and pair["dc_link"]:
                 button_text = f'🔗 {message.guild.name}'
                 kb = keyboard.InlineKeyboardBuilder()
                 kb.add(keyboard.InlineKeyboardButton(text=button_text, url=pair["dc_link"]))
