@@ -36,8 +36,9 @@ async def setup(bot: MLBot):
                 message.reference.cached_message if message.reference.cached_message else \
                 (await message.channel.fetch_message(message.reference.message_id))
             
-            if actual_reply_to and len(actual_reply_to.content) == 0 and len(actual_reply_to.attachments) == 0:
-                reply_to = None
+            if actual_reply_to and len(utils.discord_message_to_text(actual_reply_to)) == 0 \
+                and len(actual_reply_to.attachments) == 0:
+                    reply_to = None
             else:
                 reply_to = actual_reply_to
         except Exception as e:
@@ -64,7 +65,7 @@ async def setup(bot: MLBot):
             if message.author.id in NERD_USERS:
                 bot.mg.ai.add(api.AIMessage('user', 'Ответь на это сообщение случайным оскорблением с кучей матов слов в 20'))
             else:
-                bot.mg.ai.add(api.AIMessage('user', message.clean_content, message.author, url, reply_to, reply_images))
+                bot.mg.ai.add(api.AIMessage('user', utils.discord_message_to_text(message), message.author, url, reply_to, reply_images))
 
         # dixus
         found_keyword_dixus = any([

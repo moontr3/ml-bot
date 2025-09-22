@@ -9,17 +9,16 @@ from utils import *
 import os, glob, asyncio
 
 class MLBot(commands.Bot):
-    mg: Manager
-    TOKEN: str
-    service_webhook: discord.Webhook
-    webhook: discord.Webhook
     tgbot: Bot
+
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.mg = Manager(USERS_FILE, DATA_FILE, os.getenv('AI_KEY'))
-        self.TOKEN = os.getenv('BOT_TOKEN')
+        self.TOKEN: str = os.getenv('BOT_TOKEN')
+        asyncio.run(self.load_commands())
+
 
     def to_extension_name(self, string:str) -> str:
         '''
@@ -27,6 +26,7 @@ class MLBot(commands.Bot):
         '''
         filename = string.removeprefix(f'{COGS_FOLDER}/').removesuffix('.py')
         return f'{COGS_FOLDER}.{filename}'
+    
 
     async def load_commands(self) -> List[str]:
         '''
@@ -62,8 +62,6 @@ class MLBot(commands.Bot):
 
         log(f'{ctx.author.id} requested command reload')
         await self.load_commands()
-        desc = f'{len(self.commands)} commands, {len(self.tree.get_commands())} slash, '\
-            f'{len(self.extensions)}/{len(glob.glob(f"{COGS_FOLDER}/*.py"))} cogs loaded'
         
         await ctx.reply(view=to_view('Команды перезагружены!', DEFAULT_C))
 
@@ -89,10 +87,12 @@ class MLBot(commands.Bot):
     async def on_ready(self):
         WEBHOOK = os.getenv('LOGGING_WEBHOOK')
         self.webhook = discord.Webhook.from_url(WEBHOOK, client=self) if WEBHOOK else None
+        
         SERVICE_WEBHOOK = os.getenv('SERVICE_WEBHOOK')
         self.service_webhook = discord.Webhook.from_url(SERVICE_WEBHOOK, client=self) if SERVICE_WEBHOOK else None
-        await self.load_commands()
+        
         log('Ready!', level=SUCCESS)
+
 
     async def on_disconnect(self):
         log('Disconnected', level=WARNING)
