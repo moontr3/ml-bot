@@ -7,9 +7,10 @@ import utils
 import time
 import copy
 import api
+from bot import MLBot
 
 # setup
-async def setup(bot: commands.Bot):
+async def setup(bot: MLBot):
 
     @bot.hybrid_command(
         name='quarantine',
@@ -152,14 +153,10 @@ async def setup(bot: commands.Bot):
             log(f'Quarantine ended for user {user_id}')
 
             # sending quarantine end message
-            session = aiohttp.ClientSession()
-            webhook = discord.Webhook.from_url(bot.SERVICE_WEBHOOK, session=session)
-
-            await webhook.send(
+            await bot.service_webhook.send(
                 f'<@{user_id}> пережил свое наказание...',
                 avatar_url=TIMEOUT_IMAGE, username='Выход из карантина',
             )
-            await session.close()
 
     
     @bot.listen()

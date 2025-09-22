@@ -4,12 +4,13 @@ from log import *
 from typing import *
 from config import *
 import utils
+from bot import MLBot
 import datetime
 import os
 
 
 # setup
-async def setup(bot: commands.Bot):
+async def setup(bot: MLBot):
 
     @bot.listen()
     async def on_message(message: discord.Message):

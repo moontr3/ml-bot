@@ -9,10 +9,11 @@ from config import *
 import api
 
 import utils
+from bot import MLBot
 
 
 # setup
-async def setup(bot: commands.Bot):
+async def setup(bot: MLBot):
 
     @tasks.loop(seconds=1)
     async def temp_vc_activity():

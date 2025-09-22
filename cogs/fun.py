@@ -9,7 +9,6 @@ from config import *
 import utils
 import api
 from russian_names import RussianNames
-import transliterate
 import aiohttp
 
 
@@ -240,12 +239,7 @@ async def setup(bot: commands.Bot):
                     '0123456789', k=random.randint(2,6)
                 ))
 
-            try:
-                base = transliterate.translit(user.name, reversed=True)
-            except:
-                base = user.name.lower().replace(' ','')
-
-            email = base+numbers+provider
+            email = user.name+numbers+provider
 
             # token
             userid_encoded = str(user.id).encode()

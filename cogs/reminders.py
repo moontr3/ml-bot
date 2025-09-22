@@ -6,11 +6,12 @@ from log import *
 from typing import *
 from config import *
 import utils
+from bot import MLBot
 import datetime
 
 
 # setup
-async def setup(bot: commands.Bot):
+async def setup(bot: MLBot):
 
     # checks api and responds to reminders
     @tasks.loop(seconds=3)

@@ -9,10 +9,11 @@ from typing import *
 from config import *
 import api
 import utils
+from bot import MLBot
 
 
 # setup
-async def setup(bot: commands.Bot):
+async def setup(bot: MLBot):
 
     # gaining xp
     @bot.listen()

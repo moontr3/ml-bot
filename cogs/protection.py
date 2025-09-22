@@ -6,16 +6,17 @@ from log import *
 from typing import *
 from config import *
 import utils
+from bot import MLBot
 import datetime
 import os
 
 
 # setup
-async def setup(bot: commands.Bot):
+async def setup(bot: MLBot):
 
     @bot.listen()
     async def on_message(message: discord.Message):
-        if not  message.guild or message.guild.id != GUILD_ID:
+        if not message.guild or message.guild.id != GUILD_ID:
             return
         
         # resolving interation author
@@ -68,8 +69,6 @@ async def setup(bot: commands.Bot):
 
             # sending log message
             try:
-                session = aiohttp.ClientSession()
-                webhook = discord.Webhook.from_url(bot.WEBHOOK, session=session)
                 
                 elements = [
                     message.content if message.content else None,
@@ -85,8 +84,7 @@ async def setup(bot: commands.Bot):
 
                 view = to_view(elements)
 
-                await webhook.send(view=view, username='Удалён спам', avatar_url=WARN_IMAGE, allowed_mentions=NO_MENTIONS)
-                await session.close()
+                await bot.webhook.send(view=view, username='Удалён спам', avatar_url=WARN_IMAGE, allowed_mentions=NO_MENTIONS)
 
             except Exception as e:
                 log('Error sending report to logs: ' + str(e), level=ERROR)

@@ -1,8 +1,8 @@
 import discord
-from discord.ext import commands
 from config import *
+from bot import MLBot
 
-async def setup(bot: commands.Bot):
+async def setup(bot: MLBot):
 
     async def switch_answers(message: discord.Message, position: bool):
         user = bot.mg.get_user(message.author.id)

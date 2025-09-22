@@ -9,12 +9,13 @@ from log import *
 from typing import *
 from config import *
 import api
+from bot import MLBot
 
 import utils
 
 
 # setup
-async def setup(bot: commands.Bot):
+async def setup(bot: MLBot):
 
 
     # @discord.app_commands.describe(

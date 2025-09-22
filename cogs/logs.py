@@ -15,8 +15,7 @@ async def setup(bot: commands.Bot):
         if not message.content and not message.attachments:
             return
         
-        session = aiohttp.ClientSession()
-        webhook = Webhook.from_url(bot.WEBHOOK, session=session)
+        webhook = Webhook.from_url(bot.WEBHOOK, client=bot)
         
         elements = [
             message.content if message.content else None,
@@ -33,13 +32,11 @@ async def setup(bot: commands.Bot):
         view = to_view(elements)
 
         await webhook.send(view=view, username='Сообщение удалено', avatar_url=DELETE_IMAGE, allowed_mentions=NO_MENTIONS)
-        await session.close()
 
 
     @bot.listen()
     async def on_bulk_message_delete(messages: List[discord.Message]):
-        session = aiohttp.ClientSession()
-        webhook = Webhook.from_url(bot.WEBHOOK, session=session)
+        webhook = Webhook.from_url(bot.WEBHOOK, client=bot)
 
         text = ''
         for msg in messages:
@@ -50,7 +47,6 @@ async def setup(bot: commands.Bot):
         file = discord.File('temp/messages.txt')
 
         await webhook.send(file=file, username=f'({len(messages)}) Сообщения удалены', avatar_url=DELETE_IMAGE)
-        await session.close()
         
 
     # editing
@@ -59,8 +55,7 @@ async def setup(bot: commands.Bot):
         if not before.content and not after.content and not before.attachments and not after.attachments:
             return
         
-        session = aiohttp.ClientSession()
-        webhook = Webhook.from_url(bot.WEBHOOK, session=session)
+        webhook = Webhook.from_url(bot.WEBHOOK, client=bot)
         
         elements = ['### До изменений', before.content if before.content else None]
         if before.attachments != []:
@@ -83,14 +78,12 @@ async def setup(bot: commands.Bot):
         view = to_view(elements)
 
         await webhook.send(view=view, username='Сообщение изменено', avatar_url=EDIT_IMAGE, allowed_mentions=NO_MENTIONS)
-        await session.close()
 
 
     # member joining
     @bot.listen()
     async def on_member_join(member: discord.Member):
-        session = aiohttp.ClientSession()
-        webhook = Webhook.from_url(bot.WEBHOOK, session=session)
+        webhook = Webhook.from_url(bot.WEBHOOK, client=bot)
 
         elements = ['**'+member.name+'**', member.mention, str(member.id)]
 
@@ -100,14 +93,12 @@ async def setup(bot: commands.Bot):
         view = to_view(elements)
 
         await webhook.send(view=view, username='Участник зашел на сервер', avatar_url=JOIN_IMAGE)
-        await session.close()
 
 
     # member leaving
     @bot.listen()
     async def on_member_remove(member: discord.Member):
-        session = aiohttp.ClientSession()
-        webhook = Webhook.from_url(bot.WEBHOOK, session=session)
+        webhook = Webhook.from_url(bot.WEBHOOK, client=bot)
 
         elements = ['**'+member.name+'**', member.mention, str(member.id)]
 
@@ -117,4 +108,3 @@ async def setup(bot: commands.Bot):
         view = to_view(elements)
 
         await webhook.send(view=view, username='Участник вышел из сервера', avatar_url=LEAVE_IMAGE)
-        await session.close()

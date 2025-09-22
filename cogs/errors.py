@@ -3,10 +3,11 @@ import discord
 from log import *
 from typing import *
 from config import *
+from bot import MLBot
 import traceback
 
 # setup
-async def setup(bot: commands.Bot):
+async def setup(bot: MLBot):
     # @bot.event
     # async def on_error(event, *args, **kwargs):
     #     '''Gets called when an unhandled exception is raised in a command.'''
@@ -16,7 +17,7 @@ async def setup(bot: commands.Bot):
 
 
     @bot.event
-    async def on_command_error(ctx, error:Exception):
+    async def on_command_error(ctx: commands.Context, error:Exception):
         '''Usually gets called when a user tries to incorrectly invoke a command.'''
         # not enough args
         if isinstance(error, commands.MissingRequiredArgument):
