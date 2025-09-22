@@ -8,3 +8,4 @@ temp
 *.ignore
 backups/*
 messages.json
+.vscode
