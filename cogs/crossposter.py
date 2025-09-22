@@ -135,9 +135,7 @@ async def on_message(message: aiogram.types.Message):
 
 # discord bot
 
-async def setup(bot): pass
-
-async def setup_(bot: MLBot):
+async def setup(bot: MLBot):
     @bot.listen()
     async def on_message(message: discord.Message):
         if message.interaction_metadata:

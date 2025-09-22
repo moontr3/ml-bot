@@ -25,19 +25,18 @@ bot = MLBot(command_prefix=PREFIXES, intents=discord.Intents.all(), help_command
 
 TG_TOKEN = os.getenv('TG_TOKEN')
 
-# tg_bot = Bot(TG_TOKEN, default=DefaultBotProperties(
-#     parse_mode="HTML"
-# ))
-# dp = Dispatcher()
-# bot.tgbot = tg_bot
-# crossposter.dcbot = bot
-# crossposter.manager = bot.mg
-# dp.include_router(crossposter.router)
+tg_bot = Bot(TG_TOKEN, default=DefaultBotProperties(
+    parse_mode="HTML"
+))
+dp = Dispatcher()
+bot.tgbot = tg_bot
+crossposter.dcbot = bot
+crossposter.manager = bot.mg
+dp.include_router(crossposter.router)
 
 # running bots
 
-# async def main():
-#     await asyncio.gather(dp.start_polling(tg_bot), bot.start(TOKEN))
+async def main():
+    await asyncio.gather(dp.start_polling(tg_bot), bot.start(TOKEN))
 
-# asyncio.run(main())
-bot.run(TOKEN)
+asyncio.run(main())
