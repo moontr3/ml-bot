@@ -897,7 +897,7 @@ class AIMessage:
             prefix = f'*Ответ на "{self.reply.content}" от {self.reply.author.display_name} (содержит {self.reply_images} изображений)*\n'+prefix
 
         if self.attachment_url and is_last:
-            images = []
+            content = [{"type": "text", "text": prefix+self.message}]
             async with aiohttp.ClientSession() as session:
                 for image in self.attachment_url:
                     async with session.get(image) as resp:
@@ -905,12 +905,8 @@ class AIMessage:
                             raise Exception(f"Failed to fetch image: {resp.status}")
                         encoded_image = base64.b64encode(await resp.read()).decode('utf-8')
                         image_url = f"data:{resp.content_type};base64,{encoded_image}"
-                        images.append({"type": "image_url", "image_url": {"url": image_url}})
-            return [
-                {"type": "text", "text": prefix+self.message},
-                # {"type": "image_url", "image_url": self.attachment_url}
-                *images
-            ]
+                        content.append({"type": "image_url", "image_url": {"url": image_url}})
+            return content
         
         return prefix+self.message
 
