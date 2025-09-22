@@ -6,12 +6,13 @@ from log import *
 from typing import *
 from config import *
 import utils
+from bot import MLBot
 import datetime
 import os
 
 
 # setup
-async def setup(bot: commands.Bot):
+async def setup(bot: MLBot):
 
     @bot.command(
         name='partner2'
@@ -198,11 +199,7 @@ async def setup(bot: commands.Bot):
         await ctx.response.defer(ephemeral=True)
 
         # sending
-        session = aiohttp.ClientSession()
-        webhook = discord.Webhook.from_url(bot.SERVICE_WEBHOOK, session=session)
-
-        await webhook.send(content=text, username='Анонимное сообщение ・ /anon', avatar_url=MESSAGE_IMAGE, allowed_mentions=NO_MENTIONS)
-        await session.close()
+        await bot.service_webhook.send(content=text, username='Анонимное сообщение ・ /anon', avatar_url=MESSAGE_IMAGE, allowed_mentions=NO_MENTIONS)
 
         log(f'{ctx.user.id} sent an anonymous message: {text}')
 

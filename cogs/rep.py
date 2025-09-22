@@ -9,21 +9,19 @@ from log import *
 from typing import *
 from config import *
 import utils
+from bot import MLBot
 import datetime
 
 
 # setup
-async def setup(bot: commands.Bot):
+async def setup(bot: MLBot):
     
     async def send_to_logs(receiver: discord.User, amount: int, sender: discord.User):
         try:
-            session = aiohttp.ClientSession()
-            webhook = discord.Webhook.from_url(bot.WEBHOOK, session=session)
 
             view = to_view(f'{sender.mention}   ›   {REP_EMOJIS[amount]}   ›   {receiver.mention}')
 
-            await webhook.send(view=view, username='Отправлен реп', avatar_url=JOIN_IMAGE, allowed_mentions=NO_MENTIONS)
-            await session.close()
+            await bot.webhook.send(view=view, username='Отправлен реп', avatar_url=JOIN_IMAGE, allowed_mentions=NO_MENTIONS)
 
         except Exception as e:
             log('Error sending rep to logs: ' + str(e), level=ERROR)

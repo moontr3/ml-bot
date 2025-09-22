@@ -882,31 +882,31 @@ class Duel:
 
 
 class AIMessage:
-    def __init__(self, role: str, message: str, user: discord.User = None, attachment_url: str = None, reply: discord.Message = None):
+    def __init__(self, role: str, message: str, user: discord.User = None, attachment_url: list[str] = [], reply: discord.Message = None, reply_images: int = 0):
         self.role: str = role
         self.message: str = message
         self.user: discord.User = user
-        self.attachment_url: str = attachment_url
+        self.attachment_url: list[str] = attachment_url
         self.reply: discord.Message = reply
+        self.reply_images: int = reply_images
 
 
     async def get_data(self, is_last: bool = False) -> dict:
         prefix = f'Отправил {self.user.display_name}: ' if self.user else ''
         if self.reply and len(self.reply.content) < 256:
-            prefix = f'*Ответ на "{self.reply.content}" от {self.reply.author.display_name}*\n'+prefix
+            prefix = f'*Ответ на "{self.reply.content}" от {self.reply.author.display_name} (содержит {self.reply_images} изображений)*\n'+prefix
 
         if self.attachment_url and is_last:
+            content = [{"type": "text", "text": prefix+self.message}]
             async with aiohttp.ClientSession() as session:
-                async with session.get(self.attachment_url) as resp:
-                    if resp.status != 200:
-                        raise Exception(f"Failed to fetch image: {resp.status}")
-                    encoded_image = base64.b64encode(await resp.read()).decode('utf-8')
-                    image_url = f"data:{resp.content_type};base64,{encoded_image}"
-            return [
-                {"type": "text", "text": prefix+self.message},
-                # {"type": "image_url", "image_url": self.attachment_url}
-                {"type": "image_url", "image_url": {"url": image_url}}
-            ]
+                for image in self.attachment_url:
+                    async with session.get(image) as resp:
+                        if resp.status != 200:
+                            raise Exception(f"Failed to fetch image: {resp.status}")
+                        encoded_image = base64.b64encode(await resp.read()).decode('utf-8')
+                        image_url = f"data:{resp.content_type};base64,{encoded_image}"
+                        content.append({"type": "image_url", "image_url": {"url": image_url}})
+            return content
         
         return prefix+self.message
 
@@ -1126,7 +1126,7 @@ class Manager:
         # data
         try:
             with open(self.data_file, encoding='utf-8') as f:
-                self.data = json.load(f)
+                self.data: dict = json.load(f)
         except Exception as e:
             log(f'Unable to load data file: {e}', 'api')
 
@@ -1232,7 +1232,7 @@ class Manager:
                 'messages': await self.ai.get_history()
             }) as response:
                 if response.status != 200:
-                    raise Exception(response.content)
+                    raise Exception(await response.text())
                 respjson = await response.json()
 
         message = respjson['choices'][0]['message']

@@ -16,6 +16,7 @@ from PIL import Image
 import io
 
 import utils
+from bot import MLBot
 
 
 # telegram bot
@@ -134,7 +135,9 @@ async def on_message(message: aiogram.types.Message):
 
 # discord bot
 
-async def setup(bot: commands.Bot):
+async def setup(bot): pass
+
+async def setup_(bot: MLBot):
     @bot.listen()
     async def on_message(message: discord.Message):
         if message.interaction_metadata:

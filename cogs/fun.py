@@ -9,7 +9,6 @@ from config import *
 import utils
 import api
 from russian_names import RussianNames
-import transliterate
 import aiohttp
 
 

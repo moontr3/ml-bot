@@ -4,8 +4,9 @@ from builder import *
 from config import *
 import utils
 import api
+from bot import MLBot
 
-async def setup(bot: commands.Bot):
+async def setup(bot: MLBot):
     # command
     @bot.hybrid_command(
         name='faq',

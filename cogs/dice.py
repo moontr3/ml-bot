@@ -2,10 +2,11 @@ import random
 from discord.ext import commands
 import discord
 from config import *
+from bot import MLBot
 
 ALLOWED = '0123456789d-+, '
 
-async def setup(bot: commands.Bot):
+async def setup(bot: MLBot):
 
     @bot.listen()
     async def on_message(message: discord.Message):

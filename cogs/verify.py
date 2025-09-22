@@ -6,11 +6,12 @@ from typing import *
 from config import *
 import utils
 import api
+from bot import MLBot
 import os
 
 
 # setup
-async def setup(bot: commands.Bot):
+async def setup(bot: MLBot):
 
     @bot.command(
         name='verify',

@@ -7,12 +7,13 @@ from log import *
 from typing import *
 from config import *
 import api
+from bot import MLBot
 
 import utils
 
 
 # setup
-async def setup(bot: commands.Bot):
+async def setup(bot: MLBot):
 
     async def update_rank(member):
         guild = bot.get_guild(GUILD_ID)
@@ -79,12 +80,10 @@ async def setup(bot: commands.Bot):
         bot.mg.update_vc_state(member.id, after)
 
         # leaving/joining vc messages
-        session = aiohttp.ClientSession()
-        webhook = discord.Webhook.from_url(bot.SERVICE_WEBHOOK, session=session)
+        webhook = bot.service_webhook
     
         if before.channel == None and after.channel != None:
             if after.channel.type == discord.ChannelType.stage_voice:
-                await session.close()
                 return
             
             await webhook.send(
@@ -95,7 +94,6 @@ async def setup(bot: commands.Bot):
         
         elif before.channel != None and after.channel == None:
             if before.channel.type == discord.ChannelType.stage_voice:
-                await session.close()
                 return
             
             await webhook.send(
@@ -114,7 +112,6 @@ async def setup(bot: commands.Bot):
         # live messages
         elif not before.self_stream and after.self_stream:
             if after.channel.type == discord.ChannelType.stage_voice:
-                await session.close()
                 return
             
             await webhook.send(
@@ -125,7 +122,6 @@ async def setup(bot: commands.Bot):
             
         elif before.self_stream and not after.self_stream:
             if after.channel.type == discord.ChannelType.stage_voice:
-                await session.close()
                 return
             
             await webhook.send(
@@ -133,8 +129,6 @@ async def setup(bot: commands.Bot):
                 avatar_url=LIVESTOP_IMAGE, username='Выключение трансляции экрана',
                 allowed_mentions=NO_MENTIONS
             )
-
-        await session.close()
 
 
     @tasks.loop(seconds=60)

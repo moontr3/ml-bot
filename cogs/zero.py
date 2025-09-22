@@ -5,12 +5,13 @@ from log import *
 from typing import *
 from config import *
 import utils
+from bot import MLBot
 import datetime
 
 
 sent = False
 # setup
-async def setup(bot: commands.Bot):
+async def setup(bot: MLBot):
 
     # task loop
     @tasks.loop(seconds=2)

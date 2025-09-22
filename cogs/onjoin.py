@@ -5,10 +5,11 @@ import discord
 from log import *
 from typing import *
 from config import *
+from bot import MLBot
 
 
 # setup
-async def setup(bot: commands.Bot):
+async def setup(bot: MLBot):
 
     async def update_rank(member):
         guild = bot.get_guild(GUILD_ID)
