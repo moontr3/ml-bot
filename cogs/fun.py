@@ -239,7 +239,9 @@ async def setup(bot: commands.Bot):
                     '0123456789', k=random.randint(2,6)
                 ))
 
-            email = user.name+numbers+provider
+            base = utils.remove_md(user.name)
+
+            email = base+numbers+provider
 
             # token
             userid_encoded = str(user.id).encode()
