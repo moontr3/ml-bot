@@ -32,7 +32,8 @@ class MLBot(commands.Bot):
         self.tgbot: Bot | None = tg_bot
         self.TOKEN: str = os.getenv('BOT_TOKEN')
         self.AI_KEY: str = os.getenv('AI_KEY')
-        self.mg = Manager(USERS_FILE, DATA_FILE, self.AI_KEY)
+
+        self.mg = Manager(USERS_FILE, DATA_FILE, self.AI_KEY, self)
         self.features: Features = Features.from_bot(self)
         log(f'Features: {self.features}')
         asyncio.run(self.load_commands())

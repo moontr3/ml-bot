@@ -173,11 +173,12 @@ class Renderer:
 
 
 class RendererCollection:
-    def __init__(self, mg):
+    def __init__(self, mg, bot):
         '''
         Collection of renderers.
         '''
         self.mg = mg
+        self.bot = bot
 
 
     def captcha(self, text: int) -> str:
@@ -1129,8 +1130,13 @@ class RendererCollection:
             f'Разблокировано: ', (17,45), f'assets/fonts/{font}/regular.ttf', 16, (255,255,255),
             opacity=128
         )[0]
+        if user.id == self.bot.user.id:
+            unlocked_str = '24 / 09'
+        else:
+            unlocked_str = f'{len(botuser.skins.items)} / {len(self.mg.skins)}'
+
         r.draw_text(
-            f'{len(botuser.skins.items)} / {len(self.mg.skins)}', (pos+17,45),
+            unlocked_str, (pos+17,45),
             f'assets/fonts/{font}/medium.ttf', 16, (255,255,255)
         )
 

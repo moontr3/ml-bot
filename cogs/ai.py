@@ -1,6 +1,7 @@
 
 import random
 import discord
+from discord.ext import commands
 from log import *
 from typing import *
 from config import *
@@ -81,6 +82,7 @@ async def check_ai(bot: MLBot, message: discord.Message):
         # nvm not sending ai request
         if bot.mg.generating:
             log('Already generating response', level=WARNING)
+            await message.add_reaction('🟡')
             return
 
         # sending request
@@ -117,5 +119,25 @@ async def check_ai(bot: MLBot, message: discord.Message):
 
 
 
-async def setup(*args):
-    return
+async def setup(bot: MLBot):
+
+    @bot.hybrid_command(
+        name='reset-context',
+        aliases=['resetcontext','reset_context','сброс_контекста','сброс-контекста','сбросконтекста','сброситьконтекст','сбросить-контекст','сбросить_контекст'],
+        description='Сбрасывает контекст ИИ диалога. Доступно только участникам с ролью @имба.'
+    )
+    @api.check_guild
+    @discord.app_commands.guild_only()
+    @discord.app_commands.guild_install()
+    async def slash_reset_context(ctx: commands.Context):
+        log(f'{ctx.author.id} resetting context')
+
+        # checking for role
+        if not ctx.author.get_role(IMBA_ROLE):
+            await ctx.reply(view=c_to_view(MISSING_PERMS_EMBED))
+            return
+
+        # resetting context
+        bot.mg.reset_ai()
+        view = to_view('Контекст ИИ сброшен!', DEFAULT_C)
+        await ctx.reply(view=view)

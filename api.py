@@ -1058,7 +1058,7 @@ class Crossposter:
 # manager
 
 class Manager:
-    def __init__(self, users_file:str, data_file:str, key: str):
+    def __init__(self, users_file:str, data_file:str, key:str, bot):
         '''
         API and backend manager.
         '''
@@ -1069,7 +1069,7 @@ class Manager:
         self.in_vc: List[int] = []
         self.temp_vcs: Dict[int, TempVC] = {}
         self.quarantines: Dict[int, int] = {}
-        self.renderer = RendererCollection(self)
+        self.renderer = RendererCollection(self, bot)
         self.sk_last_spawn: float = 0
         self.last_commit = 0
         self.roulette_games: List[Roulette] = []
@@ -1225,6 +1225,13 @@ class Manager:
         '''
         self.check_user(id)
         return self.users[id]
+    
+
+    def reset_ai(self):
+        '''
+        Resets AI message context.
+        '''
+        self.ai = AIHistory()
     
 
     async def gen_ai(self) -> Tuple[str, bytes | None]:

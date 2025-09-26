@@ -38,7 +38,7 @@ async def setup(bot: MLBot):
             ], accent_color=discord.Color.from_str('#641CBC')),
             SEP(visible=False), ui.MediaGallery(discord.MediaGalleryItem('attachment://bar.png')), SEP(visible=False),
             '#  <:em1:1411447501055070349><:em2:1411447490875625603> '\
-                '[заходи не заскучаешь (нажми)](https://discord.gg/s3NrXyYjnG) '\
+                '[заходи, не заскучаешь (нажми)](https://discord.gg/s3NrXyYjnG) '\
                 '<:em3:1411447512631611453><:em4:1411447525704990720>',
             SEP(visible=False), ui.MediaGallery(discord.MediaGalleryItem('attachment://banner.png')),
         ], no_container=True)

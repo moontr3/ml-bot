@@ -518,5 +518,9 @@ def get_tg_message_view(
             ))
         else:
             view.add_item(ui.ActionRow(button))
+    
+    # empty view message
+    if len(view.children) == 0:
+        view.add_item(ui.TextDisplay(f'-# Пустое сообщение  [{VIEWUSER}](<{messages[0].get_url()}>)'))
 
     return view

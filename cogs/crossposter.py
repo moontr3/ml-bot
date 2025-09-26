@@ -70,6 +70,9 @@ async def on_router_message(messages: List[aiogram.types.Message]):
 
         # generating view
         view = utils.get_tg_message_view(messages, pair, webhook, manager, gallery)
+        if len(view.children) == 0:
+            view.add_item()
+        
         saved_text = utils.get_preview_tg_message_text(content)
 
         # sending thru webhook
