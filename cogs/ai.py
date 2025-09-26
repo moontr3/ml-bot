@@ -1,5 +1,7 @@
 
+import base64
 import random
+import aiohttp
 import discord
 from discord.ext import commands
 from log import *
@@ -89,7 +91,8 @@ async def check_ai(bot: MLBot, message: discord.Message):
         async with message.channel.typing():
             bot.mg.generating = True
             try:
-                response, image = await bot.mg.gen_ai()
+                history = await bot.mg.ai.get_history()
+                response, image = await bot.mg.gen_ai(history)
                 assert response or image, "Empty response"
             
             # sending error message
@@ -120,6 +123,8 @@ async def check_ai(bot: MLBot, message: discord.Message):
 
 
 async def setup(bot: MLBot):
+    if not bot.features.ai:
+        return
 
     @bot.hybrid_command(
         name='reset-context',
@@ -141,3 +146,72 @@ async def setup(bot: MLBot):
         bot.mg.reset_ai()
         view = to_view('Контекст ИИ сброшен!', DEFAULT_C)
         await ctx.reply(view=view)
+
+
+    @bot.hybrid_command(
+        name='ai',
+        aliases=['ии','джарвис'],
+        description='Написать сообщение ИИ (без контекста).'
+    )
+    @discord.app_commands.user_install()
+    @discord.app_commands.guild_install()
+    @discord.app_commands.allowed_contexts(guilds=True, private_channels=True)
+    @discord.app_commands.describe(
+        text='Текст вашего сообщения.',
+        attachment='Картинка для ИИ.',
+        ephemeral='Скрыть ли сообщение от других в канале (по умолчанию "Нет").'
+    )
+    @commands.cooldown(1, per=5, type=commands.BucketType.user)
+    async def slash_ai(
+        ctx: commands.Context,
+        text: str,
+        attachment: discord.Attachment = None,
+        ephemeral: Literal['Да, скрыть сообщение от других', 'Нет, показать всем'] = 'Нет, показать всем'
+    ):
+        log(f'{ctx.author.id} asks AI thru command')
+
+        if ctx.interaction:
+            await ctx.interaction.response.defer()
+        else:
+            await ctx.channel.typing()
+
+        # generating message
+        try:
+            if attachment:
+                content = [
+                    {'type': 'text', 'text': text}
+                ]
+                
+                # downloading image
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(attachment.url) as resp:
+                        if resp.status != 200:
+                            raise Exception(f"Failed to fetch image: {resp.status}")
+                        
+                        encoded_image = base64.b64encode(await resp.read()).decode('utf-8')
+                        image_url = f"data:{resp.content_type};base64,{encoded_image}"
+                        content.append({"type": "image_url", "image_url": {"url": image_url}})
+            else:
+                content = text
+
+            text, image = await bot.mg.gen_ai([{'role': 'user', 'content': content}])
+            
+        except Exception as e:
+            log(f'Error while generating AI response from {ctx.author.id} (image {attachment}): {e}')
+            view = to_view([
+                'Произошла ошибка во время генерации',
+                SEP(),
+                f'```{e}```'
+            ], ERROR_C)
+            await ctx.reply(view=view, ephemeral=True)
+            return
+        
+        # empty response
+        if not text and not image:
+            await ctx.reply(random.choice(HANGUP_TEXTS), ephemeral=True)
+            return
+
+        # sending message
+        file = discord.File(BytesIO(image), 'image.png') if image else None
+        await ctx.reply(text, file=file, ephemeral=ephemeral.startswith('Д'), allowed_mentions=NO_MENTIONS)
+

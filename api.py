@@ -1234,14 +1234,16 @@ class Manager:
         self.ai = AIHistory()
     
 
-    async def gen_ai(self) -> Tuple[str, bytes | None]:
+    async def gen_ai(self, history: List[dict]) -> Tuple[str, bytes | None]:
         '''
         Generates an AI message.
+
+        Returns message content and image data, if there is any.
         '''
         async with aiohttp.ClientSession(base_url=BASE_URL, headers={'Authorization': 'Bearer '+self.ai_key}) as session:
             async with session.post('chat/completions', json={
                 'model': MODEL,
-                'messages': await self.ai.get_history()
+                'messages': history
             }) as response:
                 if response.status != 200:
                     raise Exception(await response.text())

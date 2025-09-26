@@ -71,36 +71,6 @@ class MLBot(commands.Bot):
                 log(f'Extension unable to load: {e}', level=ERROR)
 
 
-    # inbuilt commands
-    @commands.command(aliases=['reloadcommands','reloadext','reloadextensions'])
-    async def reload(self, ctx: commands.Context):
-        '''
-        Reloads cogs
-        '''
-        if ctx.author.id not in ADMINS: return
-
-        log(f'{ctx.author.id} requested command reload')
-        await self.load_commands()
-        
-        await ctx.reply(view=to_view('Команды перезагружены!', DEFAULT_C))
-
-
-    @commands.command(aliases=['st'])
-    async def synctree(self, ctx: commands.Context):
-        '''
-        Syncs slash command tree.
-        '''
-        if ctx.author.id not in ADMINS: return
-
-        log(f'{ctx.author.id} requested tree syncing')
-        view = to_view('Синхронизируем...', LOADING_C)
-        msg = await ctx.reply(view=view)
-        
-        synced = await self.tree.sync()
-        log(f'{ctx.author.id} synced tree with {len(synced)} commands', level=SUCCESS)
-        view = to_view(f'{len(synced)} команд синхронизировано!', DEFAULT_C)
-        await msg.edit(view=view)
-
     # connection
 
     async def on_ready(self):
