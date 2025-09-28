@@ -18,7 +18,7 @@ A bot I made for [my Discord server](https://discord.gg/s3NrXyYjnG) with Python,
 
 Don't.
 
-`.env` file should have 5 variables:
+`.env` file should have 3 variables:
 
 - `BOT_TOKEN` - Discord bot token
 
@@ -37,6 +37,8 @@ Add these to your `.env` file with the required data to enable the features:
 - `AI_KEY` - Provide an `api.navy` API key to enable AI chatbot
 
 - `TG_TOKEN` - Provide a Telegram bot token to enable crossposting from Discord to Telegram and vice versa
+
+If you want to set up the Telegram crossposter, you can add a variable to `.env` with a webhook URL and put that variable name in the `crosspost_pairs` list in `data.json` (explained below).
 
 ## `data.json`
 
@@ -77,6 +79,18 @@ All keys must exist in the file, but they can be empty.
         },
         // ...
     ],
+    // Summarized list of features available in ml!faq or when someone joins
+    "quick_help": [
+        {
+            "text": "У нас есть...", // Text of the feature
+            "button": { // Button shown beside the text
+                "label": "Скины", // Button text
+                "page": 4 // Index of a FAQ page to open when the button is clicked, OR a URL to open in a browser
+            }
+        },
+        null, // You can use this to add a separator between sections
+        // ...
+    ],
     // List of Da-bot answers that the bot will reply with if the user has beast mode enabled
     "legacy": {
         // If the user's message contents are equal to a certain key, the bot will reply with the corresponding value
@@ -96,7 +110,7 @@ All keys must exist in the file, but they can be empty.
     "mfr": {
         "regular": { // Rarity key
             "name": "Обычная", // Rarity name,
-            "chance": 60, // How likely this rarity is to spawn compared to all other rarities,
+            "chance": 60, // How likely this rarity is to spawn compared to all other rarities
             "hidden": true, // Optional value, if true then this rarity will not appear in stats (at all, not even the ???s) unless user has obtained it
             "xp": [1, 2], // Min and max range of XP to give when this card is pulled
             "images": [ // List of possible image URLs to get
@@ -114,7 +128,7 @@ All keys must exist in the file, but they can be empty.
         {
             "dc_id": 975809940444819467, // Discord channel ID
             "tg_id": -1003000053798, // Telegram chat/channel ID
-            "webhook": null, // String with a webhook URL if you want to send messages thru the webhook instead of the bot account. This will allow to show a custom username.
+            "webhook": null, // A .env variable name that has the webhook URL if you want to send messages thru the webhook instead of the bot account. This will allow to show a custom username.
             "users": null, // If you want to restrict whose messages are crossposted, put here a list of integers with allowed user's IDs whose messages should be crossposted
             "footer": false, // Show a text username and a button with a link to the chat/channel in the discord message's footer and a button with a specified in "dc_link" link in the telegram messages' footer when crossposting
             "show_user": true, // Show a text username above the message when crossposting (will do nothing if you use a webhook or the footer is enabled)

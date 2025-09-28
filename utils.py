@@ -236,6 +236,35 @@ def get_faq_view_items(i: dict) -> list:
     return items
 
 
+def get_faq_preview_view_items(i: list) -> list:
+    items = []
+
+    for element in i:
+        if element is None:
+            items.append(SEP())
+            continue
+
+        if isinstance(element['button']['page'], int):
+            button = ui.Button(
+                label=element['button']['label'],
+                custom_id=f'faq:{element["button"]["page"]}'
+            )
+        else:
+            button = ui.Button(
+                label=element['button']['label'],
+                url=element["button"]["page"]
+            )
+
+        c = ui.Section(
+            ui.TextDisplay(element['text']),
+            accessory=button
+        )
+
+        items.append(c)
+
+    return items
+
+
 def get_revolver_image(left: int) -> str:
     return f'https://moontr3.ru/assets/r/l{left}.png'
 
