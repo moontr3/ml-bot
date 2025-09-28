@@ -33,7 +33,7 @@ async def on_router_message(messages: List[aiogram.types.Message]):
     user_name = user.full_name if not messages[0].sender_chat else messages[0].sender_chat.full_name
 
     photos = [i.photo[-1] for i in messages if i.photo]
-    is_bot = any([i.from_user.is_bot for i in messages])
+    is_bot = any([i.from_user.is_bot for i in messages if i.from_user])
 
     # checking if channel in crossposting pairs
     for pair in manager.data['crosspost_pairs']:
@@ -106,7 +106,10 @@ async def on_router_message(messages: List[aiogram.types.Message]):
 
 @router.channel_post(F.media_group_id.is_(None))
 async def on_message(message: aiogram.types.Message):
-    await on_router_message([message])
+    try:
+        await on_router_message([message])
+    except Exception as e:
+        log(f'Unable to crosspost message (outer): {e}', level=ERROR)
 
 @router.channel_post(F.media_group_id.is_not(None))
 @media_group_handler()

@@ -164,6 +164,7 @@ async def setup(bot: MLBot):
     @commands.cooldown(1, per=5, type=commands.BucketType.user)
     async def slash_ai(
         ctx: commands.Context,
+        *,
         text: str,
         attachment: discord.Attachment = None,
         ephemeral: Literal['Да, скрыть сообщение от других', 'Нет, показать всем'] = 'Нет, показать всем'
@@ -174,6 +175,9 @@ async def setup(bot: MLBot):
             await ctx.interaction.response.defer()
         else:
             await ctx.channel.typing()
+
+        if attachment is None and ctx.message.attachments:
+            attachment = ctx.message.attachments[0]
 
         # generating message
         try:

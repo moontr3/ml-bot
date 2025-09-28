@@ -248,7 +248,7 @@ async def setup(bot: MLBot):
     @bot.hybrid_command(
         name='purge',
         aliases=['очистить'],
-        description='Удаляет определенное количество сообщений в канале.'
+        description='👩‍⚖️ Удаляет определенное количество сообщений в канале.'
     )
     @api.check_guild
     @discord.app_commands.guild_only()
@@ -324,7 +324,7 @@ async def setup(bot: MLBot):
     @bot.hybrid_command(
         name='mute',
         aliases=['мут','timeout','таймаут'],
-        description='Мутит определенного участника на сервере.'
+        description='👩‍⚖️ Мутит определенного участника на сервере.'
     )
     @api.check_guild
     @discord.app_commands.guild_only()
@@ -392,7 +392,7 @@ async def setup(bot: MLBot):
     @bot.hybrid_command(
         name='unmute',
         aliases=['размут','анмут'],
-        description='Размучивает определенного участника на сервере.'
+        description='👩‍⚖️ Размучивает определенного участника на сервере.'
     )
     @api.check_guild
     @discord.app_commands.guild_only()

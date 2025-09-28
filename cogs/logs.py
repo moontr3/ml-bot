@@ -79,7 +79,7 @@ async def setup(bot: MLBot):
     async def on_member_join(member: discord.Member):
         elements = ['**'+member.name+'**', member.mention, str(member.id)]
 
-        if member.avatar.url:
+        if member.avatar:
             elements = [add_accessory(elements, accessory=ui.Thumbnail(member.avatar.url))]
         
         view = to_view(elements)
@@ -92,7 +92,7 @@ async def setup(bot: MLBot):
     async def on_member_remove(member: discord.Member):
         elements = ['**'+member.name+'**', member.mention, str(member.id)]
 
-        if member.avatar.url:
+        if member.avatar:
             elements = [add_accessory(elements, accessory=ui.Thumbnail(member.avatar.url))]
         
         view = to_view(elements)

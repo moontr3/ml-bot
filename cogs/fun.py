@@ -17,7 +17,7 @@ async def setup(bot: commands.Bot):
 
     @bot.hybrid_command(
         name='пипи',
-        description='Показать размер пипи.',
+        description='😀 Показать размер пипи.',
         aliases=['pipi','penis','хуй','писька']
     )
     @discord.app_commands.describe(имя='Чей размер показать')
@@ -43,7 +43,7 @@ async def setup(bot: commands.Bot):
 
     @bot.hybrid_command(
         name='недавно',
-        description='Недавно меня ...',
+        description='😀 Недавно меня ...',
         aliases=['nedavno']
     )
     @discord.app_commands.describe(имя='Кто?')
@@ -66,7 +66,7 @@ async def setup(bot: commands.Bot):
 
     @bot.hybrid_command(
         name='альцгеймер',
-        description='Забыл',
+        description='😀 Забыл',
         aliases=['alzheimer']
     )
     @discord.app_commands.describe(текст='Текст, который необходимо повторить')
@@ -101,7 +101,7 @@ async def setup(bot: commands.Bot):
 
     @bot.hybrid_command(
         name='краш',
-        description='Крашит что-либо',
+        description='😀 Крашит что-либо',
         aliases=['crash']
     )
     @discord.app_commands.describe(имя='То, что нужно крашнуть')
@@ -159,7 +159,7 @@ async def setup(bot: commands.Bot):
         
     @bot.hybrid_command(
         name='деанон',
-        description='Доксит пользователя.',
+        description='😀 Доксит пользователя.',
         aliases=['doxx','dox','докс']
     )
     @commands.cooldown(1, 7, commands.BucketType.user)
@@ -291,7 +291,7 @@ async def setup(bot: commands.Bot):
 
     @bot.hybrid_command(
         name='шанс',
-        description='Говорит, насколько процентов возможно ваше предсказание.',
+        description='😀 Говорит, насколько процентов возможно ваше предсказание.',
         aliases=['chance']
     )
     @discord.app_commands.describe(запрос='Ваш вопрос')
@@ -332,7 +332,7 @@ async def setup(bot: commands.Bot):
 
     @bot.hybrid_command(
         name='выбери',
-        description='Выбирает одно из выданных вариантов.',
+        description='😀 Выбирает одно из выданных вариантов.',
         aliases=['choose','choice','выбор']
     )
     @discord.app_commands.describe(
@@ -381,7 +381,7 @@ async def setup(bot: commands.Bot):
 
     @bot.hybrid_command(
         name='эмоджи',
-        description='Показывает, какой эмоджи охарактерирует пользователя.',
+        description='😀 Показывает, какой эмоджи охарактерирует пользователя.',
         aliases=['emoji','эмодзи']
     )
     @discord.app_commands.describe(имя='Пользователь, чьего эмодзи вы хотите узнать')
@@ -418,7 +418,7 @@ async def setup(bot: commands.Bot):
 
     @bot.hybrid_command(
         name='шип',
-        description='Шип двух случайных пользователей или кого-то с кем-то.',
+        description='😀 Шип двух случайных пользователей или кого-то с кем-то.',
         aliases=['ship']
     )
     @discord.app_commands.describe(пользователь='Пользователь, кого вы хотите шипперить.')
@@ -459,7 +459,7 @@ async def setup(bot: commands.Bot):
 
     @bot.hybrid_command(
         name='судьба',
-        description='Показывает то, что бы вы сделали с пользователем.',
+        description='😀 Показывает то, что бы вы сделали с пользователем.',
         aliases=['destiny','fate']
     )
     @discord.app_commands.describe(имя='Человек, судьбу которого вы хотите узнать')

@@ -161,7 +161,7 @@ async def setup(bot: MLBot):
     @bot.hybrid_command(
         name='repblock',
         aliases=['репблок','реп-блок','реп_блок','rep_block','rep-block'],
-        description='Запрещает участнику репать других на некоторое время.'
+        description='👩‍⚖️ Запрещает участнику репать других на некоторое время.'
     )
     @api.check_guild
     @discord.app_commands.guild_only()

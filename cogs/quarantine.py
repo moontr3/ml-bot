@@ -15,7 +15,7 @@ async def setup(bot: MLBot):
     @bot.hybrid_command(
         name='quarantine',
         aliases=['карантин', 'гречкамартини', 'quar', 'кар'],
-        description='Отправляет пользователя в карантин.'
+        description='👩‍⚖️ Отправляет пользователя в карантин.'
     )
     @api.check_guild
     @discord.app_commands.guild_only()
@@ -81,7 +81,7 @@ async def setup(bot: MLBot):
     @bot.hybrid_command(
         name='release',
         aliases=['разкарантин', 'негречкамартини', 'unquar', 'разкар', 'выпустить', 'unquarantine'],
-        description='Выпускает пользователя с карантина.'
+        description='👩‍⚖️ Выпускает пользователя с карантина.'
     )
     @api.check_guild
     @discord.app_commands.guild_only()
