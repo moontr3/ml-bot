@@ -1,175 +1,14 @@
+import easing_functions as easing
 import random
 import discord
 from typing import *
 from copy import deepcopy
 import pygame as pg
-import aiohttp
-import aiofiles
 from log import *
-import time
-import os
 import utils
 from config import *
-
-pg.display.init()
-pg.font.init()
-
-
-# pygame renderer
-
-class Renderer:
-    def __init__(self,
-        size: Tuple[int, int] = None,
-        fill: "Tuple[int, int, int] | None" = None,
-        image: "str | None" = None
-    ):
-        '''
-        A class that you can render images in.
-        '''
-        if image:
-            self.surface = pg.image.load(image)
-        
-        else:
-            self.surface: pg.Surface = pg.Surface(size, pg.SRCALPHA)
-            if fill:
-                self.surface.fill(fill)
-
-        self.images: Dict[str, pg.Surface] = {}
-        self.fonts: Dict[str, pg.font.Font] = {}
-        self.init_time = time.time()
-        self.cleanup: List[str] = []
-
-
-    async def download_image(self, url:str) -> str:
-        path = f'temp/{utils.rand_id()}.png'
-        start_time = time.time()
-
-        log(f'downloading image {url}', 'api')
-
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as resp:
-                if resp.status == 200:
-                    f = await aiofiles.open(path, mode='wb')
-                    await f.write(await resp.read())
-                    await f.close()
-
-        log(f'image {path} downloaded in {time.time()-start_time}s', 'renderer')
-        self.cleanup.append(path)
-        return path
-    
-
-    def extend(self, size: int):
-        new = pg.Surface((self.surface.get_width(), self.surface.get_height()+size), pg.SRCALPHA)
-        new.blit(self.surface, (0,0))
-        self.surface = new
-
-
-    def get_image(self,
-        path: str
-    ):
-        if path not in self.images:
-            self.images[path] = pg.image.load(path)
-        return self.images[path]
-
-
-    def draw_image(self,
-        path: str, pos: Tuple[int, int],
-        size: Tuple[int, int] = None,
-        h=0, v=0, area: pg.Rect=None,
-        rotation: int = 0, opacity: int = 255
-    ):
-        image = self.get_image(path)
-
-        if size:
-            image = image.copy()
-            image = pg.transform.smoothscale(image, size)
-        
-        if rotation != 0:
-            image = pg.transform.rotate(image, rotation)
-
-        if h != 0 or v != 0:
-            pos = [
-                pos[0]-image.get_width()*h,
-                pos[1]-image.get_height()*v,
-            ]
-
-        image.set_alpha(opacity)
-        
-        if area:
-            self.surface.blit(image, pos, area)
-        else:
-            self.surface.blit(image, pos)
-
-
-    def get_font(self,
-        path: str, size: int
-    ) -> pg.font.Font:
-        if path+str(size) not in self.fonts:
-            self.fonts[path+str(size)] = pg.font.Font(path, size)
-        return self.fonts[path+str(size)]
-
-
-    def draw_text(self,
-        text: str, pos: Tuple[int, int], font:str, size:int,
-        color:Tuple[int, int, int], h=0, v=0, rotation: int = 0,
-        opacity: int = 255, max_size: int = None
-    ) -> Tuple[int,int]:
-        font: pg.font.Font = self.get_font(font, size)
-        text: pg.Surface = font.render(text, True, color)
-
-        if rotation != 0:
-            text = pg.transform.rotate(text, rotation)
-
-        if max_size and text.get_width() > max_size:
-            text = pg.transform.smoothscale(text, (max_size, text.get_height()))
-
-        if h != 0 or v != 0:
-            pos = [
-                pos[0]-text.get_width()*h,
-                pos[1]-text.get_height()*v,
-            ]
-
-        if opacity != 255:
-            text.set_alpha(opacity)
-
-        self.surface.blit(text, pos)
-        return text.get_rect().size
-    
-
-    def get_text_size(self,
-        text: str, font:str, size:int
-    ) -> Tuple[int,int]:
-        font: pg.font.Font = self.get_font(font, size)
-        return font.size(text)
-
-
-    def round_image(self, surface: pg.Surface, radius: int) -> pg.Surface:
-        '''
-        Makes an image have rounded corners.
-        '''
-        rect = pg.Rect((0,0), surface.get_size())
-        rect = rect.inflate(radius*2,radius*2)
-
-        new = pg.Surface(surface.get_size(), pg.SRCALPHA)
-        new.blit(surface, (0,0))
-        pg.draw.rect(new, (0,0,0,0), rect, radius, radius*3)
-
-        return new
-
-
-    def save(self, dir:str, ext:str='jpg') -> str:
-        start_time = time.time()
-        filename = dir.rstrip('/\\')+'/' + utils.rand_id() + '.'+ext
-        pg.image.save(self.surface, filename)
-        log(f'image {filename} saved in {time.time()-start_time}s', 'renderer')
-
-        for i in self.cleanup:
-            os.remove(i)
-        self.cleanup = []
-        
-        log(f'image {filename} completed {time.time()-self.init_time}s', 'renderer')
-        return filename
-
+from .rouletterenderer import RouletteRenderer
+from .renderer import *
 
 
 class RendererCollection:
@@ -179,6 +18,30 @@ class RendererCollection:
         '''
         self.mg = mg
         self.bot = bot
+
+        self.roulette = RouletteRenderer(mg, bot)
+
+
+    def test_gif(self, text: str) -> str:
+        r = Renderer((1,1), (0,0,0,0))
+        e = easing.QuadEaseOut()
+        frames = 30
+        
+        gsize = r.get_text_size(text, 'assets/fonts/default/regular.ttf', 20)
+        r = Renderer(gsize, (0,0,0,0))
+
+        for i in range(frames+1):
+            size = int(e.ease(i/frames)*gsize[0])
+
+            r.draw_text(
+                text, (gsize[0]//2, gsize[1]//2), 'assets/fonts/default/regular.ttf',
+                20, (255,255,255), h=0.5, v=0.5, max_size=size
+            )
+            if i < frames:
+                r.new_image((0,0,0,0))
+
+        path = r.to_gif('temp', 30)
+        return path
 
 
     def captcha(self, text: int) -> str:

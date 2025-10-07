@@ -74,6 +74,9 @@ async def check_ai(bot: MLBot, message: discord.Message):
         'мл бот' in message.content.lower(),
         'джарвис' in message.content.lower(),
         'jarvis' in message.content.lower(),
+        'grok' in message.content.lower(),
+        'лоли' in message.content.lower(),
+        'loli' in message.content.lower(),
     ])
     replied_to = actual_reply_to.author.id == bot.user.id if actual_reply_to else False
     
@@ -172,29 +175,34 @@ async def setup(bot: MLBot):
         log(f'{ctx.author.id} asks AI thru command')
 
         if ctx.interaction:
-            await ctx.interaction.response.defer()
+            await ctx.interaction.response.defer(ephemeral=ephemeral.startswith('Д'))
         else:
             await ctx.channel.typing()
 
         if attachment is None and ctx.message.attachments:
-            attachment = ctx.message.attachments[0]
+            attachments = ctx.message.attachments
+        elif attachment is None:
+            attachments = []
+        else:
+            attachments = [attachment]
 
         # generating message
         try:
-            if attachment:
+            if attachments:
                 content = [
                     {'type': 'text', 'text': text}
                 ]
                 
                 # downloading image
                 async with aiohttp.ClientSession() as session:
-                    async with session.get(attachment.url) as resp:
-                        if resp.status != 200:
-                            raise Exception(f"Failed to fetch image: {resp.status}")
-                        
-                        encoded_image = base64.b64encode(await resp.read()).decode('utf-8')
-                        image_url = f"data:{resp.content_type};base64,{encoded_image}"
-                        content.append({"type": "image_url", "image_url": {"url": image_url}})
+                    for i in attachments:
+                        async with session.get(i.url) as resp:
+                            if resp.status != 200:
+                                raise Exception(f"Failed to fetch image: {resp.status}")
+                            
+                            encoded_image = base64.b64encode(await resp.read()).decode('utf-8')
+                            image_url = f"data:{resp.content_type};base64,{encoded_image}"
+                            content.append({"type": "image_url", "image_url": {"url": image_url}})
             else:
                 content = text
 

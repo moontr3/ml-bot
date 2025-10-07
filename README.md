@@ -83,7 +83,7 @@ All keys must exist in the file, but they can be empty.
     "quick_help": [
         {
             "text": "У нас есть...", // Text of the feature
-            "button": { // Button shown beside the text
+            "button": { // Button shown beside the text, can be null
                 "label": "Скины", // Button text
                 "page": 4 // Index of a FAQ page to open when the button is clicked, OR a URL to open in a browser
             }
@@ -134,7 +134,8 @@ All keys must exist in the file, but they can be empty.
             "show_user": true, // Show a text username above the message when crossposting (will do nothing if you use a webhook or the footer is enabled)
             "allow_bots": false, // Allow bot messages to be crossposted
             "tg_link": null, // A custom telegram channel link to put in the discord message's footer instead of the message link. Only has an effect if the footer is enabled
-            "dc_link": null // A discord invite link to put in the telegram message's footer
+            "dc_link": null, // A discord invite link to put in the telegram message's footer
+            "one_way": true // Whether to only crosspost messages FROM telegram TO discord and not the other way 
         },
         // ...
     ]

@@ -13,7 +13,7 @@ import os
 
 # setup
 async def setup(bot: MLBot):
-
+    
     @bot.command(
         name='partner2'
     )
@@ -24,11 +24,12 @@ async def setup(bot: MLBot):
             SEP(visible=False), ui.MediaGallery(discord.MediaGalleryItem('attachment://bar.png')), SEP(visible=False),
             '### у нас тут есть:',
             ':speaking_head: разговоры на **нишевые темы** (и часто программирование (ну и ненишевые тоже есть да))',
-            '📚 **нестрогие и короткие правила** - можно не бояться мута и быть собой',
+            ':books: **нестрогие и короткие правила** - можно не бояться мута и быть собой',
             ':speaker: частые посиделки в войсах ||без микро||',
             ':sparkles: уникальная **система левелинга и репутации** которую не найдете на любом другом сервере',
             ':robot: Мега Эпичный Кастомный **Мунленд Бот с игрульками**',
-            ':busts_in_silhouette: крутые сигма участники (проверено)',
+            ':slot_machine: **Лудомания** (к сожалению понарошку)',
+            ':busts_in_silhouette: крутые **сигма участники** (проверено)',
             ':bar_chart: рандомные необычные **ивентики и происходилки**',
             ':nazar_amulet: _~~сысыкутариканыктинак...~~_',
             SEP(visible=False), ui.MediaGallery(discord.MediaGalleryItem('attachment://bar.png')), SEP(visible=False),
@@ -124,15 +125,12 @@ async def setup(bot: MLBot):
     async def slash_invite(ctx: commands.Context):
         log(f'{ctx.author.id} sending invite')
 
-        if ctx.guild and ctx.guild.id == GUILD_ID:
-            return
-
         view = to_view([
             '**moonland bot** - бот сервера moonland:re.',
             '## https://discord.gg/s3NrXyYjnG'
         ], discord.Color.from_str('#641CBC'))
 
-        await ctx.reply(view=view)
+        await ctx.reply(view=view, ephemeral=True)
 
 
     @bot.hybrid_command(
@@ -199,7 +197,10 @@ async def setup(bot: MLBot):
         await ctx.response.defer(ephemeral=True)
 
         # sending
-        await bot.service_webhook.send(content=text, username='Анонимное сообщение ・ /anon', avatar_url=MESSAGE_IMAGE, allowed_mentions=NO_MENTIONS)
+        await bot.service_webhook.send(
+            content=text, username='Анонимное сообщение ・ /anon',
+            avatar_url=MESSAGE_IMAGE, allowed_mentions=NO_MENTIONS
+        )
 
         log(f'{ctx.user.id} sent an anonymous message: {text}')
 

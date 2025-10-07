@@ -206,6 +206,7 @@ class User:
         self.q: int = data.get('q', 0)
         self.q_level: int = data.get('q_level', self.q)
         self.q_level = min(15, max(0, self.q_level))
+        self.coins: int = data.get('coins', 0)
 
         self.plus_reps: int = data.get('plus_reps', 0)
         self.minus_reps: int = abs(data.get('minus_reps', 0))
@@ -264,9 +265,47 @@ class User:
             "temp_vc_timeout": self.temp_vc_timeout,
             "last_msg_channel": self.last_msg_channel,
             "marked_by_beast": self.marked_by_beast,
-            "likee": self.likee
+            "likee": self.likee,
+            "coins": self.coins
         }
     
+
+# gambling
+
+
+class GamblingPattern:
+    def __init__(self, skin: str, pattern: List[int] = []):
+        self.pattern: List[int] = pattern
+        self.skin: str = skin
+
+
+    @classmethod
+    def random(cls, skin: str):
+        pattern = [
+            random.randint(1,8) for _ in range(9)
+        ]
+        return cls(skin, pattern)
+    
+
+    def get_column(self, index: str) -> List[int]:
+        return self.pattern[index::3]
+    
+
+    def get_patterns(self) -> List[Tuple[List[int], int]]:
+        out = []
+
+        for i in GAMBLING_PATTERNS:
+            items = [self.pattern[index] for index in i[0]]
+
+            if items[1:] == items[:-1]:
+                out.append(i)
+
+        return out
+    
+
+    def get_xp(self) -> int:
+        return sum([i[1] for i in self.get_patterns()])
+
 
 # XP Leaderboard
 
@@ -1430,6 +1469,22 @@ class Manager:
 
         self.commit()
         return user.q
+
+
+    def add_coin(self, user_id:int, amount:int) -> bool:
+        '''
+        Exchanges Qs for coins and returns whether it was successful.
+        '''
+        user = self.get_user(user_id)
+
+        if user.q_level < amount:
+            return False
+        
+        user.q_level -= amount
+        user.coins += amount
+
+        self.commit()
+        return True
 
 
     def add_mfr_stat(self, user_id:int, card:str):

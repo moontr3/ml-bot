@@ -1,3 +1,4 @@
+import time
 from discord.ext import commands
 import discord
 from log import *
@@ -27,12 +28,12 @@ async def setup(bot: MLBot):
         # missing required permissions
         elif isinstance(error, commands.MissingPermissions):
             log(f'{ctx.author} {ctx.author.id} missing permissions', level=ERROR)
-            await ctx.reply(view=c_to_view(MISSING_PERMS_EMBED))
+            await ctx.reply(view=c_to_view(MISSING_PERMS_EMBED), ephemeral=True)
 
         # user not found
         elif isinstance(error, commands.UserNotFound) or isinstance(error, commands.MemberNotFound):
             log(f'{ctx.author} {ctx.author.id} user not found', level=ERROR)
-            await ctx.reply(view=c_to_view(UNKNOWN_USER_EMBED))
+            await ctx.reply(view=c_to_view(UNKNOWN_USER_EMBED), ephemeral=True)
 
         # channel not found
         elif isinstance(error, commands.ChannelNotFound):
@@ -44,6 +45,12 @@ async def setup(bot: MLBot):
             log(f'{ctx.author} {ctx.author.id} failed a check {error}', level=ERROR)
             await ctx.reply(view=c_to_view(NOT_MOONLAND_EMBED), ephemeral=True)
 
+        # on cooldown
+        elif isinstance(error, commands.CommandOnCooldown):
+            await ctx.reply(view=to_view([
+                '### Кулдаун!', SEP(), f'Попробуй ещё раз <t:{int(error.retry_after+time.time())}:R>'
+            ], ERROR_C), ephemeral=True)
+
         # unknown command
         elif isinstance(error, commands.CommandNotFound):
             log(f'{ctx.author} {ctx.author.id} entered an unknown command: {ctx.message.content}', level=ERROR)
@@ -51,5 +58,5 @@ async def setup(bot: MLBot):
         # everything else basically
         else:
             log(f'{ctx.author} {ctx.author.id} issued a command error: {error}', level=ERROR)
-            await ctx.reply(view=c_to_view(UNKNOWN_ERROR_EMBED))
+            await ctx.reply(view=c_to_view(UNKNOWN_ERROR_EMBED), ephemeral=True)
             log('\n'.join(traceback.format_tb(error.__traceback__)), level=ERROR)

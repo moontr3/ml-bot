@@ -6,6 +6,7 @@ users.json
 conv.py
 temp
 *.ignore
+ignore*
 backups/*
 messages.json
 .vscode

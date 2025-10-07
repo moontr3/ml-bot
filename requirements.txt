@@ -8,3 +8,4 @@ aiogram
 aiogram-media-group
 pillow
 russian_names
+easing-functions

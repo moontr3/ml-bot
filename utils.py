@@ -244,6 +244,10 @@ def get_faq_preview_view_items(i: list) -> list:
             items.append(SEP())
             continue
 
+        if element['button'] is None:
+            items.append(ui.TextDisplay(element['text']))
+            continue
+
         if isinstance(element['button']['page'], int):
             button = ui.Button(
                 label=element['button']['label'],
@@ -553,3 +557,20 @@ def get_tg_message_view(
         view.add_item(ui.TextDisplay(f'-# Пустое сообщение  [{VIEWUSER}](<{messages[0].get_url()}>)'))
 
     return view
+
+
+def index_to_roulette_pos(index: int) -> Tuple[int,int]:
+    return (
+        58+(index%3)*112,
+        55+(index//3)*90
+    )
+
+
+def unicode_cool_numbers(n: int) -> str:
+    string = str(n)
+    out = ''
+
+    for i in string:
+        out += UNICODE_COOL_NUMBERS.get(i, i)
+    
+    return out

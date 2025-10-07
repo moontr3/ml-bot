@@ -21,20 +21,25 @@ async def setup(bot: MLBot):
         description='Случайная карточка мишкфреде (+XP)',
         aliases=['мишкфреде','мф','mf','ьа','mfr','мишкафреде','мшкфреди','мшкфреде','мишкфреди','мишкафреди','motherfucker','фреде']
     )
-    @api.check_guild
-    @discord.app_commands.guild_only()
+    @discord.app_commands.user_install()
     @discord.app_commands.guild_install()
+    @discord.app_commands.allowed_contexts(guilds=True, dms=False, private_channels=True)
     async def mishkfrede(ctx: commands.Context):
         # command
         botuser: api.User = bot.mg.get_user(ctx.author.id)
+        guild = ctx.guild and ctx.guild.id == GUILD_ID
 
         card: api.MfrCard = bot.mg.get_random_mfr()
         ephemeral = ctx.channel.id != MFR_CHANNEL
-        if not ephemeral and botuser.mfr_timeout <= time.time():
+
+        if guild and not ephemeral and botuser.mfr_timeout <= time.time():
             bot.mg.add_xp(ctx.author.id, card.xp)
 
         color = discord.Color.from_str(card.color)
-        if ephemeral:
+        
+        if not guild:
+            text = '-# Получать опыт за карточки можно только на сервере </moonland:1411399171042443447>.'
+        elif ephemeral:
             text = f':warning: Если хотите получать опыт за получение карточек, вводите эту команду в <#{MFR_CHANNEL}>.'
         elif botuser.mfr_timeout > time.time():
             text = f'-# Опыт за находку карточки можно будет получить только **<t:{int(botuser.mfr_timeout)}:R>**.'

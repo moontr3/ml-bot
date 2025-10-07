@@ -165,6 +165,9 @@ async def setup(bot: MLBot):
         if message.author.bot and not pair['allow_bots']:
             return
         
+        if pair['one_way']:
+            return
+        
         # checking if its the same webhook
         if pair['webhook']:
             webhook = os.getenv(pair['webhook'])
