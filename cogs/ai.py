@@ -14,9 +14,21 @@ from io import BytesIO
 
 
 async def check_ai(bot: MLBot, message: discord.Message):
-    # ml ai
-    message_length_pass = len(message.content) < 512 and len(message.content) > 0
-
+    # dixus
+    found_keyword_dixus = any([
+        'диксус' in message.content.lower(),
+        'dixus' in message.content.lower(),
+        'diksus' in message.content.lower(),
+    ])
+    try:
+        if found_keyword_dixus:
+            if random.random() > 0.2:
+                await message.reply(utils.get_dixus_phrase(message.author.name))
+            return
+    except Exception as e:
+        log(f'Failed to get dixus phrase: {e}', level=ERROR)
+        return
+    
     # checking for reply
     try:
         actual_reply_to = None if not message.reference else \
@@ -46,26 +58,23 @@ async def check_ai(bot: MLBot, message: discord.Message):
             url.append(attachment.proxy_url)
 
     # adding message to history
-    if message_length_pass:
-        if message.author.id in NERD_USERS:
-            bot.mg.ai.add(api.AIMessage('user', 'Ответь на это сообщение случайным оскорблением с кучей матов слов в 20'))
-        else:
-            bot.mg.ai.add(api.AIMessage('user', utils.discord_message_to_text(message), message.author, url, reply_to, reply_images))
+    apimessage = api.AIMessage(
+        'user', utils.discord_message_to_text(message),
+        message.author, url, reply_to, reply_images
+    )
 
-    # dixus
-    found_keyword_dixus = any([
-        'диксус' in message.content.lower(),
-        'dixus' in message.content.lower(),
-        'diksus' in message.content.lower(),
-    ])
-    try:
-        if found_keyword_dixus:
-            if random.random() > 0.2:
-                await message.reply(utils.get_dixus_phrase(message.author.name))
-            return
-    except Exception as e:
-        log(f'Failed to get dixus phrase: {e}', level=ERROR)
+    # skip AI if message too long
+    if len(apimessage.get_text()) > MAX_MESSAGE_LEN:
+        log(f'AI message {message.id} from {message.author.id} too long', level=WARNING)
+        await message.add_reaction(AI_TOOLONG)
         return
+
+    if message.author.id in NERD_USERS:
+        bot.mg.ai.add(api.AIMessage(
+            'user', 'Ответь на это сообщение случайным оскорблением с кучей матов слов в 20')
+        )
+    else:
+        bot.mg.ai.add(apimessage)
 
     # chceking if mlbot is being called for
     found_keyword = any([
@@ -81,13 +90,13 @@ async def check_ai(bot: MLBot, message: discord.Message):
     replied_to = actual_reply_to.author.id == bot.user.id if actual_reply_to else False
     
     # sending ai request
-    if (replied_to or found_keyword) and message_length_pass:
+    if replied_to or found_keyword:
         log(f'Received AI prompt from {message.author.id} (msg {message.id}), image {url}')
 
         # nvm not sending ai request
         if bot.mg.generating:
             log('Already generating response', level=WARNING)
-            await message.add_reaction('🟡')
+            await message.add_reaction(AI_RATELIMIT)
             return
 
         # sending request
@@ -113,7 +122,7 @@ async def check_ai(bot: MLBot, message: discord.Message):
                     f'{message.author.mention} ・ {message.author.id}'
                 ])
                 
-                await bot.webhook.send(username='Ошибка ИИ', avatar_url=WARN_IMAGE, view=view, allowed_mentions=NO_MENTIONS)
+                await bot.webhook.send(username='Ошибка ИИ', avatar_url=ERROR_IMAGE, view=view, allowed_mentions=NO_MENTIONS)
             
             # sending response
             else:
@@ -162,6 +171,7 @@ async def setup(bot: MLBot):
     @discord.app_commands.describe(
         text='Текст вашего сообщения.',
         attachment='Картинка для ИИ.',
+        prompt='При необходимости можно установить свой системный промпт для ИИ.',
         ephemeral='Скрыть ли сообщение от других в канале (по умолчанию "Нет").'
     )
     @commands.cooldown(1, per=5, type=commands.BucketType.user)
@@ -170,6 +180,7 @@ async def setup(bot: MLBot):
         *,
         text: str,
         attachment: discord.Attachment = None,
+        prompt: str = None,
         ephemeral: Literal['Да, скрыть сообщение от других', 'Нет, показать всем'] = 'Нет, показать всем'
     ):
         log(f'{ctx.author.id} asks AI thru command')
@@ -188,6 +199,9 @@ async def setup(bot: MLBot):
 
         # generating message
         try:
+            prompt = PROMPT_COMMAND if prompt is None else prompt
+            prompt_dict = {"role": "system", "content": prompt}
+
             if attachments:
                 content = [
                     {'type': 'text', 'text': text}
@@ -206,7 +220,7 @@ async def setup(bot: MLBot):
             else:
                 content = text
 
-            text, image = await bot.mg.gen_ai([{'role': 'user', 'content': content}])
+            text, image = await bot.mg.gen_ai([prompt_dict, {'role': 'user', 'content': content}])
             
         except Exception as e:
             log(f'Error while generating AI response from {ctx.author.id} (image {attachment}): {e}')
@@ -226,4 +240,69 @@ async def setup(bot: MLBot):
         # sending message
         file = discord.File(BytesIO(image), 'image.png') if image else None
         await ctx.reply(text, file=file, ephemeral=ephemeral.startswith('Д'), allowed_mentions=NO_MENTIONS)
+
+
+    @bot.tree.context_menu(
+        name='Объяснить сообщение',
+    )
+    async def cm_explain(
+        inter: discord.Interaction, message: discord.Message,
+    ):
+        log(f'{inter.user.id} asks to explain message {message.id}')
+
+        await inter.response.defer(ephemeral=True)
+        attachments = message.attachments
+        text = utils.discord_message_to_text(message)
+
+        # generating message
+        try:
+            prompt = PROMPT_EXPLAIN
+            prompt_dict = {"role": "system", "content": prompt}
+
+            if attachments:
+                content = [
+                    {'type': 'text', 'text': text}
+                ]
+                
+                # downloading image
+                async with aiohttp.ClientSession() as session:
+                    for i in attachments:
+                        async with session.get(i.url) as resp:
+                            if resp.status != 200:
+                                raise Exception(f"Failed to fetch image: {resp.status}")
+                            
+                            encoded_image = base64.b64encode(await resp.read()).decode('utf-8')
+                            image_url = f"data:{resp.content_type};base64,{encoded_image}"
+                            content.append({"type": "image_url", "image_url": {"url": image_url}})
+            else:
+                content = text
+
+            text, image = await bot.mg.gen_ai(
+                [prompt_dict, {'role': 'user', 'content': content}]
+            )
+            
+        except Exception as e:
+            log(f'Error while generating AI response from {inter.user.id} (message {message.id}): {e}', level=ERROR)
+            view = to_view([
+                'Произошла ошибка во время генерации',
+                SEP(),
+                f'```{e}```'
+            ], ERROR_C)
+            await inter.followup.send(view=view)
+            return
+        
+        # empty response
+        if not text and not image:
+            await inter.followup.send(random.choice(HANGUP_TEXTS))
+            return
+
+        # sending message
+        try:
+            file = discord.File(BytesIO(image), 'image.png') if image else None
+            if not file:
+                await inter.followup.send(content=text)
+            else:
+                await inter.followup.send(content=text, file=file)
+        except Exception as e:
+            log(f'Error while sending AI response from {inter.user.id} (message {message.id}): {e}', level=ERROR)
 

@@ -930,15 +930,21 @@ class AIMessage:
         self.reply_images: int = reply_images
 
 
-    async def get_data(self, is_last: bool = False) -> dict:
+    def get_text(self) -> str:
         prefix = f'Отправил {self.user.display_name}: ' if self.user else ''
         
         if self.reply and len(self.reply.content) < 256 and len(self.reply.content) + self.reply_images > 0:
             prefix = f'*Ответ на "{utils.discord_message_to_text(self.reply)}" от '\
-                f'{self.reply.author.display_name} (содержит {self.reply_images} изображений)*\n'+prefix
+                f'{self.reply.author.display_name}*\n'+prefix
+            
+        return prefix+self.message
+
+
+    async def get_data(self, is_last: bool = False) -> dict:
+        text = self.get_text()
 
         if self.attachment_url and is_last:
-            content = [{"type": "text", "text": prefix+self.message}]
+            content = [{"type": "text", "text": text}]
 
             async with aiohttp.ClientSession() as session:
                 for image in self.attachment_url:
@@ -952,7 +958,7 @@ class AIMessage:
 
             return content
         
-        return prefix+self.message
+        return text
 
 
 class AIHistory:
@@ -962,8 +968,24 @@ class AIHistory:
 
     def add(self, message: AIMessage):
         self.history.append(message)
-        if len(self.history) > MAX_HISTORY_LENGTH:
-            self.history.pop(0)
+        self.clean_up()
+
+
+    def clean_up(self):
+        new = []
+        counter = 0
+
+        for i in self.history[::-1]:
+            textlen = len(i.get_text())
+            counter += textlen
+
+            # if it's not the 1st message and there's enough characters in history we stop
+            if counter > MAX_CHARS_IN_HISTORY and counter > textlen:
+                break
+
+            new.insert(0, i)
+
+        self.history = new
 
 
     async def get_history(self) -> dict:
