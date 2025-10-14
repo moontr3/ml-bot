@@ -21,7 +21,7 @@ async def setup(bot: MLBot):
             await bot.invoke(ctx)
             return
         
-        if message.author.id == bot.user.id:
+        if message.author.bot:
             return
         
         if bot.features.ai and not message.content.startswith('.'):

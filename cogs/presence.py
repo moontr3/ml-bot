@@ -30,7 +30,7 @@ async def setup(bot: MLBot):
                 index += 1
             else:
                 emoji = "👥"
-                text = f'На сервере: {utils.unicode_cool_numbers(guild.member_count)}'
+                text = f'Обслуживает пидорасов: {utils.unicode_cool_numbers(guild.member_count)}'
 
         if index == 1:
             guild = bot.get_guild(GUILD_ID)
@@ -52,7 +52,7 @@ async def setup(bot: MLBot):
 
         if index == 4:
             emoji = "🇶"
-            text = f'Собрано Q: {utils.unicode_cool_numbers(stats["q"])} 𝗤'
+            text = f'cобрано: {utils.unicode_cool_numbers(stats["q"])} 𝗤'
 
         if index == 5:
             emoji = "🔡"

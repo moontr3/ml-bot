@@ -930,18 +930,19 @@ class AIMessage:
         self.reply_images: int = reply_images
 
 
-    def get_text(self) -> str:
+    def get_text(self, add_reply: bool = True) -> str:
         prefix = f'Отправил {self.user.display_name}: ' if self.user else ''
         
-        if self.reply and len(self.reply.content) < 256 and len(self.reply.content) + self.reply_images > 0:
-            prefix = f'*Ответ на "{utils.discord_message_to_text(self.reply)}" от '\
-                f'{self.reply.author.display_name}*\n'+prefix
+        if add_reply and self.reply and\
+            len(self.reply.content) < 256 and len(self.reply.content) + self.reply_images > 0:
+                prefix = f'*Ответ на "{utils.discord_message_to_text(self.reply)}" от '\
+                    f'{self.reply.author.display_name}*\n'+prefix
             
         return prefix+self.message
 
 
-    async def get_data(self, is_last: bool = False) -> dict:
-        text = self.get_text()
+    async def get_data(self, is_last: bool = False, add_reply: bool = True) -> dict:
+        text = self.get_text(add_reply)
 
         if self.attachment_url and is_last:
             content = [{"type": "text", "text": text}]
@@ -983,6 +984,7 @@ class AIHistory:
             if counter > MAX_CHARS_IN_HISTORY and counter > textlen:
                 break
 
+            counter += 50
             new.insert(0, i)
 
         self.history = new
@@ -994,7 +996,8 @@ class AIHistory:
         ]
         for index, i in enumerate(self.history):
             is_last = index == len(self.history)-1
-            data.append({"role": i.role, "content": await i.get_data(is_last)})
+            add_reply = index < len(self.history)-1
+            data.append({"role": i.role, "content": await i.get_data(is_last, add_reply)})
 
         return data
 
@@ -1310,13 +1313,20 @@ class Manager:
                     raise Exception(await response.text())
                 respjson = await response.json()
 
+        usage = respjson['usage']
         message = respjson['choices'][0]['message']
+        text = message['content']
 
         if 'images' in message:
             img_base64 = message['images'][0]['image_url']['url'].split('base64,')[1]
             return message['content'], base64.b64decode(img_base64)
         
-        return message['content'], None
+        log(
+            f'Prompt tokens: {usage["prompt_tokens"]} / '\
+            f'Completion tokens: {usage["completion_tokens"]} / '\
+            f'Messages in history: {len(history)}',
+        'api')
+        return text, None
 
     def get_roulette_by_user(self, user: int) -> "Roulette | None":
         '''

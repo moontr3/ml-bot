@@ -63,17 +63,11 @@ async def check_ai(bot: MLBot, message: discord.Message):
         message.author, url, reply_to, reply_images
     )
 
-    # skip AI if message too long
-    if len(apimessage.get_text()) > MAX_MESSAGE_LEN:
-        log(f'AI message {message.id} from {message.author.id} too long', level=WARNING)
-        await message.add_reaction(AI_TOOLONG)
-        return
-
     if message.author.id in NERD_USERS:
         bot.mg.ai.add(api.AIMessage(
             'user', 'Ответь на это сообщение случайным оскорблением с кучей матов слов в 20')
         )
-    else:
+    elif len(apimessage.get_text()) < MAX_MESSAGE_LEN:
         bot.mg.ai.add(apimessage)
 
     # chceking if mlbot is being called for
@@ -92,6 +86,12 @@ async def check_ai(bot: MLBot, message: discord.Message):
     # sending ai request
     if replied_to or found_keyword:
         log(f'Received AI prompt from {message.author.id} (msg {message.id}), image {url}')
+        
+        # skip AI if message too long
+        if len(apimessage.get_text()) > MAX_MESSAGE_LEN:
+            log(f'AI message {message.id} from {message.author.id} too long', level=WARNING)
+            await message.add_reaction(AI_TOOLONG)
+            return
 
         # nvm not sending ai request
         if bot.mg.generating:
