@@ -14,8 +14,9 @@ from aiogram_media_group import media_group_handler
 from PIL import Image
 import io
 
-import utils
+import crossposter
 from bot import MLBot
+import utils
 
 
 # telegram bot
@@ -69,11 +70,11 @@ async def on_router_message(messages: List[aiogram.types.Message]):
                 gallery.add_item(media='attachment://'+name)
 
         # generating view
-        view = utils.get_tg_message_view(messages, pair, webhook, manager, gallery)
+        view = crossposter.get_tg_message_view(messages, pair, webhook, manager, gallery)
         if len(view.children) == 0:
             view.add_item()
         
-        saved_text = utils.get_preview_tg_message_text(content)
+        saved_text = crossposter.get_preview_tg_message_text(content)
 
         # sending thru webhook
         if webhook:
@@ -188,8 +189,8 @@ async def setup(bot: MLBot):
                 markup = kb.as_markup()
 
             # text
-            saved_text = utils.get_preview_dc_message_text(message)
-            text = utils.get_dc_message_text(message, pair)
+            saved_text = crossposter.get_preview_dc_message_text(message)
+            text = crossposter.get_dc_message_text(message, pair)
 
             # media
             media = []
