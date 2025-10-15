@@ -32,9 +32,11 @@ async def on_router_message(messages: List[aiogram.types.Message]):
     user = messages[0].from_user
     content = '\n'.join([i.text or i.caption for i in messages if i.text or i.caption])
     user_name = user.full_name if not messages[0].sender_chat else messages[0].sender_chat.full_name
-
-    photos = [i.photo[-1] for i in messages if i.photo]
     is_bot = any([i.from_user.is_bot for i in messages if i.from_user])
+
+    photos = [(i.photo[-1], i.has_media_spoiler) for i in messages if i.photo]
+    documents = [i.document or i.audio or i.video for i in messages]
+    documents = [i for i in documents if i]
 
     # checking if channel in crossposting pairs
     for pair in manager.data['crosspost_pairs']:
@@ -53,24 +55,78 @@ async def on_router_message(messages: List[aiogram.types.Message]):
         # photos
         files = []
         gallery = None
+        skipped_files = 0
 
         if photos:
             gallery = ui.MediaGallery()
 
             log(f'Downloading {len(photos)} photos...')
 
-            for i in photos:
+            for i, is_spoiler in photos:
+                if i.file_size > 8*1024*1024:
+                    skipped_files += 1
+                    log(f'Skipping photo {i.file_unique_id} because it is too big', level=WARNING)
+                    continue
+
                 out = io.BytesIO()
                 await bot.download(i.file_id, out)
 
                 image = Image.open(copy(out))
                 name = f'{i.file_unique_id}.{image.format.lower()}'
 
+                files.append(discord.File(out, name, spoiler=is_spoiler))
+                gallery.add_item(media='attachment://'+files[-1].filename)
+
+        # other files
+        other_files = []
+
+        if documents:
+            log(f'Downloading {len(documents)} documents...')
+
+            for i in documents:
+                if i.file_size > 8*1024*1024:
+                    skipped_files += 1
+                    log(f'Skipping document {i.file_unique_id} because it is too big', level=WARNING)
+                    continue
+
+                out = io.BytesIO()
+                await bot.download(i.file_id, out)
+
+                if len(i.file_name.split('.')) > 1:
+                    ext = '.'+i.file_name.split('.')[-1]
+                else:
+                    ext = ''
+
+                name = i.file_unique_id+ext
+
                 files.append(discord.File(out, name))
-                gallery.add_item(media='attachment://'+name)
+                other_files.append(ui.File(media='attachment://'+name))
+
+        # sticker
+        sticker_gallery = None
+        sticker = next((i.sticker for i in messages if i.sticker), None)
+
+        if sticker and (sticker.is_animated or sticker.is_video):
+            log(f'Skipping sticker {sticker.file_unique_id} because it is animated', level=WARNING)
+            sticker_gallery = 'skipped'
+
+        elif sticker:
+            log(f'Downloading sticker...')
+
+            out = io.BytesIO()
+            await bot.download(sticker.file_id, out)
+
+            image = Image.open(copy(out))
+            name = f'{sticker.file_unique_id}.{image.format.lower()}'
+
+            files.append(discord.File(out, name))
+            sticker_gallery = ui.MediaGallery()
+            sticker_gallery.add_item(media='attachment://'+files[-1].filename)
 
         # generating view
-        view = crossposter.get_tg_message_view(messages, pair, webhook, manager, gallery)
+        view = crossposter.get_tg_message_view(
+            messages, pair, webhook, manager, gallery, other_files, skipped_files, sticker_gallery
+        )
         if len(view.children) == 0:
             view.add_item()
         
@@ -92,11 +148,11 @@ async def on_router_message(messages: List[aiogram.types.Message]):
         # sending as bot
         else:
             channel: discord.TextChannel = dcbot.get_channel(pair["dc_id"])
-            message = await channel.send(view=view, files=files, allowed_mentions=NO_MENTIONS)
+            message = await channel.send(view=view, files=files, allowed_mentions=NO_MENTIONS) 
         
         manager.crossposter.add_message(
             chat_id, message.id, [i.message_id for i in messages],
-            saved_text, message.jump_url
+            saved_text, message.channel.id
         )
 
     except Exception as e:
@@ -118,7 +174,6 @@ async def on_media_group(messages: List[aiogram.types.Message]):
     await on_router_message(messages)
 
 
-
 @router.message(F.media_group_id.is_(None))
 async def on_message(message: aiogram.types.Message):
     await on_router_message([message])
@@ -127,17 +182,6 @@ async def on_message(message: aiogram.types.Message):
 @media_group_handler()
 async def on_media_group(messages: List[aiogram.types.Message]):
     await on_router_message(messages)
-
-
-
-@router.edited_channel_post(F.media_group_id.is_(None))
-async def on_message(message: aiogram.types.Message):
-    await on_router_edit_message([message])
-
-@router.edited_message(F.media_group_id.is_(None))
-async def on_message(message: aiogram.types.Message):
-    await on_router_edit_message([message])
-
 
 
 # setting up
@@ -195,20 +239,33 @@ async def setup(bot: MLBot):
             # media
             media = []
 
-            if len(message.attachments):
-                for i in message.attachments:
-                    caption = None
-                    if len(media) == 0:
-                        caption = text
+            for i in message.attachments:
+                caption = None
+                if len(media) == 0:
+                    caption = text
 
-                    if i.content_type.split('/')[0] == 'image':
-                        item = aiogram.types.InputMediaPhoto(
-                            media=i.url, caption=caption, parse_mode='MarkdownV2'
-                        )
-                    else:
-                        continue
+                if i.content_type.split('/')[0] == 'image':
+                    item = aiogram.types.InputMediaPhoto(
+                        media=i.url, caption=caption, parse_mode='MarkdownV2',
+                        has_spoiler=i.is_spoiler()
+                    )
+                else:
+                    item = aiogram.types.InputMediaDocument(
+                        media=i.url, caption=caption, parse_mode='MarkdownV2',
+                    )
 
-                    media.append(item)
+                media.append(item)
+
+            # stickers
+            for i in message.stickers:
+                caption = None
+                if len(media) == 0:
+                    caption = text
+
+                item = aiogram.types.InputMediaPhoto(
+                    media=i.url, caption=caption, parse_mode='MarkdownV2'
+                )
+                media.append(item)
 
             # reply
             reply_to = None
@@ -218,7 +275,7 @@ async def setup(bot: MLBot):
                     message.reference.message_id
                 )
                 if messageid:
-                    reply_to = messageid[1][0]
+                    reply_to = messageid.tg_ids[0]
 
             # sending
             if media:
@@ -234,7 +291,7 @@ async def setup(bot: MLBot):
                 ids = [new_message.message_id]
 
             bot.mg.crossposter.add_message(
-                pair['tg_id'], message.id, ids, saved_text, message.jump_url
+                pair['tg_id'], message.id, ids, saved_text, message.channel.id
             )
 
         except Exception as e:

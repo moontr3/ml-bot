@@ -46,6 +46,9 @@ def get_tg_message_view(
     webhook: str,
     manager,
     gallery: ui.MediaGallery,
+    other_files: List[ui.File],
+    skipped_files: int,
+    sticker_gallery: ui.MediaGallery
 ) -> ui.LayoutView:
     '''
     Generates a Discord Components V2 view from a list of Telegram messages.
@@ -59,6 +62,7 @@ def get_tg_message_view(
     content = utils.remove_md(content)
     user_name = user.full_name if not messages[0].sender_chat else messages[0].sender_chat.full_name
     add_text = len(content) > 0
+    link = f'[{VIEWUSER}](<{messages[0].get_url()}>)'
 
     via = next((i.via_bot for i in messages if i.via_bot), None)
     show_caption_above = any([i.show_caption_above_media for i in messages])
@@ -109,9 +113,9 @@ def get_tg_message_view(
         data = manager.crossposter.get_dc_by_tg(chat_id, reply.message_id)
 
         if data:
-            preview = data[1].replace(']', '\\]')
+            preview = data.preview_text.replace(']', '\\]')
             preview = preview.replace('http://', '🔗 ').replace('https://', '🔗 ')
-            url = data[2]
+            url = data.jump_url
 
             if not preview:
                 reply_text = f'[╭ _Нажмите, чтобы просмотреть вложение_](<{url}>)\n'
@@ -121,20 +125,36 @@ def get_tg_message_view(
     if reply_text and not add_text:
         view.add_item(ui.TextDisplay(reply_text))
     
-    # gallery if shown above text
-    if not show_caption_above and gallery:
-        view.add_item(gallery)
+    # gallery and files if shown above text
+    if not show_caption_above: 
+        if gallery:
+            view.add_item(gallery)
+        
+        for i in other_files:
+            view.add_item(i)
 
     # text
     if add_text:
         if pair['show_user'] and webhook and not pair['footer'] and user.username:
-            content += f'  [{VIEWUSER}](<{messages[0].get_url()}>)'
+            content += f'  {link}'
 
         view.add_item(ui.TextDisplay(reply_text + content))
 
+    # sticker
+    if sticker_gallery == 'skipped':
+        view.add_item(ui.TextDisplay(f'-# Анимированный стикер (не поддерживается)  {link}'))
+
+    elif sticker_gallery:
+        view.add_item(ui.TextDisplay(f'-# Стикер  {link}'))
+        view.add_item(sticker_gallery)
+
     # gallery if shown below text
-    if show_caption_above and gallery:
-        view.add_item(gallery)
+    if show_caption_above: 
+        if gallery:
+            view.add_item(gallery)
+        
+        for i in other_files:
+            view.add_item(i)
 
     # button
     if pair['footer']:
@@ -153,6 +173,10 @@ def get_tg_message_view(
     
     # empty view message
     if len(view.children) == 0:
-        view.add_item(ui.TextDisplay(f'-# Пустое сообщение  [{VIEWUSER}](<{messages[0].get_url()}>)'))
+        view.add_item(ui.TextDisplay(f'-# Пустое или неподдерживаемое сообщение  {link}'))
+
+    # skipped files message
+    if skipped_files > 0:
+        view.add_item(ui.TextDisplay(f'-# Не отправлено несколько файлов ({skipped_files})  {link}'))
 
     return view
