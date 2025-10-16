@@ -207,6 +207,7 @@ async def setup(bot: MLBot):
         '''
         Spawning skin drops
         '''
+        if message.author.bot: return
         if message.channel.id not in CHATTABLE_CHANNELS: return
         if message.id in bot.mg.unclaimed: return
         if random.random() > SKIN_CHANCE: return
