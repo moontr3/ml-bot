@@ -208,6 +208,8 @@ class User:
         self.q_level = min(15, max(0, self.q_level))
         self.coins: int = data.get('coins', 0)
         self.tg: int | None = data.get('tg', None)
+        self.display_name: str | None = data.get('display_name', None)
+        self.avatar_url: str | None = data.get('avatar_url', None)
 
         self.plus_reps: int = data.get('plus_reps', 0)
         self.minus_reps: int = abs(data.get('minus_reps', 0))
@@ -268,7 +270,9 @@ class User:
             "marked_by_beast": self.marked_by_beast,
             "likee": self.likee,
             "coins": self.coins,
-            "tg": self.tg
+            "tg": self.tg,
+            "display_name": self.display_name,
+            "avatar_url": self.avatar_url
         }
     
 
@@ -1338,6 +1342,18 @@ class Manager:
         for i in self.users.values():
             if i.tg == id:
                 return i
+
+
+    def cache_user_data(self, user:discord.User):
+        '''
+        Saves user data to file.
+        '''
+        botuser = self.get_user(user.id)
+        new_url = None if not user.avatar else user.avatar.url
+
+        if new_url != botuser.avatar_url:
+            botuser.avatar_url = new_url
+            self.commit()
     
 
     def get_tg_link_key(self, id: int) -> str:

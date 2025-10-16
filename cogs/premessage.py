@@ -12,6 +12,10 @@ async def setup(bot: MLBot):
 
     @bot.event
     async def on_message(message: discord.Message):
+        # caching user data
+        bot.mg.cache_user_data(message.author)
+
+        # processing message
         if message.guild == None:
             await message.reply(view=c_to_view(NO_DM_EMBED))
             return

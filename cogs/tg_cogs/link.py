@@ -38,6 +38,9 @@ async def on_message(message: aiogram.types.Message, command: CommandObject):
 
 @router.message(Command('link'))
 async def on_message(message: aiogram.types.Message):
+    if message.chat.type != 'private':
+        return
+    
     if len(message.text.split()) != 2:
         return
     

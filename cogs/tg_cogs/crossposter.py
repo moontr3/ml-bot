@@ -136,8 +136,15 @@ async def on_router_message(messages: List[aiogram.types.Message]):
 
             user = messages[0].from_user if messages[0].from_user else messages[0].sender_chat
             name = utils.truncate(user_name, 32)
+            
+            # avatar
             avatar = TELEGRAM_IMAGE
 
+            botuser = manager.get_user_by_tg(user.id)
+            if botuser and botuser.avatar_url:
+                avatar = botuser.avatar_url
+
+            # sending
             message = await webhook.send(
                 view=view, username=name, avatar_url=avatar,
                 files=files, allowed_mentions=ONLY_USERS, wait=True
