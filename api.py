@@ -207,6 +207,7 @@ class User:
         self.q_level: int = data.get('q_level', self.q)
         self.q_level = min(15, max(0, self.q_level))
         self.coins: int = data.get('coins', 0)
+        self.tg: int | None = data.get('tg', None)
 
         self.plus_reps: int = data.get('plus_reps', 0)
         self.minus_reps: int = abs(data.get('minus_reps', 0))
@@ -266,7 +267,8 @@ class User:
             "last_msg_channel": self.last_msg_channel,
             "marked_by_beast": self.marked_by_beast,
             "likee": self.likee,
-            "coins": self.coins
+            "coins": self.coins,
+            "tg": self.tg
         }
     
 
@@ -1154,7 +1156,7 @@ class Crossposter:
         return next((
             message for message in self.messages.get(chat_id, []) if tg_id in message.tg_ids),
         None)
-        
+
 
 # manager
 
@@ -1179,6 +1181,7 @@ class Manager:
         self.ai_key = key
         self.generating = False
         self.crossposter = Crossposter(CROSSPOSTER_FILE)
+        self.tg_link_keys: Dict[int, str] = {} # {dc_id: key}
         self.reload()
 
 
@@ -1326,6 +1329,36 @@ class Manager:
         '''
         self.check_user(id)
         return self.users[id]
+
+
+    def get_user_by_tg(self, id:int) -> User | None:
+        '''
+        Returns user by Telegram user ID.
+        '''
+        for i in self.users.values():
+            if i.tg == id:
+                return i
+    
+
+    def get_tg_link_key(self, id: int) -> str:
+        self.tg_link_keys[id] = str(random.randint(10000,99999))
+        return self.tg_link_keys[id]
+    
+
+    def confirm_tg_link_key(self, tg_id: int, key: str) -> User | None:
+        for dc_id, saved_key in self.tg_link_keys.items():
+            if saved_key == key:
+                # linking account
+                user = self.get_user(dc_id)
+                user.tg = tg_id
+                self.commit()
+                return user
+            
+
+    def unlink_tg(self, id: int):
+        user = self.get_user(id)
+        user.tg = None
+        self.commit()
     
 
     def reset_ai(self):

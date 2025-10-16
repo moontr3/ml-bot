@@ -13,7 +13,7 @@ from typing import *
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
-from cogs import crossposter
+from cogs import tg_cogs
 
 # loading token
 
@@ -31,7 +31,8 @@ if TG_TOKEN:
         parse_mode="HTML"
     ))
     dp = Dispatcher()
-    dp.include_router(crossposter.router)
+    for i in tg_cogs.routers:
+        dp.include_router(i.router)
 
     bots.append(dp.start_polling(tg_bot))
 
@@ -41,8 +42,9 @@ bot = MLBot(command_prefix=PREFIXES, intents=discord.Intents.all(), help_command
 bots.append(bot.start(TOKEN))
 
 if tg_bot:
-    crossposter.dcbot = bot
-    crossposter.manager = bot.mg
+    for i in tg_cogs.routers:
+        i.dcbot = bot
+        i.manager = bot.mg
 
 # running bots
 
