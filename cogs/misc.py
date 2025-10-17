@@ -230,7 +230,9 @@ async def setup(bot: MLBot):
             '### :information_source: О боте', SEP(),
             'Создатель: `moontr3` (obviously)',
             'Контрибьюторы: `n0n1m`, `mbutsk`',
-            'Написан на **Python** и **discord.py**\n-# Рендеринг картинок через **pygame-ce**',
+            'Написан на **Python** и **discord.py**\n'\
+                '-# Рендеринг картинок через **pygame-ce**\n'\
+                '-# Telegram-бот через **aiogram**',
             SEP(),
             f'Пользователей зарегистрировано: **{len(bot.mg.users)}**',
             f'Участников на сервере: **{ctx.guild.member_count}**',

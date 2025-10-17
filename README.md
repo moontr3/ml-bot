@@ -1,18 +1,24 @@
 # moonland bot
 
-A bot I made for [my Discord server](https://discord.gg/s3NrXyYjnG) with Python, `discord.py` and `pygame-ce`.
+A bot I made for [my Discord server](https://discord.gg/s3NrXyYjnG) with Python, `discord.py`, `aiogram` and `pygame-ce`.
 
 ## Features/Todo list
 
 - [x] Info commands
 - [x] Basic moderation tools
-- [ ] Custom roles
 - [x] Reminders
 - [x] Logging
 - [x] Leveling system and ranks
 - [x] Quarantine
 - [x] User verification
 - [x] Minigames
+- [x] AI chatbot
+- [x] Profile customization
+- [x] Telegram crossposting
+- [x] Temporary voice channels
+- [x] Reputation system
+- [ ] Custom roles
+- [ ] Story mode
 
 ## How to run
 
