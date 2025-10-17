@@ -32,7 +32,12 @@ def get_dc_message_text(message: discord.Message, pair: Dict, manager: api.Manag
     clean_text = formatting.Text(clean_text).as_markdown()
 
     if pair['show_user']:
-        name = message.author.name.replace("_", "\\_")
+        botuser = manager.get_user(message.author.id)
+        if botuser.display_name:
+            name = botuser.display_name
+        else:
+            name = message.author.name
+
         isbot = '🤖 ' if message.author.bot else ''
         text = f'{isbot}`{name}` 　 {clean_text}'
     else:

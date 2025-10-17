@@ -26,13 +26,16 @@ async def on_message(message: aiogram.types.Message, command: CommandObject):
     if not user:
         return
     
-    name = dcbot.get_user(user)
+    name = dcbot.get_user(user.id)
     usertext = ''
     if name:
         usertext = f'\n\n<b>{name.name}</b>, верно?'
     
     # confirming
-    await message.reply(f'<b>👋 Привет!</b>{usertext}\n\nТеперь твои аккаунты успешно связаны.')
+    await message.reply(
+        f'<b>👋 Привет!</b>{usertext}\n\nТеперь твои аккаунты успешно связаны.'\
+        '\nОтвязать можно по команде <b>ml!link</b> в Discord.'
+    )
 
 
 
@@ -50,10 +53,13 @@ async def on_message(message: aiogram.types.Message):
     if not user:
         return
     
-    name = dcbot.get_user(user)
+    name = dcbot.get_user(user.id)
     usertext = ''
     if name:
         usertext = f'\n\n<b>{name.name}</b>, верно?'
     
     # confirming
-    await message.reply(f'<b>👋 Привет!</b>{usertext}\n\nТеперь твои аккаунты успешно связаны.')
+    await message.reply(
+        f'<b>👋 Привет!</b>{usertext}\n\nТеперь твои аккаунты успешно связаны.'\
+        '\nОтвязать можно по команде <b>ml!link</b> в Discord.'
+    )

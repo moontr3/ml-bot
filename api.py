@@ -10,7 +10,7 @@ import os
 import time
 from log import *
 from renderer import *
-from copy import deepcopy
+from copy import copy, deepcopy
 import utils
 import aiohttp
 import base64
@@ -1389,11 +1389,17 @@ class Manager:
         
 
     def get_tg_link_key(self, id: int) -> str:
+        '''
+        Gets a random key for Telegram account linking.
+        '''
         self.tg_link_keys[id] = str(random.randint(10000,99999))
         return self.tg_link_keys[id]
     
 
     def confirm_tg_link_key(self, tg_id: int, key: str) -> User | None:
+        '''
+        Link a Telegram account to a Discord account with a key.
+        '''
         for dc_id, saved_key in self.tg_link_keys.items():
             if saved_key == key:
                 # linking account
@@ -1404,9 +1410,25 @@ class Manager:
             
 
     def unlink_tg(self, id: int):
+        '''
+        Unlink Telegram account from a user.
+        '''
         user = self.get_user(id)
         user.tg = None
         self.commit()
+            
+
+    def change_display_name(self, id: int, name: str) -> str | None:
+        '''
+        Changes user's display name.
+
+        Returns old display name.
+        '''
+        user = self.get_user(id)
+        old_name = copy(user.display_name)
+        user.display_name = name
+        self.commit()
+        return old_name
     
 
     def reset_ai(self):

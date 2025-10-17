@@ -50,8 +50,7 @@ async def setup(bot: MLBot):
 
         elements = [
             f'### {card.name}', text,
-            ui.MediaGallery(discord.MediaGalleryItem(card.image)),
-            SEP()
+            ui.MediaGallery(discord.MediaGalleryItem(card.image))
         ]
         view = to_view(elements, color)
 

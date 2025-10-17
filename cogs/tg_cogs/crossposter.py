@@ -29,12 +29,18 @@ async def on_router_message(messages: List[aiogram.types.Message]):
     chat_id = messages[0].chat.id
     user = messages[0].from_user
     content = '\n'.join([i.text or i.caption for i in messages if i.text or i.caption])
-    user_name = user.full_name if not messages[0].sender_chat else messages[0].sender_chat.full_name
     is_bot = any([i.from_user.is_bot for i in messages if i.from_user])
 
     photos = [(i.photo[-1], i.has_media_spoiler) for i in messages if i.photo]
     documents = [i.document or i.audio or i.video for i in messages]
     documents = [i for i in documents if i]
+    
+    # getting name
+    user_name = user.full_name if not messages[0].sender_chat else messages[0].sender_chat.full_name
+    if user:
+        botuser = manager.get_user_by_tg(user.id)
+        if botuser and botuser.display_name:
+            user_name = botuser.display_name
 
     # checking if channel in crossposting pairs
     for pair in manager.data['crosspost_pairs']:

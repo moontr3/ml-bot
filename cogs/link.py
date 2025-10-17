@@ -4,6 +4,7 @@ import api
 from log import *
 from typing import *
 from config import *
+import utils
 
 from bot import MLBot
 
@@ -14,7 +15,77 @@ async def setup(bot: MLBot):
     if not bot.features.crossposter:
         return
     
-    # discord
+    
+    @bot.hybrid_command(
+        name='change-name',
+        description='Изменить отображаемое в боте имя',
+        aliases=[
+            'changename','change_name','изменитьимя','изменить-имя',
+            'поменятьимя','поменять-имя','имя','name'
+        ],
+    )
+    @discord.app_commands.user_install()
+    @discord.app_commands.guild_install()
+    @discord.app_commands.allowed_contexts(guilds=True, dms=False, private_channels=True)
+    @discord.app_commands.describe(
+        name='Новое имя. Оставьте пустым для сброса'
+    )
+    async def link_tg(ctx: commands.Context, *, name: str = None):
+        # showing name
+        if name is None:
+            user = bot.mg.get_user(ctx.author.id)
+        
+            if user.display_name is None:
+                element = [
+                    'У вас не установлено отображаемое имя.',
+                    f'-# Используйте `ml!name <новое имя>` для установки.'
+                ]
+            
+            else:
+                element = [ui.Section(
+                    ui.TextDisplay(
+                        f'Ваше отображаемое имя: **{utils.remove_md(user.display_name, True)}**'
+                    ), accessory=ui.Button(
+                        style=discord.ButtonStyle.danger, label='Стереть',
+                        custom_id=f'clearname:{ctx.author.id}'
+                    )
+                )]
+
+        # changing name
+        else:
+            # name too long
+            if len(name) > 16:
+                view = to_view(
+                    ['Слишком длинное имя!', 'Максимальная длина: **16 символов**.'],
+                    ERROR_C
+                )
+                await ctx.reply(view=view, ephemeral=True)
+                return
+            
+            # changing
+            old_name = bot.mg.change_display_name(ctx.author.id, name)
+
+            if old_name is None:
+                element = [
+                    'Вы установили отображаемое имя!', f'**{utils.remove_md(name, True)}**'
+                ]
+            
+            else:
+                element = [
+                    'Вы изменили отображаемое имя!',
+                    f'**{utils.remove_md(old_name, True)}**  →  **{utils.remove_md(name, True)}**'
+                ]
+
+        view = to_view(
+            [
+                '### 📛 Отображаемое имя'
+            ]+element+[
+                SEP(),
+                '-# Это имя будет отображаться при пересылке ваших сообщений из Discord в Telegram и обратно.'
+            ]
+        )
+        await ctx.reply(view=view, ephemeral=True)
+
     
     @bot.hybrid_command(
         name='link',
@@ -59,8 +130,8 @@ async def setup(bot: MLBot):
             SEP(), '**Что будет, если подключить аккаунт в Telegram**',
             '- При пинге в Telegram вы будете пингануты и в Discord (и наоборот)\n'\
             '- Будет отображаться аватарка вашего Discord-профиля при пересылке сообщения из Telegram\n'\
-            '- ~~Вы будете получать опыт за сообщения, отправленные в Telegram~~\n'\
-            '- ~~Возможность изменить отображаемое имя у ваших пересланных в Telegram сообщений~~\n',\
+            '- Возможность изменить отображаемое имя у ваших пересланных в Telegram сообщений\n'\
+            '- ~~Вы будете получать опыт за сообщения, отправленные в Telegram~~\n',\
             SEP(), '**Как подключить**',
         ]
 
@@ -112,3 +183,27 @@ async def setup(bot: MLBot):
             ])
 
             await interaction.response.edit_message(view=view)
+        
+        # changing display name
+        if interaction.data['custom_id'].startswith('clearname:'):
+            user = int(interaction.data['custom_id'].split(':')[1])
+
+            if user != interaction.user.id:
+                await interaction.response.send_message(view=c_to_view(NDTMKR_EMBED), ephemeral=True)
+                return
+            
+            # unlinking
+            bot.mg.change_display_name(user, None)
+
+            # editing view
+            view = to_view(
+                [
+                    '### 📛 Отображаемое имя',
+                    'Вы убрали свое отображаемое имя!',
+                    SEP(),
+                    '-# Это имя будет отображаться при пересылке ваших сообщений из Discord в Telegram и обратно.'
+                ]
+            )
+
+            await interaction.response.edit_message(view=view)
+
