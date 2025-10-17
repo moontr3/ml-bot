@@ -303,8 +303,11 @@ def resolve_component_tree(message: discord.Message, components: List) -> str:
     return text
 
 
-def discord_message_to_text(message: discord.Message) -> str:
-    clean_text = message.clean_content
+def discord_message_to_text(message: discord.Message, manager = None) -> str:
+    clean_text = discord_clean_content(
+        message.guild, message.mentions, message.role_mentions,
+        message.content, manager
+    )
     clean_text += resolve_component_tree(message, message.components)
     clean_text = clean_text.strip()
     return clean_text
@@ -314,10 +317,22 @@ def discord_clean_content(
     guild: discord.Guild | None,
     mentions: List[discord.User | discord.Member],
     role_mentions: List[discord.Role],
-    content: str
+    content: str,
+    manager = None
 ) -> str:
+    '''
+    Stolen from discord.py
+
+    If `manager` is passed in, will find all TG-linked accounts in that manager
+    and replace user mentions with Telegram mentions.
+    '''
     if guild:
         def resolve_member(id: int) -> str:
+            if manager:
+                user = manager.get_user(id)
+                if user.tg and user.tg_username:
+                    return f'@{user.tg_username}'
+
             m = guild.get_member(id) or utils.get(mentions, id=id)  # type: ignore
             return f'@{m.display_name}' if m else '@deleted-user'
 

@@ -1,5 +1,7 @@
 
+import asyncio
 import os
+import time
 import discord
 from log import *
 from typing import *
@@ -48,6 +50,12 @@ async def setup(bot: MLBot):
         
         # sending message to telegram
         try:
+            if bot.mg.tg_message_sendable_in > time.time():
+                bot.mg.tg_message_sendable_in += CROSSPOST_WAIT_TIMER
+                await asyncio.sleep(bot.mg.tg_message_sendable_in-CROSSPOST_WAIT_TIMER-time.time())
+            else:
+                bot.mg.tg_message_sendable_in = time.time() + CROSSPOST_WAIT_TIMER
+
             tgbot: aiogram.Bot = bot.tgbot
             markup = None
 
@@ -61,7 +69,7 @@ async def setup(bot: MLBot):
 
             # text
             saved_text = crossposter.get_preview_dc_message_text(message)
-            text = crossposter.get_dc_message_text(message, pair)
+            text = crossposter.get_dc_message_text(message, pair, bot.mg)
 
             # media
             media = []

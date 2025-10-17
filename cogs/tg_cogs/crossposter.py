@@ -153,7 +153,7 @@ async def on_router_message(messages: List[aiogram.types.Message]):
         # sending as bot
         else:
             channel: discord.TextChannel = dcbot.get_channel(pair["dc_id"])
-            message = await channel.send(view=view, files=files, allowed_mentions=NO_MENTIONS) 
+            message = await channel.send(view=view, files=files, allowed_mentions=ONLY_USERS) 
         
         manager.crossposter.add_message(
             chat_id, message.id, [i.message_id for i in messages],
@@ -168,22 +168,27 @@ async def on_router_message(messages: List[aiogram.types.Message]):
 
 @router.channel_post(F.media_group_id.is_(None))
 async def on_message(message: aiogram.types.Message):
-    try:
-        await on_router_message([message])
-    except Exception as e:
-        log(f'Unable to crosspost message (outer): {e}', level=ERROR)
+    if message.from_user:
+        manager.cache_tg_user_data(message.from_user)
+    await on_router_message([message])
 
 @router.channel_post(F.media_group_id.is_not(None))
 @media_group_handler()
 async def on_media_group(messages: List[aiogram.types.Message]):
+    if messages[0].from_user:
+        manager.cache_tg_user_data(messages[0].from_user)
     await on_router_message(messages)
 
 
 @router.message(F.media_group_id.is_(None))
 async def on_message(message: aiogram.types.Message):
+    if message.from_user:
+        manager.cache_tg_user_data(message.from_user)
     await on_router_message([message])
 
 @router.message(F.media_group_id.is_not(None))
 @media_group_handler()
 async def on_media_group(messages: List[aiogram.types.Message]):
+    if messages[0].from_user:
+        manager.cache_tg_user_data(messages[0].from_user)
     await on_router_message(messages)

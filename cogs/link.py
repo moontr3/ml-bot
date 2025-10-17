@@ -31,7 +31,7 @@ async def setup(bot: MLBot):
         if user.tg:
             view = to_view([
                 ui.Section(
-                    ui.TextDisplay('### ✈ Привязка к аккаунту в Telegram'),
+                    ui.TextDisplay('### ✈️ Привязка к аккаунту в Telegram'),
                     accessory=ui.Button(
                         style=discord.ButtonStyle.danger, label='Отвязать',
                         custom_id=f'unlinktg:{ctx.author.id}'
@@ -39,7 +39,10 @@ async def setup(bot: MLBot):
                 ),
                 SEP(),
                 'У вас привязан Telegram-аккаунт! Круто!',
-                f'-# ID: `{user.tg}`'
+                (
+                    f'-# ID: `{user.tg}`' if not user.tg_username
+                    else f'-# **@{user.tg_username}**  ・  ID: `{user.tg}`'
+                )
             ])
             await ctx.reply(view=view, ephemeral=True)
             return
@@ -48,16 +51,16 @@ async def setup(bot: MLBot):
         code = bot.mg.get_tg_link_key(ctx.author.id)
 
         elements = [
-            '### ✈ Привязка к аккаунту в Telegram', SEP(),
+            '### ✈️ Привязка к аккаунту в Telegram', SEP(),
             'У основного чата moonland:re есть **чат-зеркало в Telegram**, куда пересылаются все '\
                 'сообщения с чата в Discord и наоборот.',
             '### https://t.me/moonlandre',
             'Пересылка работает и **без привязки аккаунтов**, но при привязке станет доступно пару плюсов.',\
             SEP(), '**Что будет, если подключить аккаунт в Telegram**',
+            '- При пинге в Telegram вы будете пингануты и в Discord (и наоборот)\n'\
+            '- Будет отображаться аватарка вашего Discord-профиля при пересылке сообщения из Telegram\n'\
             '- ~~Вы будете получать опыт за сообщения, отправленные в Telegram~~\n'\
-            '- ~~Будет отображаться аватарка вашего Discord-профиля при пересылке сообщения из Telegram~~\n'\
-            '- ~~Возможность изменить отображаемое имя у ваших пересланных в Telegram сообщений~~\n'\
-            '- ~~При пинге в Telegram вы будете пингануты и в Discord (и наоборот)~~\n',\
+            '- ~~Возможность изменить отображаемое имя у ваших пересланных в Telegram сообщений~~\n',\
             SEP(), '**Как подключить**',
         ]
 
@@ -103,7 +106,7 @@ async def setup(bot: MLBot):
 
             # editing view
             view = to_view([
-                '### ✈ Привязка к аккаунту в Telegram', SEP(),
+                '### ✈️⏸️ Привязка к аккаунту в Telegram', SEP(),
                 'Вы успешно отвязали свой Telegram-аккаунт!',
                 'Привязать снова можно по команде </link:1428473934793146519>.'
             ])

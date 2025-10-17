@@ -3,6 +3,7 @@ import re
 from typing import *
 
 import aiogram
+import api
 from config import *
 import utils
 from aiogram.utils import formatting
@@ -20,14 +21,14 @@ def get_preview_tg_message_text(content: str) -> str:
     clean_text = utils.truncate(content.replace('\n', ' '), 40)
 
     return clean_text
-    
 
-def get_dc_message_text(message: discord.Message, pair: Dict) -> str:
+
+def get_dc_message_text(message: discord.Message, pair: Dict, manager: api.Manager = None) -> str:
     '''
-    Returns message text and keyboard markup, if there should be one.
+    Returns message text.
     '''
     # text
-    clean_text = utils.discord_message_to_text(message)
+    clean_text = utils.discord_message_to_text(message, manager)
     clean_text = formatting.Text(clean_text).as_markdown()
 
     if pair['show_user']:
@@ -40,11 +41,47 @@ def get_dc_message_text(message: discord.Message, pair: Dict) -> str:
     return text
 
 
+def get_tg_text(
+    message: aiogram.types.Message,
+    manager: api.Manager = None
+):
+    text = message.caption or message.text
+
+    if not message.entities:
+        return text
+    
+    # converting mention entities to user mentions
+    offset = 0
+    for i in message.entities:
+        if i.type not in ['mention', 'text_mention']:
+            continue
+
+        startoffset = i.offset + offset
+        endoffset = i.offset + i.length + offset
+
+        # getting user
+        if i.user:
+            user = manager.get_user_by_tg(i.user.id)
+        else:
+            user = manager.get_user_by_tg_username(text[startoffset+1:endoffset])
+
+        if not user:
+            continue
+
+        mention = f'<@{user.id}>'
+
+        # replacing text
+        text = text[0:startoffset] + mention + text[endoffset:]
+        offset += len(mention) - i.length
+
+    return text
+
+
 def get_tg_message_view(
     messages: List[aiogram.types.Message],
     pair: Dict,
     webhook: str,
-    manager,
+    manager: api.Manager,
     gallery: ui.MediaGallery,
     other_files: List[ui.File],
     skipped_files: int,
@@ -58,7 +95,7 @@ def get_tg_message_view(
     # variables
     chat_id = messages[0].chat.id
     user = messages[0].from_user
-    content = '\n'.join([i.text or i.caption for i in messages if i.text or i.caption])
+    content = '\n'.join([get_tg_text(i, manager) for i in messages if i.text or i.caption])
     content = utils.remove_md(content)
     user_name = user.full_name if not messages[0].sender_chat else messages[0].sender_chat.full_name
     add_text = len(content) > 0

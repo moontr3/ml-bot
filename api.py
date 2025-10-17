@@ -2,6 +2,7 @@ import asyncio
 import random
 from typing import *
 
+import aiogram
 from discord.ext import commands
 from config import *
 import json
@@ -207,9 +208,11 @@ class User:
         self.q_level: int = data.get('q_level', self.q)
         self.q_level = min(15, max(0, self.q_level))
         self.coins: int = data.get('coins', 0)
+
         self.tg: int | None = data.get('tg', None)
         self.display_name: str | None = data.get('display_name', None)
         self.avatar_url: str | None = data.get('avatar_url', None)
+        self.tg_username: str | None = data.get('tg_username', None)
 
         self.plus_reps: int = data.get('plus_reps', 0)
         self.minus_reps: int = abs(data.get('minus_reps', 0))
@@ -272,7 +275,8 @@ class User:
             "coins": self.coins,
             "tg": self.tg,
             "display_name": self.display_name,
-            "avatar_url": self.avatar_url
+            "avatar_url": self.avatar_url,
+            "tg_username": self.tg_username,
         }
     
 
@@ -1186,6 +1190,7 @@ class Manager:
         self.generating = False
         self.crossposter = Crossposter(CROSSPOSTER_FILE)
         self.tg_link_keys: Dict[int, str] = {} # {dc_id: key}
+        self.tg_message_sendable_in: float = 0
         self.reload()
 
 
@@ -1344,17 +1349,44 @@ class Manager:
                 return i
 
 
+    def get_user_by_tg_username(self, username:str) -> User | None:
+        '''
+        Returns user by Telegram username.
+        '''
+        for i in self.users.values():
+            if i.tg_username == username:
+                return i
+
+
     def cache_user_data(self, user:discord.User):
         '''
-        Saves user data to file.
+        Saves user avatar to user data.
         '''
+        if user.bot:
+            return
+        
         botuser = self.get_user(user.id)
         new_url = None if not user.avatar else user.avatar.url
 
         if new_url != botuser.avatar_url:
+            log(f'Updated {botuser.id}\'s cached avatar')
             botuser.avatar_url = new_url
             self.commit()
-    
+
+
+    def cache_tg_user_data(self, user: aiogram.types.User):
+        '''
+        Saves user's Telegram username.
+        '''
+        botuser = self.get_user_by_tg(user.id)
+        if not user:
+            return
+        
+        if user.username != botuser.tg_username:
+            log(f'Updated {botuser.id}\'s TG account username to {user.username}')
+            botuser.tg_username = user.username
+            self.commit()
+        
 
     def get_tg_link_key(self, id: int) -> str:
         self.tg_link_keys[id] = str(random.randint(10000,99999))
