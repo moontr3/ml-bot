@@ -1379,7 +1379,7 @@ class Manager:
         Saves user's Telegram username.
         '''
         botuser = self.get_user_by_tg(user.id)
-        if not user:
+        if not botuser:
             return
         
         if user.username != botuser.tg_username:

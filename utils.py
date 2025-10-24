@@ -282,20 +282,21 @@ def truncate(string: str, length: int) -> str:
     return string
 
 
-def resolve_component_tree(message: discord.Message, components: List) -> str:
+def resolve_component_tree(message: discord.Message, components: List, manager = None) -> str:
     text = ''
 
     for i in components:
         if hasattr(i, 'content'):
             text += "\n"+discord_clean_content(
-                message.guild, message.mentions, message.role_mentions, i.content
+                message.guild, message.mentions, message.role_mentions,
+                i.content, manager
             )
 
         elif hasattr(i, 'children'):
-            text += "\n"+resolve_component_tree(message, i.children)
+            text += "\n"+resolve_component_tree(message, i.children, manager)
 
         elif hasattr(i, '_children'):
-            text += "\n"+resolve_component_tree(message, i._children)
+            text += "\n"+resolve_component_tree(message, i._children, manager)
 
         elif isinstance(i, discord.SeparatorComponent):
             text += "\n"
@@ -308,7 +309,7 @@ def discord_message_to_text(message: discord.Message, manager = None) -> str:
         message.guild, message.mentions, message.role_mentions,
         message.content, manager
     )
-    clean_text += resolve_component_tree(message, message.components)
+    clean_text += resolve_component_tree(message, message.components, manager)
     clean_text = clean_text.strip()
     return clean_text
 

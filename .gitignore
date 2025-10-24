@@ -10,3 +10,4 @@ ignore*
 backups/*
 messages.json
 .vscode
+.venv
