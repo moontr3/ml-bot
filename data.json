@@ -257,22 +257,22 @@
         },
         "coffee": {
             "name": "Кофе 2025",
-            "rarity": 5,
+            "rarity": 0,
             "emoji": "<:coffee:1431386047597777099>"
         },
         "polka": {
             "name": "Крапинка 2025",
-            "rarity": 5,
+            "rarity": 0,
             "emoji": "<:polka:1431386050659483749>"
         },
         "autumn": {
             "name": "Осень 2025",
-            "rarity": 5,
+            "rarity": 0,
             "emoji": "<:autumn:1431386045588705320>"
         },
         "halloween": {
             "name": "Хэлоуин 2025",
-            "rarity": 5,
+            "rarity": 0,
             "emoji": "<:halloween:1431386049082298470>"
         }
     },

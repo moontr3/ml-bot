@@ -1306,7 +1306,7 @@ class Manager:
 
         # saving
         try:
-            json_data = json.dumps(data, indent=4)
+            json_data = json.dumps(data)
         except Exception as e:
             log(f'Unable to save user data: {e}', 'api', WARNING)
             return
@@ -1462,8 +1462,8 @@ class Manager:
             return message['content'], base64.b64decode(img_base64)
         
         log(
-            f'Prompt tokens: {usage["prompt_tokens"]} / '\
-            f'Completion tokens: {usage["completion_tokens"]} / '\
+            f'Prompt tokens: {usage.get("prompt_tokens", "None")} / '\
+            f'Completion tokens: {usage.get("completion_tokens", "None")} / '\
             f'Messages in history: {len(history)}',
         'api')
         return text, None
