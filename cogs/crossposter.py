@@ -131,3 +131,36 @@ async def setup(bot: MLBot):
 
         except Exception as e:
             log(f'Unable to crosspost message: {e}', level=ERROR)
+    
+
+    async def delete_messages(messages: List[discord.Message]):
+        crossposter_msgs = [
+            bot.mg.crossposter.get_tg_by_dc(i.id) for i in messages
+        ]
+        dc_id = messages[0].channel.id
+        
+        # getting tg chat id
+        chat_id = None
+        for i in bot.mg.data["crosspost_pairs"]:
+            if i["dc_id"] == dc_id:
+                chat_id = i["tg_id"]
+                break
+        else:
+            log(f'Unable to crossdelete Discord messages {[i.id for i in messages]} from channel {dc_id}, no telegram chat found')
+            return
+        
+        # list of tg message ids
+        tg_ids = []
+        for i in crossposter_msgs:
+            tg_ids.extend(i.tg_ids)
+
+        # crossdeleting
+        try:
+            await bot.tgbot.delete_messages(chat_id, tg_ids)
+        except Exception as e:
+            log(f'Unable to crossdelete Discord messages {[i.id for i in messages]} from channel {dc_id}: {e}', level=ERROR)
+
+    
+    @bot.listen()
+    async def on_message_delete(message: discord.Message):
+        await delete_messages([message])
