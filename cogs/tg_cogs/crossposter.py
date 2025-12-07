@@ -95,9 +95,10 @@ async def on_router_message(messages: List[aiogram.types.Message]):
 
                 out = io.BytesIO()
                 await bot.download(i.file_id, out)
+                filename = i.file_name if i.file_name else ''
 
-                if len(i.file_name.split('.')) > 1:
-                    ext = '.'+i.file_name.split('.')[-1]
+                if len(filename.split('.')) > 1:
+                    ext = '.'+filename.split('.')[-1]
                 else:
                     ext = ''
 

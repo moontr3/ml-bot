@@ -41,9 +41,17 @@ async def setup(bot: MLBot):
         await update_rank(member)
         log(f'Done updating rank for {member.id}', level=INFO)
 
+        # auto adding the bot role
         if member.bot:
             log(f'Bot {member.id} joined', level=INFO)
             role = member.guild.get_role(BOT_ROLE_ID)
+            await member.add_roles(role)
+            return
+        
+        # adding the quarantine role
+        if member.id in bot.mg.quarantines:
+            log(f'Quarantined user {member.id} joined', level=INFO)
+            role = member.guild.get_role(QUARANTINE_ROLE)
             await member.add_roles(role)
             return
 

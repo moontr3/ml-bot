@@ -1277,15 +1277,12 @@ class Manager:
         except Exception as e:
             log(f'Error while loading fate actions: {e}', 'api', level=ERROR)
 
-        # saving
-        self.commit()
-
 
     def commit(self):
         '''
         Saves user data to the file.
         '''
-        if time.time()-self.last_commit < 2:
+        if time.time()-self.last_commit < MIN_SECONDS_BETWEEN_COMMITS:
             return
         self.last_commit = time.time()
         

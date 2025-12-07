@@ -895,6 +895,18 @@
             "tg_link": null,
             "dc_link": null,
             "one_way": false
+        },
+        {
+            "dc_id": 1398223930568740954,
+            "tg_id": -1003326396830,
+            "webhook": "MBUTSK_WEBHOOK",
+            "users": [],
+            "footer": true,
+            "show_user": false,
+            "allow_bots": true,
+            "tg_link": null,
+            "dc_link": "https://discord.gg/s3NrXyYjnG",
+            "one_way": true
         }
     ]
 }

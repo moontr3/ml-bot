@@ -7,6 +7,7 @@ PREFIXES = (
 TEMP_VC_CREATE_COMMANDS = [
     '!типа где', '!типо где', '!тип где', '!tipa gde', '!tipo gde'
 ] # prefixes used when creating a temporary VC
+MIN_SECONDS_BETWEEN_COMMITS = 10 # minimum seconds between writing user data to disk
 
 # IDs
 
@@ -104,7 +105,6 @@ Q_CHANCE = 0.01 # Chance of a Q reaction being placed on a message
 SKIN_CHANCE = 0.007 # Chance of a skin reaction being placed on a message
 FONT_CHANCE = 0.004 # Chance of a font reaction being placed on a message
 MAX_MINUTE_XP = 25 # Maximum amount of XP the user can earn every minute
-ONE_WORD_MSGS = 3 # Maximum amount of messages with one word that you can receive XP for, resets every minute
 TEMP_VC_INACTIVITY_TIME = 60*5 # How many seconds it takes for a temp VC channel to be deleted if it has no members
 TEMP_VC_CREATION_TIMEOUT = 60*10 # Temp VC creation cooldown in seconds
 MIN_LENGTH_XP = 7 # Minimum amount of characters required in a message to receive XP
@@ -155,6 +155,23 @@ GAMBLING_PATTERNS = [ # List with all possible patterns in slot machine and how 
     # jackpot
     ([0, 1, 2, 3, 4, 5, 6, 7, 8], 67)
 ]
+
+# XP
+
+REPLY_XP = 1 # XP given to user for replying
+REPLY_AUTHOR_XP = 1 # XP given to user if someone replied to one of the user's messages
+COUNTER_CHANNEL_XP_RANGE = (2,4) # XP range for correct counts in the counter channel
+ZERO_XP_RANGE = (30,50) # XP range for successfully saying "на часах 00" at the corect time
+
+# Message-specific XP values
+
+BASE_XP_PER_MESSAGE = 1 # Each message will always earn at least this amount of XP
+XP_PER_CHARACTERS = 100 # XP gain per message. Message length will be divided by this number and floored
+                        # So, if you keep this at default, every 100 characters in a message will earn a user 1 XP
+XP_PER_ATTACHMENT = 2 # How much XP is gained per attachment in a message
+XP_PER_EMBED = 1 # How much XP is gained per embed in a message
+MAX_XP_PER_MESSAGE = 10 # Maximum amount of XP a user can get from a single message
+ONE_WORD_MSGS = 3 # How many one-word messages a user can send per minute before stopping receiving XP for them
 
 # Files
 

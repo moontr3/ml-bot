@@ -18,36 +18,8 @@ from bot import MLBot
 async def setup(bot: MLBot):
     if not bot.features.crossposter:
         return
-    
-    # discord
-    
-    @bot.listen()
-    async def on_message(message: discord.Message):
-        if message.interaction_metadata:
-            return
-        
-        # checking if channel in crossposting pairs
-        for pair in bot.mg.data['crosspost_pairs']:
-            if pair["dc_id"] == message.channel.id:
-                break
-        else:
-            return
-        
-        if pair['users'] and message.author.id not in pair['users']:
-            return
-        
-        if message.author.bot and not pair['allow_bots']:
-            return
-        
-        if pair['one_way']:
-            return
-        
-        # checking if its the same webhook
-        if pair['webhook']:
-            webhook = os.getenv(pair['webhook'])
-            if webhook and webhook.split('/')[-2] == str(message.webhook_id):
-                return
-        
+
+    async def send_message(message: discord.Message, pair, forwarded: bool = False):
         # sending message to telegram
         try:
             if bot.mg.tg_message_sendable_in > time.time():
@@ -60,7 +32,7 @@ async def setup(bot: MLBot):
             markup = None
 
             # link button
-            if pair['footer'] and pair["dc_link"]:
+            if not forwarded and pair['footer'] and pair["dc_link"]:
                 button_text = f'🔗 {message.guild.name}'
                 kb = keyboard.InlineKeyboardBuilder()
                 kb.add(keyboard.InlineKeyboardButton(text=button_text, url=pair["dc_link"]))
@@ -132,6 +104,43 @@ async def setup(bot: MLBot):
         except Exception as e:
             log(f'Unable to crosspost message: {e}', level=ERROR)
     
+    
+    @bot.listen()
+    async def on_message(message: discord.Message):
+        if message.interaction_metadata:
+            return
+        
+        # checking if channel in crossposting pairs
+        for pair in bot.mg.data['crosspost_pairs']:
+            if pair["dc_id"] == message.channel.id:
+                break
+        else:
+            return
+        
+        if pair['users'] and message.author.id not in pair['users']:
+            return
+        
+        if message.author.bot and not pair['allow_bots']:
+            return
+        
+        if pair['one_way']:
+            return
+        
+        # checking if its the same webhook
+        if pair['webhook']:
+            webhook = os.getenv(pair['webhook'])
+            if webhook and webhook.split('/')[-2] == str(message.webhook_id):
+                return
+            
+        # messages
+        msgs_to_send = [message]
+
+        if message.message_snapshots:
+            msgs_to_send = message.message_snapshots
+
+        for i in msgs_to_send:
+            await send_message(i, pair)
+    
 
     async def delete_messages(messages: List[discord.Message]):
         crossposter_msgs = [
@@ -146,7 +155,6 @@ async def setup(bot: MLBot):
                 chat_id = i["tg_id"]
                 break
         else:
-            log(f'Unable to crossdelete Discord messages {[i.id for i in messages]} from channel {dc_id}, no telegram chat found')
             return
         
         # list of tg message ids
@@ -164,3 +172,8 @@ async def setup(bot: MLBot):
     @bot.listen()
     async def on_message_delete(message: discord.Message):
         await delete_messages([message])
+    
+
+    @bot.listen()
+    async def on_bulk_message_delete(messages: List[discord.Message]):
+        await delete_messages(messages)

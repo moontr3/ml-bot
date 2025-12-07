@@ -332,8 +332,8 @@ async def setup(bot: MLBot):
                 message.reference.message_id
             )
             if not message.author.bot and not m.author.bot:
-                bot.mg.add_xp(m.author.id, 1)
-            reply = 1
+                bot.mg.add_xp(m.author.id, REPLY_AUTHOR_XP)
+            reply = REPLY_XP
         except:
             reply = 0
 
@@ -347,7 +347,7 @@ async def setup(bot: MLBot):
                         if int(i.content) == int(message.content)-1 and\
                         i.author.id != message.author.id:
                             log(f'{message.author.id} counted {int(message.content)} on {i.author.id}')
-                            additional += random.randint(2,4)
+                            additional += random.randint(*COUNTER_CHANNEL_XP_RANGE)
                         else:
                             await message.delete()
                             return
@@ -365,23 +365,23 @@ async def setup(bot: MLBot):
         if contains_zero and channel_matches and time_matches:
             user_check = bot.mg.check_user_zero(message.author.id)
             if user_check:
-                additional += random.randint(30,50)
+                additional += random.randint(*ZERO_XP_RANGE)
 
         # message itself
         if message.channel.id in CHATTABLE_CHANNELS and len(message.content) >= MIN_LENGTH_XP:
-            to_add = int(len(message.content)/100)+\
-                len(message.attachments)*2 +\
-                len(message.embeds) +\
+            to_add = int(len(message.content)/XP_PER_CHARACTERS)+\
+                len(message.attachments)*XP_PER_ATTACHMENT +\
+                len(message.embeds)*XP_PER_EMBED +\
                 reply
-            to_add = min(10, to_add)
+            to_add = min(MAX_XP_PER_MESSAGE, to_add)
 
             is_one_word = len(message.content.split()) == 1
             if is_one_word:
                 botuser.minute_stats.one_word_messages += 1
                 if botuser.minute_stats.one_word_messages < ONE_WORD_MSGS:
-                    to_add += 1
+                    to_add += BASE_XP_PER_MESSAGE
             else:
-                to_add += 1
+                to_add += BASE_XP_PER_MESSAGE
         else:
             to_add = 0
         to_add += additional
