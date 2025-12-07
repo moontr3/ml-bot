@@ -274,6 +274,26 @@
             "name": "Хэлоуин 2025",
             "rarity": 0,
             "emoji": "<:halloween:1431386049082298470>"
+        },
+        "christmastree": {
+            "name": "Ёлка 2025",
+            "rarity": 5,
+            "emoji": "<:christmastree:1447265268366708877>"
+        },
+        "snowflakes": {
+            "name": "Снежинки 2025",
+            "rarity": 5,
+            "emoji": "<:snowflakes:1447265266848239791>"
+        },
+        "festoon1": {
+            "name": "Гирлянда 1 2025",
+            "rarity": 5,
+            "emoji": "<:festoon1:1447265265158197500>"
+        },
+        "festoon2": {
+            "name": "Гирлянда 2 2025",
+            "rarity": 5,
+            "emoji": "<:festoon2:1447265263157252310>"
         }
     },
     "fonts": {
