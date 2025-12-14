@@ -43,7 +43,8 @@ async def setup(bot: MLBot):
         if len(message.mentions) > 3:
             reason.append(f'{len(message.mentions)} пингов в сообщ')
 
-        if 'discord.gg/' in message.content.lower():
+        if 'discord.gg/' in message.content.lower()\
+        or 'discord.com/invite' in message.content.lower():
             reason.append('Ссылка на сервер')
 
         if message.author.id in PIDORAS_ID:
