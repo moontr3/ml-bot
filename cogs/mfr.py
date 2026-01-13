@@ -33,7 +33,7 @@ async def setup(bot: MLBot):
         ephemeral = ctx.channel.id != MFR_CHANNEL
 
         if guild and not ephemeral and botuser.mfr_timeout <= time.time():
-            bot.mg.add_xp(ctx.author.id, card.xp)
+            bot.mg.add_xp(ctx.author.id, card.xp, 'mfr')
 
         color = discord.Color.from_str(card.color)
         

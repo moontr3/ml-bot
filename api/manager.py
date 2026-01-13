@@ -131,6 +131,7 @@ class Manager:
 
         except Exception as e:
             log(f'Error while loading fate actions: {e}', 'api', level=ERROR)
+        self.commit()
 
 
     def commit(self):
@@ -281,6 +282,37 @@ class Manager:
         user.display_name = name
         self.commit()
         return old_name
+            
+
+    def change_location(self, id: int, location: str):
+        '''
+        Changes user current event location.
+        '''
+        user = self.get_user(id)
+        user.location = location
+        self.commit()
+            
+
+    def set_loc_data(self, id: int, key: str, data: str):
+        '''
+        Changes user current event location data.
+        '''
+        user = self.get_user(id)
+        user.loc_data[key] = data
+        self.commit()
+            
+
+    def add_to_library(self, id: int, item: str):
+        '''
+        Changes user current event location data.
+        '''
+        user = self.get_user(id)
+        if item in user.library:
+            return
+        
+        user.library.append(item)
+        log(f'User {id} got item {item} added to library')
+        self.commit()
     
 
     def reset_ai(self):
@@ -351,7 +383,7 @@ class Manager:
     def remove_roulette(self, game: Roulette, rewardee: int, xp: int):
         self.roulette_games.remove(game)
         if rewardee and xp:
-            self.add_xp(rewardee, xp)
+            self.add_xp(rewardee, xp, 'roulette')
     
 
     def start_roulette(self, user1: int, user2: int) -> "Roulette | None":
@@ -399,7 +431,7 @@ class Manager:
     def remove_duel(self, game: Duel, rewardee: int, xp: int):
         self.duel_games.remove(game)
         if rewardee and xp:
-            self.add_xp(rewardee, xp)
+            self.add_xp(rewardee, xp, 'duel')
     
 
     def start_duel(self, user1: int, user2: int) -> "Duel | None":
@@ -434,7 +466,7 @@ class Manager:
         Saves a bump and returns gained XP.
         '''
         xp = random.randint(*BUMP_XP)
-        self.add_xp(user_id, xp)
+        self.add_xp(user_id, xp, 'bump')
         self.bump_ping_at = time.time() + BUMP_TIMEOUT
         self.last_bump = time.time()
 
@@ -527,7 +559,7 @@ class Manager:
         self.commit()
 
 
-    def add_xp(self, user_id:int, xp:int, store_lvl_up:bool=True) -> "int | None":
+    def add_xp(self, user_id:int, xp:int, reason:str, store_lvl_up:bool=True) -> "int | None":
         '''
         Adds XP to user.
 
@@ -536,8 +568,7 @@ class Manager:
         user = self.get_user(user_id)
 
         old_level = deepcopy(user.xp.level)
-        user.xp.xp += xp
-        user.xp.reload_levels()
+        user.xp.add_xp(LATEST_SEASON, xp, reason)
 
         self.timed_lb.add_xp(user_id, xp)
         self.commit()
@@ -834,7 +865,7 @@ class Manager:
 
         # adding xp
         while user.vc.xp_to_add >= 1:
-            self.add_xp(id, 1)
+            self.add_xp(id, 1, 'vc')
             user.vc.xp_to_add -= 1
 
         self.commit()

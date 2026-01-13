@@ -253,9 +253,14 @@ class RendererCollection:
         )
 
         # xp
+        # size = r.draw_text(
+        #     f"{botuser.xp.xp} XP", (16,88), f'assets/fonts/{font}/bold.ttf', 24, (255,215,65),
+        # )[0]
+        # r.draw_image('assets/warn.png', (16+size+6,94), (20,20))
         r.draw_text(
             f"{botuser.xp.xp} XP", (16,88), f'assets/fonts/{font}/bold.ttf', 24, (255,255,255),
         )
+
         size = r.draw_text(
             f"{botuser.xp.total_xp} XP", (404,88), f'assets/fonts/{font}/regular.ttf', 24, (255,255,255),
             h=1, opacity=128

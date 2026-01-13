@@ -1,6 +1,7 @@
 
 from copy import copy
 import os
+import random
 from discord.ext import commands
 import discord
 import api
@@ -30,6 +31,7 @@ async def on_router_message(messages: List[aiogram.types.Message]):
     user = messages[0].from_user
     content = '\n'.join([i.text or i.caption for i in messages if i.text or i.caption])
     is_bot = any([i.from_user.is_bot for i in messages if i.from_user])
+    is_forwarded = any([i.forward_date for i in messages])
 
     photos = [(i.photo[-1], i.has_media_spoiler) for i in messages if i.photo]
     documents = [i.document or i.audio or i.video for i in messages]
@@ -37,6 +39,8 @@ async def on_router_message(messages: List[aiogram.types.Message]):
     
     # getting name
     user_name = user.full_name if not messages[0].sender_chat else messages[0].sender_chat.full_name
+    botuser = None
+
     if user:
         botuser = manager.get_user_by_tg(user.id)
         if botuser and botuser.display_name:
@@ -53,6 +57,52 @@ async def on_router_message(messages: List[aiogram.types.Message]):
         return
     
     webhook = os.getenv(pair['webhook'])
+
+    # adding xp
+    if botuser and pair['dc_id'] in CHATTABLE_CHANNELS and not is_forwarded:
+        message = messages[0]
+        botuser.minute_stats.update_minute()
+        total_to_add = 0
+        to_add = 0
+            
+        for i in messages:
+            if i.reply_to_message:
+                # adding 1 xp to author of replied message
+                if not i.reply_to_message.from_user.is_bot:
+                    author = manager.get_user_by_tg(i.reply_to_message.from_user.id)
+                    if author:
+                        manager.add_xp(author.id, REPLY_AUTHOR_XP, 'reply_tg')
+
+                # adding xp for replying
+                to_add += REPLY_XP
+                break
+
+        # xp for message
+        if len(content) >= MIN_LENGTH_XP:
+            to_add += BASE_XP_PER_MESSAGE
+            to_add += len(content)//XP_PER_CHARACTERS
+            to_add += len(photos)*XP_PER_ATTACHMENT
+            to_add += len(documents)*XP_PER_ATTACHMENT
+
+            total_to_add += min(to_add, MAX_XP_PER_MESSAGE)
+
+        if MAX_MINUTE_XP-botuser.minute_stats.xp < total_to_add:
+            total_to_add = MAX_MINUTE_XP-botuser.minute_stats.xp
+
+        # xp for 00
+        contains_zero = 'на часах 00' in content.lower()
+        channel_matches = pair['dc_id'] == ZERO_ID
+        message_time = message.date+datetime.timedelta(hours=3)
+        time_matches = message_time.hour == 0 and message_time.minute == 0
+
+        if contains_zero and channel_matches and time_matches:
+            user_check = manager.check_user_zero(botuser.id)
+            if user_check:
+                total_to_add += random.randint(*ZERO_XP_RANGE)
+            
+        # adding xp
+        botuser.minute_stats.add_xp(total_to_add)
+        manager.add_xp(botuser.id, total_to_add, 'tg')
 
     # sending message to discord channel
     try:

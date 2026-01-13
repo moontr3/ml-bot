@@ -58,14 +58,36 @@ class XP:
         '''
         User experience points, level, rank, etc.
         '''
-        self.prev_xp: int = data.get('prev_xp', 0)
-        self.xp: int = data.get('xp', 0)
+        self.seasons: Dict[str, Dict[str, int]] = {
+            'new': data.get('seasons', {}).get('new', {}),
+            're': data.get('seasons', {}).get('re', {}),
+            'pre33': data.get('seasons', {}).get('pre33', {}),
+        }
         self.reload_levels()
 
 
     @property
     def total_xp(self) -> int:
-        return self.prev_xp + self.xp
+        # return self.get_season_xp('new') + self.get_season_xp('re')
+        return sum([self.get_season_xp(key) for key in self.seasons.keys()])
+
+
+    @property
+    def xp(self) -> int:
+        # return self.get_season_xp('re')
+        return self.get_season_xp('re') + self.get_season_xp('pre33')
+    
+
+    def get_season_xp(self, season:str) -> int:
+        return sum(self.seasons.get(season, {}).values())
+    
+
+    def add_xp(self, season: str, xp: int, reason: str):
+        if reason not in self.seasons[season]:
+            self.seasons[season][reason] = 0
+
+        self.seasons[season][reason] += xp
+        self.reload_levels()
 
 
     def reload_levels(self):
@@ -89,8 +111,7 @@ class XP:
 
     def to_dict(self) -> dict:
         return {
-            "xp": self.xp,
-            "prev_xp": self.prev_xp,
+            "seasons": self.seasons
         }
     
 
@@ -134,8 +155,8 @@ class VCData:
         return {
             'none': 0,
             'deafen': 0,
-            'mute': 1,
-            'normal': 4
+            'mute': 0.2,
+            'normal': 1
         }[self.state] + int(self.is_streaming)
 
     
@@ -157,7 +178,6 @@ class MinuteStats:
         self.update_minute()
 
         self.xp: int = 0
-        self.one_word_messages: int = 0
 
 
     def update_minute(self):
@@ -169,7 +189,6 @@ class MinuteStats:
 
         if old_min != self.minute:
             self.xp = 0
-            self.one_word_messages = 0
 
     
     def add_xp(self, xp: int):
@@ -177,7 +196,6 @@ class MinuteStats:
         Adds XP to the counter.
         '''
         self.update_minute()
-
         self.xp += xp
 
 
@@ -227,6 +245,10 @@ class User:
         self.marked_by_beast: bool = data.get('marked_by_beast', False)
         self.likee: bool = data.get('likee', False)
 
+        self.location: str | None = data.get('location', None)
+        self.loc_data: Dict[str, Any] = data.get('loc_data', {})
+        self.library: List[str] = data.get('library', [])
+
         self.minute_stats = MinuteStats()
 
 
@@ -266,5 +288,8 @@ class User:
             "display_name": self.display_name,
             "avatar_url": self.avatar_url,
             "tg_username": self.tg_username,
+            "location": self.location,
+            "loc_data": self.loc_data,
+            "library": self.library
         }
     

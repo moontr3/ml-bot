@@ -57,7 +57,7 @@ async def setup(bot: MLBot):
             new_lvl = bot.mg.set_xp(member.id, amount)
             desc = f'Опыт {member.mention} изменен на **{amount} XP**'
         else:
-            new_lvl = bot.mg.add_xp(member.id, amount)
+            new_lvl = bot.mg.add_xp(member.id, amount, 'admin')
             desc = f'К {member.mention} добавлено **{amount} XP**'
 
         if new_lvl:
@@ -210,12 +210,77 @@ async def setup(bot: MLBot):
         else:
             await ctx.channel.typing()
 
+        # view = discord.ui.View()
+        # view.add_item(discord.ui.Button(
+        #     emoji='<:warn:1452667138094530671>',
+        #     label='Получение опыта  ↗',
+        #     custom_id='xp_info'
+        # ))
+
         path = await bot.mg.renderer.user_xp(member, role)
         file = discord.File(path, 'image.png')
         await ctx.reply(file=file)
 
         file.close()
         os.remove(path)
+
+    @bot.listen()
+    async def on_interaction(interaction:discord.Interaction):
+        if interaction.type != discord.InteractionType.component:
+            return
+        
+        cid = interaction.data['custom_id']
+        if cid != 'xp_info':
+            return
+        
+        user = bot.mg.get_user(interaction.user.id)
+        # xp = user.xp.get_season_xp('33')
+
+        # getting approx xp
+        # if xp < 75:
+        #     approx_xp = 'Менее 100'
+        # elif xp < 200:
+        #     approx_xp = 'Около 100'
+        # elif xp < 400:
+        #     approx_xp = 'Около 250'
+        # elif xp < 650:
+        #     approx_xp = 'Около 500'
+        # elif xp < 850:
+        #     approx_xp = 'Около 750'
+        # elif xp < 1250:
+        #     approx_xp = 'Около 1000'
+        # elif xp < 1600:
+        #     approx_xp = 'Около 1500'
+        # else:
+        #     approx_xp = 'Более 1500'
+        
+        # # generating view
+        # view = to_view([
+        #     '**Приостановка получения опыта**',
+        #     'С 22 декабря 2025 года возможность получать опыт была приостановлена '\
+        #         'по некоторым техническим причинам.',
+        #     'Возможность получать опыт будет возобновлена ближе к 2026 году и неполученный будет восстановлен.',
+        #     f'За этот период (начиная с 22.12.2025) вы заработали: **{approx_xp} XP**'
+        # ])
+
+        # re = user.xp.get_season_xp('re')
+        # tt = user.xp.get_season_xp('33')
+
+        # view = to_view([
+        #     '**Приостановка получения опыта**',
+        #     'До некоторого времени полученный опыт не отображался в профиле, но пока что возможность зарабатывать опыт я верну.',
+        #     'Подробности можно узнать в [этом посте](https://discord.com/channels/975809939920539729/975819969612906516/1457497232692609064).',
+        #     f'Ваш опыт, заработанный за **сезон ml:re**: **{re} XP**',
+        #     f'Опыт, который перенесется на новый сезон: **{tt} XP**'
+        # ])
+
+        view = to_view([
+            'И че бля ты от меня хочешь.'
+        ])
+
+        await interaction.response.send_message(
+            view=view, ephemeral=True
+        )
 
 
     @bot.hybrid_command(
@@ -332,7 +397,7 @@ async def setup(bot: MLBot):
                 message.reference.message_id
             )
             if not message.author.bot and not m.author.bot:
-                bot.mg.add_xp(m.author.id, REPLY_AUTHOR_XP)
+                bot.mg.add_xp(m.author.id, REPLY_AUTHOR_XP, 'reply')
             reply = REPLY_XP
         except:
             reply = 0
@@ -372,16 +437,10 @@ async def setup(bot: MLBot):
             to_add = int(len(message.content)/XP_PER_CHARACTERS)+\
                 len(message.attachments)*XP_PER_ATTACHMENT +\
                 len(message.embeds)*XP_PER_EMBED +\
-                reply
-            to_add = min(MAX_XP_PER_MESSAGE, to_add)
+                reply +\
+                BASE_XP_PER_MESSAGE
 
-            is_one_word = len(message.content.split()) == 1
-            if is_one_word:
-                botuser.minute_stats.one_word_messages += 1
-                if botuser.minute_stats.one_word_messages < ONE_WORD_MSGS:
-                    to_add += BASE_XP_PER_MESSAGE
-            else:
-                to_add += BASE_XP_PER_MESSAGE
+            to_add = min(MAX_XP_PER_MESSAGE, to_add)
         else:
             to_add = 0
         to_add += additional
@@ -392,7 +451,7 @@ async def setup(bot: MLBot):
 
         botuser.minute_stats.add_xp(to_add)
 
-        out = bot.mg.add_xp(message.author.id, to_add, False)
+        out = bot.mg.add_xp(message.author.id, to_add, 'msg', False)
 
         if out:
             if out <= len(LEVELS):
