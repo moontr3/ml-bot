@@ -79,7 +79,8 @@ async def on_router_message(messages: List[aiogram.types.Message]):
 
         # xp for message
         if len(content) >= MIN_LENGTH_XP:
-            to_add += BASE_XP_PER_MESSAGE
+            if not message.via_bot:
+                to_add += BASE_XP_PER_MESSAGE
             to_add += len(content)//XP_PER_CHARACTERS
             to_add += len(photos)*XP_PER_ATTACHMENT
             to_add += len(documents)*XP_PER_ATTACHMENT

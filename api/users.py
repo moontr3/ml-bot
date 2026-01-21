@@ -123,6 +123,20 @@ class Collectibles:
         self.items: list = data.get('items', [])
         self._selected: "str | None" = data.get('selected', None)
 
+
+    def font(self, style: str = 'regular') -> str:
+        '''
+        Returns the path to a .ttf of the currently selected font.
+        '''
+        return f'assets/fonts/{self.selected}/{style}.ttf'
+
+
+    def skin(self, type: str = 'bgs') -> str:
+        '''
+        Returns the path to a .png of the currently selected skin.
+        '''
+        return f'assets/{type}/{self.selected}.png'
+
     
     @property
     def selected(self) -> str:
@@ -215,6 +229,7 @@ class User:
         self.q_level: int = data.get('q_level', self.q)
         self.q_level = min(15, max(0, self.q_level))
         self.coins: int = data.get('coins', 0)
+        self.dc_name: str = data.get('dc_name')
 
         self.tg: int | None = data.get('tg', None)
         self.display_name: str | None = data.get('display_name', None)
@@ -248,8 +263,18 @@ class User:
         self.location: str | None = data.get('location', None)
         self.loc_data: Dict[str, Any] = data.get('loc_data', {})
         self.library: List[str] = data.get('library', [])
+        self.swiminv: List[str] = data.get('swiminv', [])
+        self.swimloc: str | None = data.get('swimloc', None)
 
         self.minute_stats = MinuteStats()
+
+
+    @property
+    def name(self) -> str:
+        return self.display_name if self.display_name else\
+            self.dc_name if self.dc_name else\
+            self.tg_username if self.tg_username else\
+            str(self.id)
 
 
     @property
@@ -290,6 +315,9 @@ class User:
             "tg_username": self.tg_username,
             "location": self.location,
             "loc_data": self.loc_data,
-            "library": self.library
+            "library": self.library,
+            "dc_name": self.dc_name,
+            "swiminv": self.swiminv,
+            "swimloc": self.swimloc,
         }
     

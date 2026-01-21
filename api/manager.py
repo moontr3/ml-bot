@@ -36,6 +36,7 @@ class Manager:
         self.temp_vcs: Dict[int, TempVC] = {}
         self.quarantines: Dict[int, int] = {}
         self.renderer = RendererCollection(self, bot)
+        self.crenderer = CCollection(self, bot)
         self.sk_last_spawn: float = 0
         self.last_commit = 0
         self.roulette_games: List[Roulette] = []
@@ -226,6 +227,11 @@ class Manager:
             botuser.avatar_url = new_url
             self.commit()
 
+        if user.display_name != botuser.dc_name:
+            log(f'Updated {botuser.id}\'s cached display name')
+            botuser.dc_name = user.display_name
+            self.commit()
+
 
     def cache_tg_user_data(self, user: aiogram.types.User):
         '''
@@ -299,6 +305,32 @@ class Manager:
         '''
         user = self.get_user(id)
         user.loc_data[key] = data
+        self.commit()
+            
+
+    def set_swimloc(self, id: int, data: str):
+        user = self.get_user(id)
+        user.swimloc = data
+        self.commit()
+            
+
+    def add_to_swiminv(self, id: int, item: str):
+        user = self.get_user(id)
+        if len(user.swiminv) < 4:
+            user.swiminv.append(item)
+        self.commit()
+            
+
+    def remove_from_swiminv(self, id: int, item: str):
+        user = self.get_user(id)
+        if item in user.swiminv:
+            user.swiminv.remove(item)
+        self.commit()
+            
+
+    def set_swiminv(self, id: int, items: List[str]):
+        user = self.get_user(id)
+        user.swiminv = items
         self.commit()
             
 
