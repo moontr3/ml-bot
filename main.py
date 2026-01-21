@@ -34,12 +34,32 @@ if TG_TOKEN:
     for i in tg_cogs.routers:
         dp.include_router(i.router)
 
-    bots.append(dp.start_polling(tg_bot))
+    async def runtg(dp, tg_bot):
+        while True:
+            try:
+                await dp.start_polling(tg_bot)
+            except Exception as e:
+                log(f'Unable to start Telegram bot: {e}', level=ERROR)
+            log('Restarting Telegram in 30...')
+            await asyncio.sleep(30)
+            log('Restarting Telegram now!')
+
+    bots.append(runtg(dp, tg_bot))
 
 # discord bot
 
+async def rundc(bot):
+    while True:
+        try:
+            await bot.start(TOKEN)
+        except Exception as e:
+            log(f'Unable to start Discord bot: {e}', level=ERROR)
+        log('Restarting Discord in 120...')
+        await asyncio.sleep(120)
+        log('Restarting Discord now!')
+
 bot = MLBot(command_prefix=PREFIXES, intents=discord.Intents.all(), help_command=None, tg_bot=tg_bot)
-bots.append(bot.start(TOKEN))
+bots.append(rundc(bot))
 
 if tg_bot:
     for i in tg_cogs.routers:
@@ -49,6 +69,9 @@ if tg_bot:
 # running bots
 
 async def main():
-    await asyncio.gather(*bots)
+    try:
+        await asyncio.gather(*bots)
+    except Exception as e:
+        log(f'Global error: {e}', level=ERROR)
 
 asyncio.run(main())

@@ -120,6 +120,7 @@ MAX_REMINDERS = 10 # Maximum amout of reminders a user can have at once
 ROULETTE_XP = [12,16] # Minimum and maximum amount of XP a user can get from winning a russian roulette game
 DUEL_XP = [6,10] # Minimum and maximum amount of XP a user can get from winning a duel
 CROSSPOST_WAIT_TIMER = 1.5 # Slowmode in seconds for crossposting messages *to* Telegram to avoid rate limits
+MAX_CUSTOM_NAME_LEN = 32 # Maximum number of characters for ml!name
 BASE_URL = 'https://api.navy/v1/' # AI API base URL
 MAX_CHARS_IN_HISTORY = 2000 # Maximum amount of characters in AI history
 MAX_MESSAGE_LEN = 256 # Maximum amount of characters allowed in a single message in AI history
@@ -193,6 +194,9 @@ FATE_ACTIONS_FILE = 'data/fate.txt'
 DEFAULT_C = discord.Color.green()
 LOADING_C = discord.Color.yellow()
 ERROR_C = discord.Color.red()
+
+WIDTH = 420 # Width (px) of the CBox embeds
+GAP_SURFACE_OPACITY = 128
 
 # Error embeds
 MISSING_PERMS_EMBED = to_container('Недостаточно прав для ввода этой команды.', ERROR_C)

@@ -54,9 +54,9 @@ async def setup(bot: MLBot):
         # changing name
         else:
             # name too long
-            if len(name) > 16:
+            if len(name) > MAX_CUSTOM_NAME_LEN:
                 view = to_view(
-                    ['Слишком длинное имя!', 'Максимальная длина: **16 символов**.'],
+                    ['Слишком длинное имя!', 'Максимальная длина: **{MAX_CUSTOM_NAME_LEN} символов**.'],
                     ERROR_C
                 )
                 await ctx.reply(view=view, ephemeral=True)

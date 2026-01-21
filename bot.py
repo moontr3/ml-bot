@@ -55,6 +55,8 @@ class MLBot(commands.Bot):
         '''
 
         extensions = dict(self.extensions)
+        success = 0
+        total = 0
 
         for i in extensions:
             await self.unload_extension(i)
@@ -65,10 +67,15 @@ class MLBot(commands.Bot):
                 i = i.replace('\\','/')
                 name = self.to_extension_name(i)
                 await self.load_extension(name)
-                log(f'Loaded extension {name}')
+                # log(f'Loaded extension {name}')
+                success += 1
 
             except Exception as e:
                 log(f'Extension unable to load: {e}', level=ERROR)
+            
+            total += 1
+
+        log(f'Loaded {success} / {total} extensions')
 
 
     # connection
