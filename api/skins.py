@@ -24,6 +24,13 @@ class SkinData:
             if not os.path.exists(f'assets/skins/{self.key}/{i}.png'):
                 log(f'File {i} not found for skin {self.key}', 'api', WARNING)
 
+        # C - checking skin files
+        for i in [
+            'bgs', 'badges'
+        ]:
+            if not os.path.exists(f'assets/{i}/{self.key}.png'):
+                log(f'Skin {self.key} not found in folder {i}', 'api', WARNING)
+
 
 class FontData:
     def __init__(self, key: str, data: dict = {}):
