@@ -21,7 +21,7 @@ def seconds_from_string(string:str) -> "Tuple[int,str,float|int] | None":
     original provided amount.
     '''
     string = string.replace(' ','')
-    
+
     amount = string[0:-1]
     try:
         amount = float(amount)
@@ -35,15 +35,15 @@ def seconds_from_string(string:str) -> "Tuple[int,str,float|int] | None":
         unit_name = UNITNAMES[string[-1]]
     except:
         return None
-    
+
     return int(amount*unit), unit_name, amount
-    
+
 
 def remove_md(string:str, escape_spoilers:bool=False) -> str:
     '''
     Escapes any markdown symbols.
     '''
-    string = string.replace('\\', '\\\\') # confusing af 
+    string = string.replace('\\', '\\\\') # confusing af
     string = string.replace('*', '\\*')
     string = string.replace('_', '\\_')
     string = string.replace('~', '\\~')
@@ -51,25 +51,6 @@ def remove_md(string:str, escape_spoilers:bool=False) -> str:
         string = string.replace('|', '\\|')
 
     return string
-
-def datetime_to_text(time:datetime.datetime) -> str:
-    '''
-    Converts a datetime.datetime object into a neat string eg.
-
-    11 Sep 2011, 14:22:16, Wed
-    '''
-    month = [
-        'Янв','Фев','Мар','Апр','Май','Июн',
-        'Июл','Авг','Сен','Окт','Ноя','Дек'
-    ][time.month-1]
-    weekday = [
-        'Пн','Вт','Ср','Чт','Пт','Сб','Вс'
-    ][time.weekday()]
-
-    text = f'{time.day} {month} {time.year}, '\
-        f'{time.hour}:{time.minute}:{time.second}'
-
-    return
 
 
 def random_color(lightness:int, min:int=0) -> Tuple[int,int,int]:
@@ -161,7 +142,7 @@ def get_datetime(date: str) -> datetime.datetime:
                     'янв', 'фев', 'мар', 'апр', 'май', 'июн',
                     'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'
                 ]
-                
+
                 if date.lower()[:3] in months:
                     try:
                         return datetime.datetime.strptime(
@@ -169,7 +150,7 @@ def get_datetime(date: str) -> datetime.datetime:
                         )
                     except:
                         return None
-                    
+
 
 def to_cool_numbers(string: str) -> str:
     string = str(string)
@@ -177,7 +158,7 @@ def to_cool_numbers(string: str) -> str:
 
     for i in string:
         out += COOL_NUMBERS.get(i, i)
-    
+
     return out
 
 
@@ -391,7 +372,7 @@ def get_dixus_phrase(username: str) -> "str | None":
         username = remove_md(username)
 
         return f'{username} надеюсь тя {word} укусит) ты же их так любишь))'
-    
+
     # i'm an old
     else:
         phrases = [
@@ -423,9 +404,9 @@ def get_dixus_phrase(username: str) -> "str | None":
             chosen.pop(0)
 
         sep = random.choice([' ',',',', '])
-        
+
         return sep.join(chosen)
-    
+
 
 
 def index_to_roulette_pos(index: int) -> Tuple[int,int]:
@@ -441,5 +422,5 @@ def unicode_cool_numbers(n: int) -> str:
 
     for i in string:
         out += UNICODE_COOL_NUMBERS.get(i, i)
-    
+
     return out

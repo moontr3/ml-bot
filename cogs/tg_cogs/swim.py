@@ -1,6 +1,3 @@
-
-from copy import copy
-import os
 import random
 from discord.ext import commands
 import api
@@ -20,10 +17,10 @@ dcbot: commands.Bot = None
 manager: api.Manager = None
 
 
-def get_result(user: api.User) -> Tuple[str, str]:
+def get_result(user: api.User | None) -> Tuple[str, str]:
     n = random.randint(1,9 if user and 'boots' in user.swiminv else 15)
 
-    if n != random.randint(1,6):
+    if n != 3:
         if user:
             return {
                 None: '|Вы плывете| |✅|',
@@ -31,9 +28,9 @@ def get_result(user: api.User) -> Tuple[str, str]:
                 'land': '|Вы идете| |✅|',
                 '33': '|Вы крадетесь| |✅|'
             }[user.swimloc], 'discard'
-        
+
         return '|Вы плывете| |✅|', 'discard'
-    
+
     if not user:
         return random.choice([
             '|Вы сосете| |🍆|',
@@ -48,7 +45,7 @@ def get_result(user: api.User) -> Tuple[str, str]:
             '|Вы достали собаку из коробки| |🐕|',
             '|Вы утонули| |💀|'
         ]), 'discard'
-    
+
     # user actions
     plist = [
         'random',
@@ -64,7 +61,7 @@ def get_result(user: api.User) -> Tuple[str, str]:
     ]
     if 'boots' not in user.swiminv:
         plist.append('boots')
-    
+
     if len(user.swiminv) < 4:
         plist.append('dog')
 
@@ -88,11 +85,11 @@ def get_result(user: api.User) -> Tuple[str, str]:
             texts.append('|Вы Эпштейн| |✅|')
 
         return random.choice(texts), 'discard'
-    
+
     # boots
     if action == 'boots':
         return '|Вы нашли сапожки| |👢|', 'boots'
-        
+
     # death
     if action == 'death':
         return {
@@ -105,26 +102,26 @@ def get_result(user: api.User) -> Tuple[str, str]:
     # xp
     if action == 'xp':
         return '|Вы получили 1 XP| |✨|', 'xp'
-        
+
     # dog
     if action == 'dog':
         return '|Вы достали собаку из коробки| |🐕|', 'dog'
-    
+
     if action == 'dogeater':
         return '|Собакоедка съела вашу собаку| |🐕|', 'item:dog'
-    
+
     # location
     if action == 'loc':
         if user.swimloc:
             return '|Вы снова плывёте| |✅|', 'loc'
-        
+
         else:
             return random.choice([
                 ('|Вы нашли островок Эпштейна| |🏝️|', 'cloc:epstein'),
                 ('|Вы на суше| |🏝️|', 'cloc:land'),
                 ('|Вы в убежище Совета| |🌑|', 'cloc:33'),
             ])
-    
+
     # anchor
     if action == 'anchor':
         if 'anchor' in user.swiminv:
