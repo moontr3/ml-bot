@@ -424,3 +424,90 @@ def unicode_cool_numbers(n: int) -> str:
         out += UNICODE_COOL_NUMBERS.get(i, i)
 
     return out
+
+
+def gen_moan() -> str:
+    letters = random.randint(2,4)
+    case = random.choice(['upper','lower','mix','random'])
+    exclamationpoint = random.choice([True,False])
+    dots = random.choice([True,False])
+    tilda = random.choice([True,False])
+    if not exclamationpoint and not dots and not tilda:
+        tilda = True
+    fixedamount = random.choice([True,False])
+    output = ''
+    long1 = random.randint(1,3)
+    long2 = random.randint(1,6)
+    long3 = random.randint(1,5)
+    long4 = random.randint(1,7)
+    longtilda = random.randint(1,5)
+    longexclamation = random.randint(1,2)
+    longdots = random.randint(2,4)
+
+    letter1 = random.choice('АМФУ')
+    letter3 = ''
+    letter4 = ''
+
+    if letter1 == 'А':
+        letter2 = random.choice('ХМ')
+    elif letter1 == 'М':
+        letter2 = random.choice('МФХ')
+    elif letter1 == 'Ф':
+        letter2 = random.choice('МХУЯ')
+    else:
+        letter2 = random.choice('ХФМ')
+
+    if letters == 3:
+        if letter1 == 'А':
+            letter3 = random.choice('ХМФ')
+        elif letter1 == 'М':
+            letter3 = random.choice('АВФ')
+        elif letter1 == 'Ф':
+            letter3 = random.choice('ЯХУ')
+        else:
+            letter3 = random.choice('МХФ')
+
+    if letters == 4:
+        if letter1 == 'А':
+            letter3 = random.choice('ХМФ')
+        elif letter1 == 'М':
+            letter3 = random.choice(' будАВФ')
+        elif letter1 == 'Ф':
+            letter3 = random.choice('ЯХУ')
+        else:
+            letter3 = random.choice('МХФ')
+
+        if letter1 != 'Ф':
+            letter4 = random.choice('ВАХФМЯ')
+        else:
+            letter4 = random.choice('ЯХФМ')
+
+    if fixedamount == False:
+        letter1 *= long1
+        letter2 *= long2
+        letter3 *= long3
+        letter4 *= long4
+
+    output = letter1+letter2+letter3+letter4
+
+    if case == 'lower':
+        output = output.lower()
+
+    if case == 'mix':
+        output = output.capitalize()
+
+    if case == 'random':
+        output = ''.join([
+            i.lower() if random.choice([True, False]) else i.upper() for i in output
+        ])
+
+    if tilda == True:
+        output+='~'*longtilda
+
+    if dots == True:
+        output+='.'*longdots
+
+    if exclamationpoint == True:
+        output+='!'*longexclamation
+
+    return output

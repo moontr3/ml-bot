@@ -1,9 +1,7 @@
-from . import crossposter, link, xp, help, swim
+from . import message, link, swim
 
 routers = [
     link,
-    help,
-    xp,
-    crossposter,
+    message,
     swim
 ]

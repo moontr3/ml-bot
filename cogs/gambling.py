@@ -34,7 +34,7 @@ def get_view(botuser: api.User, is_gif: bool = False, is_disabled: bool = False)
 
 # setup
 async def setup(bot: MLBot):
-    
+
     @bot.hybrid_command(
         name='gambling',
         description='Лудомания слотмашина додеп',
@@ -60,7 +60,7 @@ async def setup(bot: MLBot):
     @bot.listen()
     async def on_interaction(interaction:discord.Interaction):
         botuser: api.User = bot.mg.get_user(interaction.user.id)
-        
+
         # inserting coin
         if interaction.data['custom_id'].startswith('insert:'):
             user = int(interaction.data['custom_id'].split(':')[1])
@@ -68,7 +68,7 @@ async def setup(bot: MLBot):
             if user != interaction.user.id:
                 await interaction.response.send_message(view=c_to_view(NDTMKR_EMBED), ephemeral=True)
                 return
-            
+
             # taking q
             if not bot.mg.add_coin(botuser.id, 1):
                 await interaction.response.send_message(
@@ -96,7 +96,7 @@ async def setup(bot: MLBot):
             if user != interaction.user.id:
                 await interaction.response.send_message(view=c_to_view(NDTMKR_EMBED), ephemeral=True)
                 return
-            
+
             # editing viev
             view = get_view(
                 botuser, len(interaction.data['custom_id'].split(':')) > 2,
@@ -112,7 +112,7 @@ async def setup(bot: MLBot):
 
             # generating slots
             try:
-                pattern = api.GamblingPattern.random('bebe')
+                pattern = api.GamblingPattern.random('yunyun')
                 image, frames = bot.mg.renderer.roulette.gif(pattern)
                 attachment = discord.File(image, 'image.gif')
             except Exception as e:

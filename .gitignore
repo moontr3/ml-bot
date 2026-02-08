@@ -12,3 +12,5 @@ messages.json
 .vscode
 .venv
 sk
+ruff.toml
+pyrightconfig.json

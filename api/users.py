@@ -224,7 +224,7 @@ class User:
         self.xp = XP(xp)
         self.quarantine: float | None = data.get('quarantine', None)
         self.reminders: List[Reminder] = [Reminder(i) for i in data.get('reminders', [])]
-        self.tokens: Dict[int] = data.get('tokens', {})
+        self.tokens: Dict[str, int] = data.get('tokens', {})
         self.q: int = data.get('q', 0)
         self.q_level: int = data.get('q_level', self.q)
         self.q_level = min(15, max(0, self.q_level))

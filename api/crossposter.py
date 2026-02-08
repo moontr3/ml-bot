@@ -18,14 +18,14 @@ class CrossposterMessage:
         self.dc_channel_id = dc_channel_id
 
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> list:
         return [
             self.dc_id,
             self.tg_ids,
             self.preview_text,
             self.dc_channel_id
         ]
-    
+
 
     @classmethod
     def from_json(cls, data: dict):
@@ -99,7 +99,7 @@ class Crossposter:
         if time.time()-self.last_commit < 2:
             return
         self.last_commit = time.time()
-        
+
         data = {
             "messages": {k: [i.to_dict() for i in v] for k, v in self.messages.items()}
         }
@@ -150,7 +150,7 @@ class Crossposter:
             for message in messages:
                 if message.dc_id == dc_id:
                     return message
-                
+
 
     def get_dc_by_tg(self, chat_id: int, tg_id: int) -> CrossposterMessage:
         '''

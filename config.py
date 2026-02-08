@@ -1,9 +1,9 @@
 import discord
 from builder import *
 
-PREFIXES = (
+PREFIXES = [
     'tml!', 'ml!', 'odbs!','мл!','penis!','пенис!','=','ьд!'
-) # prefixes used when entering bot commands
+] # prefixes used when entering bot commands
 TEMP_VC_CREATE_COMMANDS = [
     '!типа где', '!типо где', '!тип где', '!tipa gde', '!tipo gde'
 ] # prefixes used when creating a temporary VC
@@ -11,6 +11,7 @@ MIN_SECONDS_BETWEEN_COMMITS = 10 # minimum seconds between writing user data to 
 
 # IDs
 
+BOT_ID = 1343136289930870945 # ID of the bot account
 ADMINS = [698457845301248010] # list of bot admins that have access to admin features like adding XP or reloading commands
 LEVELS = [
     976773904968343572,
@@ -57,6 +58,8 @@ CHATTABLE_CHANNELS = [
     1019941166613008425,
     1019938361718345738,
 ] # IDs of channels that users can earn XP / collect skins in
+COMMAND_TG_CHATS = [-1003000053798] # List of Telegram chat IDs in which most commands work
+TG_BOT_USERNAME = 'moonlandrebot' # Telegram bot username
 
 # Likee messages
 

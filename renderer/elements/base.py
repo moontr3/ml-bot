@@ -13,7 +13,7 @@ class BaseElement:
         surface = pg.Surface(size, pg.SRCALPHA)
         surface.fill((0,0,0,255))
         pg.draw.rect(surface, (0,0,0,0), surface.get_rect(), 0, -1, *[i+1 for i in corners])
-        
+
         for index, i in enumerate([
             (corners[0],           corners[0]          ),
             (size[0]-corners[1]-1, corners[1]          ),

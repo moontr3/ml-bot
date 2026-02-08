@@ -26,7 +26,7 @@ class RendererCollection:
         r = Renderer((1,1), (0,0,0,0))
         e = easing.QuadEaseOut()
         frames = 30
-        
+
         gsize = r.get_text_size(text, 'assets/fonts/default/regular.ttf', 20)
         r = Renderer(gsize, (0,0,0,0))
 
@@ -86,7 +86,7 @@ class RendererCollection:
 
         return path
 
-    
+
     async def leaders(self,
         guild: discord.Guild,
         type: Literal['alltime','season','week','day','vc','stream','mic','q']='season'
@@ -166,7 +166,7 @@ class RendererCollection:
                 (140,140,140) if place == 2 else\
                 (148,66,31) if place == 3 else\
                 (255,255,255)
-            
+
             r.draw_text(
                 str(place), (17, start+7), f'assets/fonts/default/bolditalic.ttf', 32,
                 color, opacity=96 if place > 3 else 255
@@ -213,7 +213,7 @@ class RendererCollection:
         # saving
         path = r.save('temp', 'png')
         return path
-    
+
 
     async def user_xp(self, user: discord.User, role: discord.Role) -> str:
         '''
@@ -237,7 +237,7 @@ class RendererCollection:
         max_pos = r.draw_text(
             role.name.capitalize(), (398,15), f'assets/fonts/{font}/medium.ttf', 20, role.color.to_rgb(), h=1
         )[0]
-        
+
         pg.draw.circle(
             r.surface, role.color.to_rgb(), (378-max_pos, 29), 12
         )
@@ -266,7 +266,7 @@ class RendererCollection:
             h=1, opacity=128
         )[0]
         r.draw_text(
-            'всего', (404-size-5, 92), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255), 
+            'всего', (404-size-5, 92), f'assets/fonts/{font}/regular.ttf', 20, (255,255,255),
             h=1, opacity=128
         )
 
@@ -317,7 +317,7 @@ class RendererCollection:
                 (140,140,140) if pos == 2 else\
                 (148,66,31) if pos == 3 else\
                 (192,192,192)
-            
+
             r.draw_text(
                 f"#{pos}", (18,217), f'assets/fonts/{font}/bolditalic.ttf', 20, color,
             )
@@ -347,7 +347,7 @@ class RendererCollection:
                 (140,140,140) if pos == 2 else\
                 (148,66,31) if pos == 3 else\
                 (192,192,192)
-            
+
             r.draw_text(
                 f"#{pos}", (159,217), f'assets/fonts/{font}/bolditalic.ttf', 20, color,
             )
@@ -377,7 +377,7 @@ class RendererCollection:
                 (140,140,140) if pos == 2 else\
                 (148,66,31) if pos == 3 else\
                 (192,192,192)
-            
+
             r.draw_text(
                 f"#{pos}", (300,217), f'assets/fonts/{font}/bolditalic.ttf', 20, color,
             )
@@ -388,7 +388,7 @@ class RendererCollection:
 
         path = r.save('temp', 'png')
         return path
-    
+
 
     async def user_vc(self, user: discord.User) -> str:
         '''
@@ -406,7 +406,7 @@ class RendererCollection:
         vc_speak_str = f'{t//60//60}:{t//60%60:02}:{t%60:02}'
         t = botuser.vc.vc_time_streaming
         vc_stream_str = f'{t//60//60}:{t//60%60:02}:{t%60:02}'
-        
+
         r.draw_text(
             f'Статистика войсов {user.display_name}', (17,15),
             f'assets/fonts/{font}/medium.ttf', 16, (255,255,255), opacity=128
@@ -429,7 +429,7 @@ class RendererCollection:
         # r.draw_image(
         #     'assets/stream.png', (389,56)
         # )
-        
+
         # time vc
         pos = self.mg.get_place(user.id, 'vc')
 
@@ -447,7 +447,7 @@ class RendererCollection:
                 (140,140,140) if pos == 2 else\
                 (148,66,31) if pos == 3 else\
                 (192,192,192)
-            
+
             r.draw_text(
                 f"#{pos}", (18,119), f'assets/fonts/{font}/bolditalic.ttf', 20, color,
             )
@@ -473,7 +473,7 @@ class RendererCollection:
                 (140,140,140) if pos == 2 else\
                 (148,66,31) if pos == 3 else\
                 (192,192,192)
-            
+
             r.draw_text(
                 f"#{pos}", (159,119), f'assets/fonts/{font}/bolditalic.ttf', 20, color,
             )
@@ -503,7 +503,7 @@ class RendererCollection:
                 (140,140,140) if pos == 2 else\
                 (148,66,31) if pos == 3 else\
                 (192,192,192)
-            
+
             r.draw_text(
                 f"#{pos}", (300,119), f'assets/fonts/{font}/bolditalic.ttf', 20, color,
             )
@@ -518,7 +518,7 @@ class RendererCollection:
 
         path = r.save('temp', 'png')
         return path
-    
+
 
     def prom(self, user, level: int, role: discord.Role = None) -> str:
         skin = user.skins.selected
@@ -570,7 +570,7 @@ class RendererCollection:
 
         path = r.save('temp', 'png')
         return path
-    
+
 
     def skin_claim(self, user: discord.User, skin: str) -> str:
         '''
@@ -580,11 +580,11 @@ class RendererCollection:
         font = botuser.fonts.selected
         r = Renderer(image=f'assets/skins/{skin}/onelinerbg.png')
         skin = self.mg.skins[skin]
-        
+
         # skin name
         # name_size = r.get_text_size('получил скин', f'assets/fonts/{font}/regular.ttf', 20)[0]+\
         #     r.get_text_size(skin.name+'!', f'assets/fonts/{font}/bold.ttf', 20)[0]+10
-        
+
         # name
         pos = 17
         # max_size = 420-17-17-name_size
@@ -614,7 +614,7 @@ class RendererCollection:
 
         path = r.save('temp', 'png')
         return path
-    
+
 
     def font_claim(self, user: discord.User, font: str) -> str:
         '''
@@ -624,11 +624,11 @@ class RendererCollection:
         skin = botuser.skins.selected
         r = Renderer(image=f'assets/skins/{skin}/onelinerbg.png')
         fontdata = self.mg.fonts[font]
-        
+
         # # skin name
         # name_size = r.get_text_size('получил шрифт', f'assets/fonts/{font}/regular.ttf', 20)[0]+\
         #     r.get_text_size(fontdata.name+'!', f'assets/fonts/{font}/bold.ttf', 20)[0]+10
-        
+
         # # name
         pos = 17
         # max_size = 420-17-17-name_size
@@ -658,7 +658,7 @@ class RendererCollection:
 
         path = r.save('temp', 'png')
         return path
-    
+
 
     def skin_set(self, user, skin: str) -> str:
         '''
@@ -680,7 +680,7 @@ class RendererCollection:
 
         path = r.save('temp', 'png')
         return path
-    
+
 
     def font_set(self, user, font: str) -> str:
         '''
@@ -702,7 +702,7 @@ class RendererCollection:
 
         path = r.save('temp', 'png')
         return path
-    
+
 
     def q_balance(self, user: discord.User) -> str:
         '''
@@ -730,7 +730,7 @@ class RendererCollection:
 
         path = r.save('temp', 'png')
         return path
-    
+
 
     def q_level(self, user: discord.User) -> str:
         '''
@@ -792,7 +792,7 @@ class RendererCollection:
 
         path = r.save('temp', 'png')
         return path
-    
+
 
     def rep(self, user: discord.User) -> str:
         '''
@@ -825,7 +825,7 @@ class RendererCollection:
                     f'assets/rep{place_num}.png', (420,0), h=1
                 )
 
-        else: 
+        else:
             placesize = 0
 
         # text
@@ -849,7 +849,7 @@ class RendererCollection:
             f'-{botuser.minus_reps}', (x,62+22), f'assets/fonts/{font}/semibold.ttf', 14,
             (255,140,140), v=0.5, opacity=128
         )[0]+18
-        
+
 
         # counter
         count = r.draw_text(
@@ -886,7 +886,7 @@ class RendererCollection:
 
         path = r.save('temp', 'png')
         return path
-    
+
 
     def font_list(self, user: discord.User) -> str:
         '''
@@ -979,7 +979,7 @@ class RendererCollection:
 
         path = r.save('temp', 'png')
         return path
-    
+
 
     def skin_list(self, user: discord.User) -> str:
         '''
@@ -1079,7 +1079,7 @@ class RendererCollection:
         botuser = self.mg.get_user(user.id)
         font = botuser.fonts.selected
         r = Renderer(image=f'assets/skins/{botuser.skins.selected}/skintopbg.png')
-        
+
         # date
         date = datetime.datetime(year, month, 1)
         while date.weekday() != 0:
@@ -1130,7 +1130,7 @@ class RendererCollection:
             day = int(date.timestamp()//86400)+1
             lb = self.mg.timed_lb.daily.get(day, {})
             xp = lb.get(user.id, 0)
-            
+
             lb = sorted(lb.items(), key=lambda x: x[1], reverse=True)
 
             place = 0
@@ -1162,7 +1162,7 @@ class RendererCollection:
                     (140,140,140) if place == 2 else\
                     (148,66,31) if place == 3 else\
                     (192,192,192)
-                
+
                 r.draw_text(
                     f"#{place}", (x+54-6, y+3), f'assets/fonts/{font}/bold.ttf', 14, color, h=1,
                 )
@@ -1216,7 +1216,7 @@ class RendererCollection:
         botuser = self.mg.get_user(user.id)
         font = botuser.fonts.selected
         r = Renderer(image=f'assets/skins/{botuser.skins.selected}/skintopbg.png')
-        
+
         # date
         date = datetime.datetime(year, month, 1)
         while date.weekday() != 0:

@@ -17,9 +17,9 @@ pg.font.init()
 
 class Renderer:
     def __init__(self,
-        size: Tuple[int, int] = None,
-        fill: "Tuple[int, int, int] | None" = None,
-        image: "str | None" = None
+        size: Tuple[int, int] | None = None,
+        fill: Tuple[int, int, int] | None = None,
+        image: str | None = None
     ):
         '''
         A class that you can render images in.
@@ -37,7 +37,7 @@ class Renderer:
     @property
     def surface(self) -> pg.Surface:
         return self.surfaces[-1]
-    
+
 
     @surface.setter
     def surface(self, surface: pg.Surface):
@@ -80,7 +80,7 @@ class Renderer:
         log(f'image {path} downloaded in {time.time()-start_time}s', 'renderer')
         self.cleanup.append(path)
         return path
-    
+
 
     def extend(self, size: int):
         new = pg.Surface((self.surface.get_width(), self.surface.get_height()+size), pg.SRCALPHA)
@@ -108,7 +108,7 @@ class Renderer:
         if size:
             image = image.copy()
             image = pg.transform.smoothscale(image, size)
-        
+
         if rotation != 0:
             image = pg.transform.rotate(image, rotation)
 
@@ -119,7 +119,7 @@ class Renderer:
             ]
 
         image.set_alpha(opacity)
-        
+
         if surface is None:
             surface = self.surface
 
@@ -166,7 +166,27 @@ class Renderer:
 
         surface.blit(text, pos)
         return text.get_rect().size
-    
+
+
+    def render_text(self,
+        text: str, font:str, size:int,
+        color:Tuple[int, int, int], rotation: int = 0,
+        opacity: int = 255, max_size: int = None
+    ) -> pg.Surface:
+        font: pg.font.Font = self.get_font(font, size)
+        text: pg.Surface = font.render(text, True, color)
+
+        if rotation != 0:
+            text = pg.transform.rotate(text, rotation)
+
+        if max_size and text.get_width() > max_size:
+            text = pg.transform.smoothscale(text, (max_size, text.get_height()))
+
+        if opacity != 255:
+            text.set_alpha(opacity)
+
+        return text
+
 
     def get_text_size(self,
         text: str, font:str, size:int
@@ -195,7 +215,7 @@ class Renderer:
         '''
         start_time = time.time()
         filename = dir.rstrip('/\\')+'/' + utils.rand_id() + '.'+ext
-        
+
         # saving
         pg.image.save(self.surface, filename)
         log(f'image {filename} saved in {time.time()-start_time}s', 'renderer')
@@ -204,10 +224,10 @@ class Renderer:
         for i in self.cleanup:
             os.remove(i)
         self.cleanup = []
-        
+
         log(f'image {filename} completed {time.time()-self.init_time}s', 'renderer')
         return filename
-    
+
 
     def to_gif(self, dir:str, duration_ms:int) -> str:
         '''
@@ -215,7 +235,7 @@ class Renderer:
         '''
         start_time = time.time()
         filename = dir.rstrip('/\\')+'/' + utils.rand_id() + '.gif'
-        
+
         # converting frames
         images = []
 
@@ -242,6 +262,6 @@ class Renderer:
         for i in self.cleanup:
             os.remove(i)
         self.cleanup = []
-        
+
         log(f'gif {filename} completed {time.time()-self.init_time}s', 'renderer')
         return filename
